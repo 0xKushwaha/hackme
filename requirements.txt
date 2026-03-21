@@ -1,0 +1,7 @@
+langchain
+langchain-anthropic
+langchain-openai
+langchain-community
+pandas
+scikit-learn
+python-dotenv

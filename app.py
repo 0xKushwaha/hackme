@@ -108,16 +108,10 @@ def _run_pipeline(cfg: dict) -> dict:
     profile   = discovery.scan(cfg["dataset_path"])
     print(f"   Files : {len(profile.files)}  |  Types : {', '.join(profile.types_present)}")
     dataset_summary = discovery.format_profile(profile)
+    task_desc       = cfg.get("task_description", "").strip()
 
-    # Prepend competition/task context
-    task_desc = cfg.get("task_description", "").strip()
     if task_desc:
-        context_block = (
-            f"COMPETITION / TASK CONTEXT:\n{task_desc}\n\n"
-            f"DATASET PROFILE:\n{dataset_summary}"
-        )
-    else:
-        context_block = dataset_summary
+        print(f"   Task  : {task_desc[:80]}{'…' if len(task_desc) > 80 else ''}")
 
     # ── LLM ─────────────────────────────────────────────────────────
     llm_kwargs = {}
@@ -178,6 +172,7 @@ def _run_pipeline(cfg: dict) -> dict:
         agents=agents, llm=llm, executor=executor,
         memory_system=memory_system, registry=registry,
         tool_registry=tool_registry, builder_agent=builder_agent,
+        task_description=task_desc,
     )
 
     abs_path = os.path.abspath(cfg["dataset_path"])
@@ -185,17 +180,17 @@ def _run_pipeline(cfg: dict) -> dict:
     retries  = int(cfg.get("max_retries", 4))
 
     if mode == "manual":
-        orch.run_manual(context_block)
+        orch.run_manual(dataset_summary)
     elif mode == "auto":
-        orch.run_auto(context_block)
+        orch.run_auto(dataset_summary)
     elif mode == "train":
         orch.run_training_loop(
-            dataset_summary=context_block, dataset_path=abs_path,
+            dataset_summary=dataset_summary, dataset_path=abs_path,
             target_col=target, max_retries=retries, experiment_dir=exp_dir,
         )
     elif mode == "phases":
         orch.run_phases(
-            dataset_summary=context_block, dataset_path=abs_path,
+            dataset_summary=dataset_summary, dataset_path=abs_path,
             target_col=target, max_retries=retries,
             experiment_dir=exp_dir, dataset_profile=profile,
         )
@@ -211,6 +206,32 @@ def _run_pipeline(cfg: dict) -> dict:
 # Results formatting
 # ─────────────────────────────────────────────────────────────────────
 
+def _extract_metric_block(ctx) -> dict:
+    """
+    Look through Pragmatist plan entries for the structured metric block:
+      TASK TYPE: ...
+      RECOMMENDED METRIC: ...
+      METRIC JUSTIFICATION: ...
+    Returns a dict with those three keys, or empty strings if not found.
+    """
+    import re
+    result = {"task_type": "", "metric": "", "justification": ""}
+    plan_entries = [e for e in ctx.entries if e.role == "plan" and "pragmatist" in e.agent.lower()]
+    for entry in plan_entries:
+        tt = re.search(r"TASK TYPE\s*:\s*(.+)", entry.content, re.IGNORECASE)
+        rm = re.search(r"RECOMMENDED METRIC\s*:\s*(.+)", entry.content, re.IGNORECASE)
+        mj = re.search(r"METRIC JUSTIFICATION\s*:\s*(.+)", entry.content, re.IGNORECASE)
+        if tt:
+            result["task_type"]    = tt.group(1).strip()
+        if rm:
+            result["metric"]       = rm.group(1).strip()
+        if mj:
+            result["justification"] = mj.group(1).strip()
+        if result["metric"]:
+            break   # found a complete block — stop
+    return result
+
+
 def _build_report(result: dict, task_description: str) -> str:
     ctx = result["context"]
     ts  = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -221,11 +242,32 @@ def _build_report(result: dict, task_description: str) -> str:
         "",
     ]
 
+    # ── Competition / task context ──────────────────────────────────────
     if task_description.strip():
-        lines += ["## 🎯 Task / Competition Context", task_description.strip(), ""]
+        lines += [
+            "## 🎯 Task / Competition Context",
+            f"> {task_description.strip()}",
+            "",
+        ]
+
+    # ── Recommended metric callout (extracted from Pragmatist output) ───
+    metric_block = _extract_metric_block(ctx)
+    if metric_block["metric"] or metric_block["task_type"]:
+        lines += ["## 📌 Recommended Approach", ""]
+        if metric_block["task_type"]:
+            lines.append(f"| | |")
+            lines.append(f"|---|---|")
+            lines.append(f"| **Task Type** | {metric_block['task_type']} |")
+        if metric_block["metric"]:
+            lines.append(f"| **Primary Metric** | `{metric_block['metric']}` |")
+        if metric_block["justification"]:
+            lines += ["", f"**Why this metric:** {metric_block['justification']}", ""]
+        else:
+            lines.append("")
 
     role_sections = [
         ("dataset_context", "📊 Dataset Profile"),
+        ("task_context",    "🎯 Goal (Pinned)"),
         ("meta",            "🔨 Builder Strategy"),
         ("analysis",        "🔬 Agent Analysis"),
         ("plan",            "📋 Plans & Recommendations"),
@@ -236,6 +278,9 @@ def _build_report(result: dict, task_description: str) -> str:
     ]
 
     for role, heading in role_sections:
+        # Skip task_context in body — already shown at top
+        if role == "task_context":
+            continue
         entries = [e for e in ctx.entries if e.role == role]
         if not entries:
             continue

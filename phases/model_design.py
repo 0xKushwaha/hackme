@@ -23,26 +23,44 @@ class ModelDesignPhase(BasePhase):
     def _run(self, **kwargs) -> PhaseResult:
         orch = self.orch
 
+        # Pull task/competition context so agents align to the actual goal
+        task_desc = getattr(orch, "task_description", "").strip()
+        goal_note = (
+            f"\n\nCOMPETITION / TASK GOAL:\n{task_desc}\n"
+            "All recommendations must directly serve this stated objective."
+        ) if task_desc else ""
+
         # Feature engineering recommendations
         print("\n⚡ [ModelDesign] Feature engineering...")
         orch.step(
             "feature_engineer",
             "Based on the EDA and data quality analysis above, suggest concrete feature engineering "
             "steps: encoding strategies for categorical variables, numerical transformations, "
-            "interaction features, columns to drop, and any domain-specific features worth creating.",
+            "interaction features, columns to drop, and any domain-specific features worth creating."
+            + goal_note,
             ROLE_ANALYSIS,
         )
 
-        # Modeling plan
+        # Modeling plan — forced structured output for metric extraction
         print("\n⚡ [ModelDesign] Building modeling plan...")
+        metric_instruction = (
+            "\n\nIMPORTANT — Begin your response with this exact block (fill in the brackets):\n"
+            "TASK TYPE: [regression / binary_classification / multiclass_classification / "
+            "ranking / clustering / other]\n"
+            "RECOMMENDED METRIC: [metric name, e.g. RMSE, AUC-ROC, F1-macro, MAP@K]\n"
+            "METRIC JUSTIFICATION: [one sentence explaining why this metric fits the goal]\n"
+            "---\n"
+            "Then provide the full modeling plan below.\n"
+        )
         orch.step(
             "pragmatist",
             "Create a clear, actionable modeling plan:\n"
-            "1. Identify the target column and task type (regression/classification)\n"
+            "1. Identify the target column and task type (regression/classification/etc.)\n"
             "2. Recommend the top 2-3 models to try (in order of preference)\n"
-            "3. Specify the primary evaluation metric\n"
+            "3. Specify the primary evaluation metric and justify the choice\n"
             "4. Describe the train/validation/test split strategy\n"
-            "5. List feature engineering steps to apply before training",
+            "5. List the most important feature engineering steps before training"
+            + metric_instruction + goal_note,
             ROLE_PLAN,
         )
 
@@ -53,7 +71,9 @@ class ModelDesignPhase(BasePhase):
                 "devil_advocate",
                 "Critically challenge the Pragmatist's modeling plan. What assumptions might be wrong? "
                 "What could go catastrophically wrong? Propose one concrete alternative approach that "
-                "takes a meaningfully different direction.",
+                "takes a meaningfully different direction." + (
+                    f"\n\nRemember the goal is: {task_desc}" if task_desc else ""
+                ),
                 ROLE_PLAN,
             )
 
@@ -64,7 +84,10 @@ class ModelDesignPhase(BasePhase):
                 "optimizer",
                 "For the models in the plan above, recommend a hyperparameter tuning strategy: "
                 "which parameters to tune, ranges to search, cross-validation approach (folds, "
-                "stratification), and early stopping criteria if applicable.",
+                "stratification), and early stopping criteria if applicable." + (
+                    f"\n\nOptimise specifically for the metric chosen for: {task_desc}"
+                    if task_desc else ""
+                ),
                 ROLE_PLAN,
             )
 

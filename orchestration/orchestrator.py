@@ -20,7 +20,7 @@ from typing import Optional
 
 from langchain.schema import HumanMessage, SystemMessage
 
-from memory.context_manager  import ContextManager, ROLE_ANALYSIS, ROLE_PLAN, ROLE_NARRATIVE, ROLE_META
+from memory.context_manager  import ContextManager, ROLE_ANALYSIS, ROLE_PLAN, ROLE_NARRATIVE, ROLE_META, ROLE_TASK
 from memory.agent_memory     import MemorySystem
 from memory.graph_store      import INFORMED_BY, RETRY_OF, FAILURE_LED_TO, CROSS_RUN
 from execution.executor      import CodeExecutor, ExecutionResult
@@ -39,26 +39,28 @@ class Orchestrator:
 
     def __init__(
         self,
-        agents:        dict,
-        llm            = None,
-        executor:      CodeExecutor  = None,
-        memory_system: MemorySystem  = None,
-        registry:      AgentRegistry = None,
-        tool_registry                = None,   # optional ToolRegistry
-        builder_agent                = None,   # optional BuilderAgent
+        agents:           dict,
+        llm               = None,
+        executor:         CodeExecutor  = None,
+        memory_system:    MemorySystem  = None,
+        registry:         AgentRegistry = None,
+        tool_registry                   = None,   # optional ToolRegistry
+        builder_agent                   = None,   # optional BuilderAgent
+        task_description: str           = "",     # competition / user goal
     ):
-        self.agents        = agents
-        self.llm           = llm
-        self.executor      = executor or CodeExecutor()
-        self.memory        = memory_system
-        self.registry      = registry or AgentRegistry()
-        self.tool_registry = tool_registry
-        self.builder_agent = builder_agent
-        self.context       = ContextManager()
-        self.context_guard = ToolResultContextGuard(max_context_tokens=self.context.max_tokens)
-        self.installer     = LibraryInstallerAgent()
-        self.run_id        = str(uuid.uuid4())[:12]
-        self._last_node_id = None
+        self.agents           = agents
+        self.llm              = llm
+        self.executor         = executor or CodeExecutor()
+        self.memory           = memory_system
+        self.registry         = registry or AgentRegistry()
+        self.tool_registry    = tool_registry
+        self.builder_agent    = builder_agent
+        self.task_description = task_description.strip()
+        self.context          = ContextManager()
+        self.context_guard    = ToolResultContextGuard(max_context_tokens=self.context.max_tokens)
+        self.installer        = LibraryInstallerAgent()
+        self.run_id           = str(uuid.uuid4())[:12]
+        self._last_node_id    = None
 
         # Wire LLM into compactor
         if self.memory and self.llm:
@@ -219,9 +221,15 @@ class Orchestrator:
     # Manual pipeline                                                      #
     # ------------------------------------------------------------------ #
 
+    def _pin_task_context(self):
+        """Pin the user's task/competition goal so every agent can see it."""
+        if self.task_description:
+            self.context.add_task_context(self.task_description)
+
     def run_manual(self, dataset_summary: str):
         print(f"\n🚀 Starting analysis (manual mode) | run_id: {self.run_id}\n")
         self.context.add_dataset_context(dataset_summary)
+        self._pin_task_context()
 
         print("\n⚡ Round 1: Explorer + Skeptic + Statistician (parallel)...")
         self.parallel_step([
@@ -284,6 +292,7 @@ class Orchestrator:
     def run_auto(self, dataset_summary: str, max_steps: int = MAX_AUTO_STEPS):
         print(f"\n🤖 Starting analysis (auto mode) | run_id: {self.run_id}\n")
         self.context.add_dataset_context(dataset_summary)
+        self._pin_task_context()
         for _ in range(max_steps):
             decision = self._orchestrator_decide()
             if decision["complete"]:
@@ -311,6 +320,7 @@ class Orchestrator:
         print(f"\n🤖 Starting training loop | run_id: {self.run_id}\n")
         os.makedirs(experiment_dir, exist_ok=True)
         self.context.add_dataset_context(dataset_summary)
+        self._pin_task_context()
 
         # Phase 1: Analysis
         print("\n⚡ Phase 1: Parallel analysis...")
@@ -477,6 +487,8 @@ class Orchestrator:
 
         os.makedirs(experiment_dir, exist_ok=True)
         print(f"\n🚀 Starting phase-based pipeline | run_id: {self.run_id}\n")
+        if self.task_description:
+            print(f"   Goal  : {self.task_description[:80]}{'…' if len(self.task_description) > 80 else ''}")
 
         if phases is None:
             phases = [

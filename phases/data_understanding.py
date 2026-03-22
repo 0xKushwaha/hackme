@@ -51,9 +51,11 @@ class DataUnderstandingPhase(BasePhase):
     ) -> PhaseResult:
         orch = self.orch
 
-        # ── Pin dataset summary ───────────────────────────────────────────
+        # ── Pin dataset summary + task goal ──────────────────────────────
         if dataset_summary:
             orch.context.add_dataset_context(dataset_summary)
+        # Pin the task/competition goal as a separate always-visible entry
+        orch._pin_task_context()
 
         # ── Stage 0: Builder Agent ────────────────────────────────────────
         build_plan = None
@@ -75,19 +77,30 @@ class DataUnderstandingPhase(BasePhase):
         # ── Stage 1: Core EDA agents ──────────────────────────────────────
         print("\n⚡ [DataUnderstanding] Core EDA agents starting...")
 
+        # Pull task description from orchestrator so agents can align to the goal
+        task_desc = getattr(orch, "task_description", "").strip()
+        goal_suffix = (
+            f"\n\nUSER GOAL / COMPETITION CONTEXT:\n{task_desc}\n"
+            "Keep this goal in mind throughout your analysis — flag features, "
+            "patterns, and data issues that are most relevant to achieving it."
+        ) if task_desc else ""
+
         self._step_with_retry(
             "explorer",
             "Perform a thorough exploratory data analysis. Identify the most likely "
             "target variable, key predictive features, important patterns, and noteworthy "
             "correlations. If this is a multi-file or non-tabular dataset, describe each "
-            "component and how they relate to each other.",
+            "component and how they relate to each other." + goal_suffix,
             ROLE_ANALYSIS,
         )
         self._step_with_retry(
             "skeptic",
             "Inspect data quality: missing values, outliers, duplicate rows, class "
             "imbalance, and any potential data leakage between features and target. "
-            "If multiple file types are present, flag format inconsistencies.",
+            "If multiple file types are present, flag format inconsistencies." + (
+                f"\n\nGiven the goal: {task_desc} — flag any data quality issues that "
+                "would specifically hurt performance on that objective." if task_desc else ""
+            ),
             ROLE_ANALYSIS,
         )
         self._step_with_retry(
@@ -120,7 +133,10 @@ class DataUnderstandingPhase(BasePhase):
                 "ethicist",
                 "Identify sensitive attributes, potential proxy variables, bias risks, "
                 "and fairness concerns. If non-tabular data (images, audio, text) is "
-                "present, flag representational bias risks.",
+                "present, flag representational bias risks." + (
+                    f"\n\nGiven the stated goal: {task_desc} — flag any ethical concerns "
+                    "specifically relevant to this use-case." if task_desc else ""
+                ),
                 ROLE_ANALYSIS,
             )
 

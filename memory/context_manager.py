@@ -18,6 +18,7 @@ from typing import Optional
 
 # Roles for tagging entries
 ROLE_DATASET   = "dataset_context"   # initial dataset summary — pinned
+ROLE_TASK      = "task_context"      # competition / user goal — pinned
 ROLE_ANALYSIS  = "analysis"          # EDA, stats, skeptic output
 ROLE_PLAN      = "plan"              # pragmatist, devil advocate
 ROLE_CODE      = "code"              # generated Python scripts
@@ -91,6 +92,21 @@ class ContextManager:
     def add_dataset_context(self, summary: str) -> ContextEntry:
         """Dataset summary is always pinned — it never gets trimmed."""
         return self.add("system", ROLE_DATASET, summary, pinned=True)
+
+    def add_task_context(self, task_description: str) -> ContextEntry:
+        """
+        Pin the user's competition / task goal — always visible to every agent.
+        Agents use this to tailor metric choice, evaluation strategy, and
+        final recommendations to the actual objective.
+        """
+        content = (
+            "COMPETITION / TASK GOAL\n"
+            "=======================\n"
+            f"{task_description.strip()}\n\n"
+            "All agents must align their analysis, metric recommendations, and "
+            "conclusions to this stated goal."
+        )
+        return self.add("user", ROLE_TASK, content, pinned=True)
 
     def add_code(self, code: str, attempt: int = 1) -> ContextEntry:
         return self.add(

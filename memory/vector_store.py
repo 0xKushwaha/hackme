@@ -145,31 +145,39 @@ class VectorStore:
         query:           str,
         top_k:           int           = 3,
         run_id_exclude:  Optional[str] = None,
+        use_hybrid:      bool          = True,
     ) -> list[dict]:
         """
         Returns top_k most relevant ACTIVE (non-expired) memories.
+        Uses hybrid search (BM25 + vector + temporal decay + MMR) when available.
+        Falls back to vector-only otherwise.
         """
         if not self.available:
             return []
 
         collection = self._get_collection(agent_name)
-        count      = collection.count()
-        if count == 0:
+        if collection.count() == 0:
             return []
 
         # Build where filter — exclude expired AND current run
         conditions = [{"expired": {"$ne": "True"}}]
         if run_id_exclude:
             conditions.append({"run_id": {"$ne": run_id_exclude}})
-
         where = {"$and": conditions} if len(conditions) > 1 else conditions[0]
 
-        # Count non-expired entries to avoid querying more than available
+        # --- Hybrid search path ---
+        if use_hybrid:
+            from memory.hybrid_search import HybridSearchEngine
+            engine  = HybridSearchEngine()
+            results = engine.search(collection, query, top_k=top_k, where_filter=where)
+            return results
+
+        # --- Fallback: vector-only ---
         try:
-            active = collection.get(where=where)
+            active   = collection.get(where=where)
             n_active = len(active["ids"])
         except Exception:
-            n_active = count
+            n_active = collection.count()
 
         if n_active == 0:
             return []

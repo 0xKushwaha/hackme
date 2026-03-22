@@ -10,6 +10,9 @@ Usage:
     python main.py --dataset data.csv --provider claude --mode train
     python main.py --dataset data.csv --provider claude --mode train --target SalePrice --retries 4
 
+    # Multi-provider fallback (tries claude first, falls back to openai on rate limit)
+    python main.py --dataset data.csv --provider claude --fallback openai --mode train
+
     # Skip long-term memory (useful for first run / testing)
     python main.py --dataset data.csv --provider claude --mode train --no-memory
 """
@@ -18,17 +21,20 @@ import argparse
 import os
 import pandas as pd
 
-from backends.llm_backends import get_llm
+from backends.llm_backends  import get_llm
+from backends.fallback       import FallbackLLM, ProviderProfile, build_fallback_llm
 from agents import (
     ExplorerAgent, SkepticAgent, StatisticianAgent, EthicistAgent,
     PragmatistAgent, DevilAdvocateAgent, ArchitectAgent, OptimizerAgent,
     StorytellerAgent, CodeWriterAgent,
 )
-from agents.agent_config import AGENT_CONFIGS
-from agents.base         import BaseAgent
-from execution.executor  import CodeExecutor
-from memory.agent_memory import MemorySystem
+from agents.agent_config     import AGENT_CONFIGS
+from agents.base             import BaseAgent
+from execution.executor      import CodeExecutor
+from memory.agent_memory     import MemorySystem
 from orchestration.orchestrator import Orchestrator
+from orchestration.registry     import AgentRegistry
+from tool_registry              import ToolRegistry
 
 
 EXPERIMENT_DIR = "experiments"
@@ -107,15 +113,18 @@ def build_agents(llm) -> dict:
 
 def main():
     parser = argparse.ArgumentParser(description="Multi-Agent Data Science Team")
-    parser.add_argument("--dataset",    required=True,        help="Path to CSV dataset")
-    parser.add_argument("--provider",   default="claude",     help="LLM provider: claude | openai | local")
-    parser.add_argument("--model",      default=None,         help="Model name override")
-    parser.add_argument("--base-url",   default=None,         help="Base URL for local vLLM server")
-    parser.add_argument("--mode",       default="manual",     help="Pipeline mode: manual | auto | train")
-    parser.add_argument("--target",     default=None,         help="Target column name (train mode)")
-    parser.add_argument("--retries",    type=int, default=4,  help="Max training retries (train mode)")
-    parser.add_argument("--no-memory",  action="store_true",  help="Disable ChromaDB long-term memory")
-    parser.add_argument("--save-log",   action="store_true",  help="Save context log to JSON")
+    parser.add_argument("--dataset",      required=True,        help="Path to CSV dataset")
+    parser.add_argument("--provider",     default="claude",     help="Primary LLM provider: claude | openai | local")
+    parser.add_argument("--model",        default=None,         help="Model name override")
+    parser.add_argument("--base-url",     default=None,         help="Base URL for local vLLM server")
+    parser.add_argument("--fallback",     default=None,         help="Fallback provider on rate limit (e.g. openai)")
+    parser.add_argument("--fallback-model", default=None,       help="Fallback model name")
+    parser.add_argument("--mode",         default="manual",     help="Pipeline mode: manual | auto | train | phases")
+    parser.add_argument("--target",       default=None,         help="Target column name (train mode)")
+    parser.add_argument("--retries",      type=int, default=4,  help="Max training retries (train mode)")
+    parser.add_argument("--no-memory",    action="store_true",  help="Disable ChromaDB long-term memory")
+    parser.add_argument("--max-agents",   type=int, default=5,  help="Max concurrent agents (default 5)")
+    parser.add_argument("--save-log",     action="store_true",  help="Save context log to JSON")
     args = parser.parse_args()
 
     if not os.path.exists(args.dataset):
@@ -130,6 +139,7 @@ def main():
 
     print(f"\n🔧 Provider : {args.provider}")
     print(f"🔧 Model    : {args.model or 'default'}")
+    print(f"🔧 Fallback : {args.fallback or 'none'}")
     print(f"🔧 Mode     : {args.mode}")
     print(f"🔧 Memory   : {'disabled' if args.no_memory else 'ChromaDB (experiments/chroma_db)'}")
 
@@ -137,7 +147,17 @@ def main():
     if args.base_url:
         llm_kwargs["base_url"] = args.base_url
 
-    llm    = get_llm(args.provider, model=args.model, **llm_kwargs)
+    # Build LLM — with optional multi-provider fallback
+    if args.fallback:
+        provider_list = [
+            {"provider": args.provider, "model": args.model},
+            {"provider": args.fallback, "model": args.fallback_model},
+        ]
+        llm = build_fallback_llm(provider_list)
+        print(f"🔧 FallbackLLM: {args.provider} → {args.fallback}")
+    else:
+        llm = get_llm(args.provider, model=args.model, **llm_kwargs)
+
     agents = build_agents(llm)
 
     # Memory system (per-agent ChromaDB + SQLite graph)
@@ -149,14 +169,23 @@ def main():
             graph_db=os.path.join(EXPERIMENT_DIR, "graph.db"),
         )
 
-    orch_llm = llm if args.mode == "auto" else None
-    executor = CodeExecutor(work_dir=EXPERIMENT_DIR) if args.mode == "train" else None
+    orch_llm     = llm if args.mode == "auto" else None
+    needs_exec   = args.mode in ("train", "phases")
+    executor     = CodeExecutor(work_dir=EXPERIMENT_DIR) if needs_exec else None
+    tool_reg_dir = os.path.join(EXPERIMENT_DIR, "tool_registry")
+    tool_registry = ToolRegistry(registry_dir=tool_reg_dir) if needs_exec else None
+    registry = AgentRegistry(
+        max_concurrent=args.max_agents,
+        persist_path=os.path.join(EXPERIMENT_DIR, "registry.json"),
+    )
 
     orchestrator = Orchestrator(
         agents=agents,
         llm=orch_llm,
         executor=executor,
         memory_system=memory_system,
+        registry=registry,
+        tool_registry=tool_registry,
     )
 
     if args.mode == "manual":
@@ -174,8 +203,21 @@ def main():
             experiment_dir=EXPERIMENT_DIR,
         )
 
+    elif args.mode == "phases":
+        results = orchestrator.run_phases(
+            dataset_summary=dataset_summary,
+            dataset_path=os.path.abspath(args.dataset),
+            target_col=args.target,
+            max_retries=args.retries,
+            experiment_dir=EXPERIMENT_DIR,
+        )
+        print("\n📊 Phase summary:")
+        for phase_name, result in results.items():
+            status = "✅" if result.success else "❌"
+            print(f"  {status} {phase_name:25s} | {result.duration_s}s | {result.summary[:80]}")
+
     else:
-        print(f"❌ Unknown mode '{args.mode}'. Use: manual | auto | train")
+        print(f"❌ Unknown mode '{args.mode}'. Use: manual | auto | train | phases")
         return
 
     if args.save_log:

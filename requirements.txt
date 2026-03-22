@@ -7,6 +7,9 @@ langchain-community
 chromadb
 sentence-transformers
 
+# Hybrid search — BM25 keyword scoring (OpenClaw pattern)
+rank-bm25
+
 # ML training
 pandas
 scikit-learn

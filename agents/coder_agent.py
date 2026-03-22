@@ -25,17 +25,21 @@ class CodeWriterAgent:
 
     def run(
         self,
-        context:      str,
-        dataset_path: str,
-        target_col:   str  = None,
-        node_id:      str  = None,
-        run_id:       str  = None,
+        context:       str,
+        dataset_path:  str  = None,
+        target_col:    str  = None,
+        node_id:       str  = None,
+        run_id:        str  = None,
+        task_override: str  = None,
     ) -> str:
-        task = (
-            f"Dataset path: {dataset_path}\n"
-            + (f"Target column: {target_col}\n" if target_col else "")
-            + "\nGenerate the complete training script. Output ONLY Python code, no markdown fences."
-        )
+        if task_override:
+            task = task_override
+        else:
+            task = (
+                (f"Dataset path: {dataset_path}\n" if dataset_path else "")
+                + (f"Target column: {target_col}\n" if target_col else "")
+                + "\nGenerate the complete training script. Output ONLY Python code, no markdown fences."
+            )
 
         # Use insight_forge to recall what approaches failed before
         memory_block = ""

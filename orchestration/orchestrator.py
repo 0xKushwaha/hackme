@@ -13,15 +13,19 @@ Memory integration:
 """
 
 import os
+import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
+from typing import Optional
 
 from langchain.schema import HumanMessage, SystemMessage
 
-from memory.context_manager import ContextManager, ROLE_ANALYSIS, ROLE_PLAN, ROLE_NARRATIVE, ROLE_META
-from memory.agent_memory    import MemorySystem
-from memory.graph_store     import INFORMED_BY, RETRY_OF, FAILURE_LED_TO, CROSS_RUN
-from execution.executor     import CodeExecutor, ExecutionResult
+from memory.context_manager  import ContextManager, ROLE_ANALYSIS, ROLE_PLAN, ROLE_NARRATIVE, ROLE_META
+from memory.agent_memory     import MemorySystem
+from memory.graph_store      import INFORMED_BY, RETRY_OF, FAILURE_LED_TO, CROSS_RUN
+from execution.executor      import CodeExecutor, ExecutionResult
+from execution.context_guard import ToolResultContextGuard, format_execution_result
+from orchestration.registry  import AgentRegistry, OUTCOME_SUCCESS, OUTCOME_FAILURE, OUTCOME_TIMEOUT
 from prompts.orchestrator_prompt import ORCHESTRATOR_PROMPT
 
 
@@ -37,14 +41,23 @@ class Orchestrator:
         llm            = None,
         executor:      CodeExecutor  = None,
         memory_system: MemorySystem  = None,
+        registry:      AgentRegistry = None,
+        tool_registry                = None,   # optional ToolRegistry
     ):
         self.agents        = agents
         self.llm           = llm
         self.executor      = executor or CodeExecutor()
         self.memory        = memory_system
+        self.registry      = registry or AgentRegistry()
+        self.tool_registry = tool_registry
         self.context       = ContextManager()
+        self.context_guard = ToolResultContextGuard(max_context_tokens=self.context.max_tokens)
         self.run_id        = str(uuid.uuid4())[:12]
-        self._last_node_id = None   # track last node for graph edges
+        self._last_node_id = None
+
+        # Wire LLM into compactor
+        if self.memory and self.llm:
+            self.memory.set_llm(self.llm)
 
         # Wire memory into each agent
         if self.memory:
@@ -61,21 +74,42 @@ class Orchestrator:
         if agent_name not in self.agents:
             raise ValueError(f"Unknown agent '{agent_name}'. Available: {list(self.agents.keys())}")
 
+        # Registry: check spawn limits
+        allowed, reason = self.registry.can_spawn()
+        if not allowed:
+            print(f"[Registry] Spawn denied for {agent_name}: {reason}")
+            return f"[SKIPPED — {reason}]"
+
+        # Registry: track this run
+        node_id  = str(uuid.uuid4())[:12]
+        reg_run  = self.registry.register(agent_name, task, run_id=node_id)
+        self.registry.start(node_id)
+        t_start  = time.time()
+
+        # Compaction: if context is near capacity, compact before adding more
+        self._maybe_compact()
+
         agent   = self.agents[agent_name]
         ctx_str = self.context.get_context_string()
-        node_id = str(uuid.uuid4())[:12]
 
-        response = agent.run(
-            context=ctx_str,
-            task=task,
-            node_id=node_id,
-            run_id=self.run_id,
-            role=role,
-        )
+        try:
+            response = agent.run(
+                context=ctx_str,
+                task=task,
+                node_id=node_id,
+                run_id=self.run_id,
+                role=role,
+            )
+            runtime_ms = int((time.time() - t_start) * 1000)
+            self.registry.complete(node_id, OUTCOME_SUCCESS, runtime_ms=runtime_ms)
+        except Exception as exc:
+            runtime_ms = int((time.time() - t_start) * 1000)
+            self.registry.complete(node_id, OUTCOME_FAILURE, error_type=str(exc)[:80], runtime_ms=runtime_ms)
+            raise
 
         self.context.add(agent_name, role, response)
 
-        # Add graph edge from previous node
+        # Graph edge from previous node
         if self.memory and self._last_node_id:
             self.memory.graph_store.add_edge(
                 from_node=self._last_node_id,
@@ -90,6 +124,17 @@ class Orchestrator:
         print(response)
 
         return response
+
+    def _maybe_compact(self):
+        """Trigger LLM compaction if context is near capacity."""
+        if self.memory and self.memory.compactor:
+            compactor = self.memory.compactor
+            level = self.context_guard.context_overflow_level(
+                sum(e.token_estimate() for e in self.context.entries)
+            )
+            if level in ("preemptive", "overflow"):
+                print(f"\n[Compactor] Context at {level} — compacting...")
+                compactor.compact(self.context)
 
     def parallel_step(self, steps: list[tuple[str, str, str]]):
         """Run multiple (agent_name, task, role) steps concurrently."""
@@ -254,8 +299,14 @@ class Orchestrator:
             # Execute
             result       = self.executor.run(code, attempt=attempt)
             last_result  = result
-            last_run_id  = self.run_id   # snapshot before potential run_id change on next iteration
-            self.context.add_result(result.stdout, result.metrics, result.success, attempt=attempt)
+            last_run_id  = self.run_id
+
+            # Apply context guard before storing executor output
+            guarded_output = format_execution_result(
+                result.stdout, result.stderr, result.metrics,
+                result.success, self.context_guard
+            )
+            self.context.add_result(guarded_output, result.metrics, result.success, attempt=attempt)
 
             print(f"\n{'✅' if result.success else '❌'} {result.short_summary()}")
 
@@ -321,6 +372,123 @@ class Orchestrator:
         )
 
     # ------------------------------------------------------------------ #
+    # Phase-based pipeline                                                 #
+    # ------------------------------------------------------------------ #
+
+    def run_phases(
+        self,
+        dataset_summary: str,
+        dataset_path:    str,
+        target_col:      str           = None,
+        max_retries:     int           = 4,
+        experiment_dir:  str           = "experiments",
+        phases:          Optional[list] = None,
+    ) -> dict:
+        """
+        Run the pipeline as discrete, independently-defined phases:
+          1. DataUnderstanding  — EDA, quality, stats, ethics
+          2. ModelDesign        — feature engineering, planning, critique
+          3. CodeGeneration     — training retry loop (subprocess-based)
+          4. Validation         — stress-test results, production risk
+          5. Inference          — inference script + deployment plan + narrative
+
+        The `phases` parameter lets you pass a custom ordered list of
+        phase instances, or omit it to use the default five phases.
+
+        Returns a dict of phase_name → PhaseResult.
+        """
+        from phases import (
+            DataUnderstandingPhase, ModelDesignPhase,
+            CodeGenerationPhase, ValidationPhase, InferencePhase,
+        )
+
+        os.makedirs(experiment_dir, exist_ok=True)
+        print(f"\n🚀 Starting phase-based pipeline | run_id: {self.run_id}\n")
+
+        if phases is None:
+            phases = [
+                DataUnderstandingPhase(self),
+                ModelDesignPhase(self),
+                CodeGenerationPhase(self),
+                ValidationPhase(self),
+                InferencePhase(self),
+            ]
+
+        results: dict = {}
+
+        # --- Phase 1: DataUnderstanding ---
+        p = self._get_phase(phases, "data_understanding")
+        if p:
+            r = p.run(dataset_summary=dataset_summary)
+            results["data_understanding"] = r
+            if not r.success:
+                print(f"\n⚠️  DataUnderstanding failed: {r.error}. Continuing anyway.")
+
+        # --- Phase 2: ModelDesign ---
+        p = self._get_phase(phases, "model_design")
+        if p:
+            r = p.run()
+            results["model_design"] = r
+            if not r.success:
+                print(f"\n⚠️  ModelDesign failed: {r.error}. Continuing anyway.")
+
+        # --- Phase 3: CodeGeneration ---
+        code_result = None
+        p = self._get_phase(phases, "code_generation")
+        if p:
+            r = p.run(
+                dataset_path=dataset_path,
+                target_col=target_col,
+                max_retries=max_retries,
+                experiment_dir=experiment_dir,
+            )
+            results["code_generation"] = r
+            code_result = r.outputs.get("execution_result")
+
+        # --- Phase 4: Validation ---
+        p = self._get_phase(phases, "validation")
+        if p:
+            cg_r    = results.get("code_generation")
+            metrics = cg_r.outputs.get("metrics", {}) if cg_r else {}
+            r = p.run(
+                execution_result=code_result,
+                metrics=metrics,
+            )
+            results["validation"] = r
+
+        # --- Phase 5: Inference ---
+        p = self._get_phase(phases, "inference")
+        if p:
+            cg = results.get("code_generation")
+            r = p.run(
+                metrics=cg.outputs.get("metrics", {}) if cg else {},
+                training_succeeded=cg.outputs.get("succeeded", False) if cg else False,
+                experiment_dir=experiment_dir,
+            )
+            results["inference"] = r
+
+        # --- Persist context ---
+        log_path = os.path.join(experiment_dir, f"context_{self.run_id}.json")
+        self.context.save(log_path)
+        print(f"\n📄 Context saved to {log_path}")
+
+        if self.memory:
+            self.memory.print_stats()
+            self.memory.graph_store.print_run(self.run_id)
+
+        if self.tool_registry:
+            self.tool_registry.print_summary()
+
+        return results
+
+    def _get_phase(self, phases: list, name: str):
+        """Find a phase by name from the phases list."""
+        for p in phases:
+            if p.name == name:
+                return p
+        return None
+
+    # ------------------------------------------------------------------ #
     # Utilities                                                            #
     # ------------------------------------------------------------------ #
 
@@ -333,3 +501,4 @@ class Orchestrator:
         self.context.print_summary()
         if self.memory:
             self.memory.print_stats()
+        self.registry.print_summary()

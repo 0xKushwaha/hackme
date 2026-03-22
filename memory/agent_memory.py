@@ -17,8 +17,9 @@ import re
 from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
 
-from .vector_store import VectorStore
-from .graph_store  import GraphStore, INFORMED_BY, CROSS_RUN
+from .vector_store  import VectorStore
+from .graph_store   import GraphStore, INFORMED_BY, CROSS_RUN
+from .compaction    import ContextCompactor
 
 TOP_K_RECALL    = 3
 TOP_K_PER_QUERY = 2   # per sub-question in insight_forge
@@ -183,6 +184,7 @@ class MemorySystem:
         agent_names: list[str],
         persist_dir: str = "experiments/chroma_db",
         graph_db:    str = "experiments/graph.db",
+        llm          = None,
     ):
         self.vector_store = VectorStore(persist_dir=persist_dir)
         self.graph_store  = GraphStore(db_path=graph_db)
@@ -191,6 +193,12 @@ class MemorySystem:
             name: AgentMemory(name, self.vector_store, self.graph_store)
             for name in agent_names
         }
+        # Compactor needs an LLM — wired in after init if not provided
+        self.compactor: Optional[ContextCompactor] = ContextCompactor(llm) if llm else None
+
+    def set_llm(self, llm):
+        """Wire in the LLM for compaction (called after main LLM is built)."""
+        self.compactor = ContextCompactor(llm)
 
     def get(self, agent_name: str) -> Optional[AgentMemory]:
         return self.memories.get(agent_name)

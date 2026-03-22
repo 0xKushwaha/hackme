@@ -1,20 +1,36 @@
 # Multi-Agent Data Science Team
 
-An autonomous data science pipeline where a team of specialized AI agents collaborates to analyze a dataset, generate training code, execute it, and retry with a different approach on failure — all without human intervention.
+An autonomous data science pipeline where a team of specialized AI agents collaborates to analyze **any dataset** — CSV, Parquet, images, audio, JSON, multi-file directories — generate training code, execute it, and retry with a different approach on failure, all without human intervention.
 
-Each agent has its own personality, long-term memory, and persistent knowledge graph. Agents learn from past runs and never repeat failed approaches. The pipeline is organized into discrete, independently-restartable phases, so a big change to one phase doesn't require rerunning the whole pipeline.
+Point it at a directory and the **Builder Agent** automatically inspects what's inside, writes custom tool modules to disk, and spawns the right specialist agents (ImageAnalyst, AudioAnalyst, NLPAnalyst…). Those tools are instantly available to the next training subprocess with no orchestrator restart.
+
+Each agent has its own personality, long-term memory, and persistent knowledge graph. Agents learn from past runs and never repeat failed approaches. The pipeline is organized into discrete, independently-restartable phases so a big change to one phase doesn't require rerunning the whole pipeline.
 
 ---
 
 ## How It Works
 
 ```
-Dataset
+Dataset file OR directory (any format)
+  │
+  ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  DatasetDiscovery                                               │
+│  Scans path → FileInfo per file (type, size, columns, preview)  │
+│  Supports: CSV, Parquet, JSON, Excel, images, audio, text, …    │
+└─────────────────────────────────────────────────────────────────┘
   │
   ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │  Phase 1: Data Understanding                                    │
-│  Explorer + Skeptic + Statistician (parallel) → Ethicist        │
+│                                                                 │
+│  [BuilderAgent] — runs only if dataset is non-trivial           │
+│  LLM reads DatasetProfile → JSON plan → writes tools to disk   │
+│  Spawns specialist agents (ImageAnalyst, AudioAnalyst, etc.)   │
+│                                                                 │
+│  [Core EDA] Explorer + Skeptic + Statistician (parallel)       │
+│  [Specialists] dynamic agents run in parallel                  │
+│  [Ethicist] bias + fairness review (optional)                  │
 ├─────────────────────────────────────────────────────────────────┤
 │  Phase 2: Model Design                                          │
 │  Feature Engineer → Pragmatist → Devil's Advocate → Optimizer   │
@@ -24,6 +40,7 @@ Dataset
 │                              ↓ fail                             │
 │           Expire memories → Devil's Advocate → Pragmatist       │
 │           New run_id → CodeWriter → Executor → repeat           │
+│  (tools written by BuilderAgent are available from attempt 1)  │
 ├─────────────────────────────────────────────────────────────────┤
 │  Phase 4: Validation                                            │
 │  Skeptic + Devil's Advocate + Statistician stress-test results  │
@@ -37,6 +54,7 @@ Dataset
 
 | Agent | Role | Personality |
 |---|---|---|
+| **BuilderAgent** | Inspects dataset, creates tools + specialist agents | Architectural planner |
 | **Explorer** | EDA — patterns, correlations, key features | Curious, constructive |
 | **Skeptic** | Data quality — outliers, leakage, missing values | Aggressively critical |
 | **Statistician** | Distributions, hypothesis tests, multicollinearity | Pure neutral, rigorous |
@@ -48,6 +66,7 @@ Dataset
 | **Architect** | Deployment design, serving infra, monitoring | Systems-thinker |
 | **CodeWriter** | Generates executable Python training + inference scripts | Precise, code-only |
 | **Storyteller** | Final narrative for judges/stakeholders | Compelling, audience-aware |
+| **Dynamic specialists** | Created by BuilderAgent as needed (e.g. ImageAnalyst) | Domain-specific |
 
 ---
 
@@ -104,20 +123,50 @@ Two-layer protection:
 
 ---
 
+## BuilderAgent — Universal Dataset Support
+
+The **BuilderAgent** is a meta-agent that runs at the start of Phase 1. It reads the `DatasetProfile` (file types, sizes, schemas, previews) and asks the LLM:
+
+> *"What tools and specialist agents do we need for this dataset?"*
+
+It then:
+1. **Writes tool modules** to `tool_registry/` — e.g. `image_loader.py`, `audio_features.py`, `multi_table_joiner.py`
+2. **Spawns specialist agents** into the orchestrator — e.g. `image_analyst`, `audio_analyst`, `nlp_analyst`
+3. **Pins the analysis strategy** to the context so all subsequent agents see it
+
+### Fast path
+For a single plain tabular file (CSV/Parquet), the LLM call is **skipped entirely** — the standard EDA team is sufficient.
+
+### How tools get loaded without restart
+Tools written to `tool_registry/` are picked up automatically by the next `CodeExecutor` subprocess because each subprocess starts fresh and imports from disk. The orchestrator keeps running — no reload required.
+
+```
+BuilderAgent writes: tool_registry/image_loader.py
+                                   audio_features.py
+                     ↓
+Next subprocess does: sys.path.insert(0, 'tool_registry')
+                      import image_loader
+                      import audio_features
+                      ← just works, no orchestrator restart
+```
+
+---
+
 ## Phase-Based Architecture
 
 Phases are discrete, independently-restartable units. If you update the model design logic, you can re-run from `ModelDesignPhase` without redoing EDA — the shared context already has Phase 1's outputs.
 
-```python
-# Run the full phase pipeline
-python main.py --dataset data.csv --provider claude --mode phases --target price
+```bash
+# Run the full phase pipeline on a directory
+python main.py --dataset ./my_dataset/ --provider claude --mode phases --target label
 
 # Or compose your own phase order in code
 from phases import DataUnderstandingPhase, ModelDesignPhase, CodeGenerationPhase
 
 orchestrator.run_phases(
     dataset_summary=summary,
-    dataset_path="data.csv",
+    dataset_path="./my_dataset/",
+    dataset_profile=profile,          # DatasetProfile from DatasetDiscovery
     phases=[
         DataUnderstandingPhase(orchestrator),
         ModelDesignPhase(orchestrator),
@@ -126,9 +175,9 @@ orchestrator.run_phases(
 )
 ```
 
-| Phase | Required Agents | Optional Agents |
+| Phase | Required Agents | Optional / Dynamic |
 |---|---|---|
-| `DataUnderstandingPhase` | explorer, skeptic, statistician | ethicist |
+| `DataUnderstandingPhase` | explorer, skeptic, statistician | ethicist, builder-spawned specialists |
 | `ModelDesignPhase` | feature_engineer, pragmatist | devil_advocate, optimizer |
 | `CodeGenerationPhase` | code_writer | devil_advocate, pragmatist |
 | `ValidationPhase` | skeptic | devil_advocate, statistician |
@@ -168,6 +217,7 @@ hackathon/
 ├── agents/
 │   ├── agent_config.py        # Behavioral profiles (stance, activity, sentiment)
 │   ├── base.py                # BaseAgent — memory recall + storage wired in
+│   ├── builder_agent.py       # BuilderAgent — inspects dataset, creates tools + agents
 │   ├── analyst_agents.py      # Explorer, Skeptic, Statistician, Ethicist
 │   ├── planner_agents.py      # Pragmatist, DevilAdvocate, Architect, Optimizer
 │   ├── coder_agent.py         # CodeWriter — training + inference script generation
@@ -175,7 +225,8 @@ hackathon/
 │
 ├── phases/
 │   ├── base.py                # BasePhase, PhaseResult
-│   ├── data_understanding.py  # Phase 1: EDA, quality, stats, ethics
+│   ├── discovery.py           # DatasetDiscovery — scans any file/directory
+│   ├── data_understanding.py  # Phase 1: Builder → EDA → specialists → ethics
 │   ├── model_design.py        # Phase 2: features, plan, critique, tuning
 │   ├── code_generation.py     # Phase 3: training retry loop
 │   ├── validation.py          # Phase 4: stress-test results
@@ -240,15 +291,18 @@ export OPENAI_API_KEY=your_key_here
 ### Phase-based pipeline (recommended)
 
 ```bash
-# Full 5-phase autonomous pipeline
+# Single CSV — standard pipeline
 python main.py --dataset data.csv --provider claude --mode phases --target SalePrice
 
-# With options
+# Directory with mixed data — BuilderAgent auto-configures
+python main.py --dataset ./my_dataset/ --provider claude --mode phases --target label
+
+# With all options
 python main.py \
-  --dataset    data.csv \
+  --dataset    ./my_dataset/ \
   --provider   claude \
   --mode       phases \
-  --target     SalePrice \
+  --target     price \
   --retries    4 \
   --save-log
 ```
@@ -256,11 +310,11 @@ python main.py \
 ### Other modes
 
 ```bash
-# Advisory only — fixed 7-round pipeline, no code execution
-python main.py --dataset data.csv --provider claude --mode manual
+# Advisory only — analysis without code execution (works on any dataset type)
+python main.py --dataset ./data/ --provider claude --mode manual
 
 # Orchestrator LLM decides each step dynamically
-python main.py --dataset data.csv --provider claude --mode auto
+python main.py --dataset ./data/ --provider claude --mode auto
 
 # Original monolithic training loop
 python main.py --dataset data.csv --provider claude --mode train --target price
@@ -271,7 +325,7 @@ python main.py --dataset data.csv --provider claude --mode train --target price
 ```bash
 # Tries Claude first, falls back to OpenAI on rate limit
 python main.py \
-  --dataset    data.csv \
+  --dataset    ./my_dataset/ \
   --provider   claude \
   --fallback   openai \
   --mode       phases \
@@ -282,13 +336,16 @@ python main.py \
 
 ```bash
 # OpenAI
-python main.py --dataset data.csv --provider openai --model gpt-4o-mini --mode phases
+python main.py --dataset ./data/ --provider openai --model gpt-4o-mini --mode phases
 
 # Local vLLM server
-python main.py --dataset data.csv --provider local --base-url http://localhost:8000/v1 --mode phases
+python main.py --dataset ./data/ --provider local --base-url http://localhost:8000/v1 --mode phases
 
 # Disable long-term memory (fast first test)
 python main.py --dataset data.csv --provider claude --mode phases --no-memory
+
+# Skip BuilderAgent (use standard agents only)
+python main.py --dataset data.csv --provider claude --mode phases --no-builder
 ```
 
 ---
@@ -297,7 +354,7 @@ python main.py --dataset data.csv --provider claude --mode phases --no-memory
 
 | Argument | Default | Description |
 |---|---|---|
-| `--dataset` | required | Path to CSV file |
+| `--dataset` | required | Path to dataset **file or directory** (any format) |
 | `--provider` | `claude` | LLM provider: `claude`, `openai`, `local` |
 | `--model` | provider default | Model name override |
 | `--base-url` | — | Base URL for local vLLM server |
@@ -308,7 +365,34 @@ python main.py --dataset data.csv --provider claude --mode phases --no-memory
 | `--retries` | `4` | Max training retry attempts |
 | `--max-agents` | `5` | Max concurrent agents |
 | `--no-memory` | off | Disable ChromaDB long-term memory |
+| `--no-builder` | off | Skip BuilderAgent (use default agents only) |
 | `--save-log` | off | Save context log to JSON |
+
+---
+
+## Supported Dataset Formats
+
+`--dataset` accepts **any file or directory**. `DatasetDiscovery` scans the path and the `BuilderAgent` adapts the pipeline automatically.
+
+| Type | Extensions | What BuilderAgent creates |
+|---|---|---|
+| **Tabular** | `.csv` `.tsv` `.parquet` `.feather` `.json` `.jsonl` `.xlsx` `.h5` | Nothing extra (standard EDA team handles it) |
+| **Image** | `.jpg` `.png` `.tiff` `.webp` `.gif` `.bmp` | `image_loader` tool + `ImageAnalyst` agent |
+| **Text / NLP** | `.txt` `.md` `.xml` `.yaml` `.log` | `text_preprocessor` tool + `NLPAnalyst` agent |
+| **Audio** | `.wav` `.mp3` `.flac` `.ogg` | `audio_features` tool + `AudioAnalyst` agent |
+| **Video** | `.mp4` `.avi` `.mov` | `video_sampler` tool + `VideoAnalyst` agent |
+| **Multi-table** | directory with multiple CSVs | `multi_table_joiner` tool + join strategy in context |
+| **Mixed** | images + CSV labels, audio + metadata, etc. | combination of the above |
+
+### Example: image classification directory
+```
+my_dataset/
+├── train/
+│   ├── cat/  ← 500 .jpg files
+│   └── dog/  ← 500 .jpg files
+└── labels.csv
+```
+BuilderAgent sees: `image` + `tabular` types → writes `image_loader.py` to `tool_registry/`, spawns `ImageAnalyst` agent, pins strategy: *"Computer vision classification task. Images are class-organized. Use CNN or ViT. Labels from labels.csv."*
 
 ---
 

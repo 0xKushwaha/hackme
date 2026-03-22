@@ -203,6 +203,16 @@ class MemorySystem:
     def get(self, agent_name: str) -> Optional[AgentMemory]:
         return self.memories.get(agent_name)
 
+    def create_for(self, agent_name: str) -> AgentMemory:
+        """
+        Create (or return existing) AgentMemory for a dynamically spawned agent.
+        Dynamic agents share the same VectorStore + GraphStore as the rest.
+        """
+        if agent_name not in self.memories:
+            self.memories[agent_name] = AgentMemory(agent_name, self.vector_store, self.graph_store)
+            print(f"[MemorySystem] Created memory slot for dynamic agent: '{agent_name}'")
+        return self.memories[agent_name]
+
     def expire_run(self, run_id: str):
         """
         Called when a training run fails.

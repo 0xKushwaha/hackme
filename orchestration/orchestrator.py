@@ -26,11 +26,13 @@ from memory.graph_store      import INFORMED_BY, RETRY_OF, FAILURE_LED_TO, CROSS
 from execution.executor      import CodeExecutor, ExecutionResult
 from execution.context_guard import ToolResultContextGuard, format_execution_result
 from orchestration.registry  import AgentRegistry, OUTCOME_SUCCESS, OUTCOME_FAILURE, OUTCOME_TIMEOUT
+from agents.installer_agent  import LibraryInstallerAgent
 from prompts.orchestrator_prompt import ORCHESTRATOR_PROMPT
 
 
 MAX_AUTO_STEPS    = 10
 MAX_TRAIN_RETRIES = 4
+MAX_STEP_RETRIES  = 2    # default per-step retry attempts
 
 
 class Orchestrator:
@@ -43,6 +45,7 @@ class Orchestrator:
         memory_system: MemorySystem  = None,
         registry:      AgentRegistry = None,
         tool_registry                = None,   # optional ToolRegistry
+        builder_agent                = None,   # optional BuilderAgent
     ):
         self.agents        = agents
         self.llm           = llm
@@ -50,8 +53,10 @@ class Orchestrator:
         self.memory        = memory_system
         self.registry      = registry or AgentRegistry()
         self.tool_registry = tool_registry
+        self.builder_agent = builder_agent
         self.context       = ContextManager()
         self.context_guard = ToolResultContextGuard(max_context_tokens=self.context.max_tokens)
+        self.installer     = LibraryInstallerAgent()
         self.run_id        = str(uuid.uuid4())[:12]
         self._last_node_id = None
 
@@ -66,11 +71,51 @@ class Orchestrator:
                 if mem:
                     agent.attach_memory(mem)
 
+    def add_dynamic_agent(self, name: str, system_prompt: str) -> "BaseAgent":
+        """
+        Dynamically create and register a specialist agent at runtime.
+
+        Called by BuilderAgent after it decides what specialist agents the
+        dataset needs. The new agent is added to self.agents so it can be
+        used by subsequent phase steps — no orchestrator restart required.
+
+        Memory: a fresh AgentMemory slot is created in MemorySystem so the
+        dynamic agent benefits from the same ChromaDB + graph infrastructure.
+        """
+        from agents.base       import BaseAgent
+        from agents.agent_config import AgentConfig
+
+        agent = BaseAgent(name, system_prompt, self.llm, config=AgentConfig())
+
+        if self.memory:
+            mem = self.memory.create_for(name)
+            agent.attach_memory(mem)
+
+        self.agents[name] = agent
+        print(f"[Orchestrator] 🤖 Dynamic agent registered: '{name}'")
+        return agent
+
     # ------------------------------------------------------------------ #
-    # Core step                                                            #
+    # Core step (with built-in retry + library auto-install)              #
     # ------------------------------------------------------------------ #
 
-    def step(self, agent_name: str, task: str, role: str = ROLE_ANALYSIS) -> str:
+    def step(
+        self,
+        agent_name:  str,
+        task:        str,
+        role:        str = ROLE_ANALYSIS,
+        max_retries: int = MAX_STEP_RETRIES,
+    ) -> str:
+        """
+        Run a single agent step with retry logic.
+
+        On failure:
+          1. If error looks like a missing library → LibraryInstallerAgent runs
+          2. Error message is appended to the task so the LLM can self-correct
+          3. Up to max_retries attempts total
+
+        Raises the last exception only if all retries fail.
+        """
         if agent_name not in self.agents:
             raise ValueError(f"Unknown agent '{agent_name}'. Available: {list(self.agents.keys())}")
 
@@ -80,50 +125,77 @@ class Orchestrator:
             print(f"[Registry] Spawn denied for {agent_name}: {reason}")
             return f"[SKIPPED — {reason}]"
 
-        # Registry: track this run
-        node_id  = str(uuid.uuid4())[:12]
-        reg_run  = self.registry.register(agent_name, task, run_id=node_id)
-        self.registry.start(node_id)
-        t_start  = time.time()
+        last_exc: Optional[Exception] = None
+        current_task = task
 
-        # Compaction: if context is near capacity, compact before adding more
-        self._maybe_compact()
+        for attempt in range(1, max_retries + 1):
+            node_id = str(uuid.uuid4())[:12]
+            self.registry.register(agent_name, current_task, run_id=node_id)
+            self.registry.start(node_id)
+            t_start = time.time()
 
-        agent   = self.agents[agent_name]
-        ctx_str = self.context.get_context_string()
+            self._maybe_compact()
 
-        try:
-            response = agent.run(
-                context=ctx_str,
-                task=task,
-                node_id=node_id,
-                run_id=self.run_id,
-                role=role,
-            )
-            runtime_ms = int((time.time() - t_start) * 1000)
-            self.registry.complete(node_id, OUTCOME_SUCCESS, runtime_ms=runtime_ms)
-        except Exception as exc:
-            runtime_ms = int((time.time() - t_start) * 1000)
-            self.registry.complete(node_id, OUTCOME_FAILURE, error_type=str(exc)[:80], runtime_ms=runtime_ms)
-            raise
+            agent   = self.agents[agent_name]
+            ctx_str = self.context.get_context_string()
 
-        self.context.add(agent_name, role, response)
+            try:
+                response = agent.run(
+                    context=ctx_str,
+                    task=current_task,
+                    node_id=node_id,
+                    run_id=self.run_id,
+                    role=role,
+                )
+                runtime_ms = int((time.time() - t_start) * 1000)
+                self.registry.complete(node_id, OUTCOME_SUCCESS, runtime_ms=runtime_ms)
 
-        # Graph edge from previous node
-        if self.memory and self._last_node_id:
-            self.memory.graph_store.add_edge(
-                from_node=self._last_node_id,
-                to_node=node_id,
-                edge_type=INFORMED_BY,
-            )
-        self._last_node_id = node_id
+            except Exception as exc:
+                runtime_ms = int((time.time() - t_start) * 1000)
+                self.registry.complete(node_id, OUTCOME_FAILURE,
+                                       error_type=str(exc)[:80], runtime_ms=runtime_ms)
+                last_exc = exc
+                err_str  = str(exc)
 
-        print(f"\n{'='*60}")
-        print(f"  {agent_name.upper()}")
-        print(f"{'='*60}")
-        print(response)
+                print(f"\n[Orchestrator] ⚠️  {agent_name} attempt {attempt}/{max_retries} failed: {exc}")
 
-        return response
+                # Auto-install missing libraries before next attempt
+                if "import" in err_str.lower() or "module" in err_str.lower():
+                    install = self.installer.handle(err_str)
+                    if install.any_success:
+                        print(f"[Orchestrator] 🔄 Installed {install.succeeded} — retrying.")
+
+                if attempt < max_retries:
+                    current_task = (
+                        f"{task}\n\n"
+                        f"[RETRY — attempt {attempt + 1}/{max_retries}]\n"
+                        f"Previous attempt failed: {err_str[:300]}\n"
+                        "Adjust your approach."
+                    )
+                continue   # next attempt
+
+            # ── Success path ──────────────────────────────────────────
+            self.context.add(agent_name, role, response)
+
+            if self.memory and self._last_node_id:
+                self.memory.graph_store.add_edge(
+                    from_node=self._last_node_id,
+                    to_node=node_id,
+                    edge_type=INFORMED_BY,
+                )
+            self._last_node_id = node_id
+
+            print(f"\n{'='*60}")
+            print(f"  {agent_name.upper()}{' (retry succeeded)' if attempt > 1 else ''}")
+            print(f"{'='*60}")
+            print(response)
+            return response
+
+        # All attempts failed
+        raise RuntimeError(
+            f"Agent '{agent_name}' failed after {max_retries} attempts. "
+            f"Last error: {last_exc}"
+        ) from last_exc
 
     def _maybe_compact(self):
         """Trigger LLM compaction if context is near capacity."""
@@ -377,12 +449,13 @@ class Orchestrator:
 
     def run_phases(
         self,
-        dataset_summary: str,
-        dataset_path:    str,
-        target_col:      str           = None,
-        max_retries:     int           = 4,
-        experiment_dir:  str           = "experiments",
-        phases:          Optional[list] = None,
+        dataset_summary:  str,
+        dataset_path:     str,
+        target_col:       str           = None,
+        max_retries:      int           = 4,
+        experiment_dir:   str           = "experiments",
+        phases:           Optional[list] = None,
+        dataset_profile                 = None,   # DatasetProfile from discovery
     ) -> dict:
         """
         Run the pipeline as discrete, independently-defined phases:
@@ -419,7 +492,7 @@ class Orchestrator:
         # --- Phase 1: DataUnderstanding ---
         p = self._get_phase(phases, "data_understanding")
         if p:
-            r = p.run(dataset_summary=dataset_summary)
+            r = p.run(dataset_summary=dataset_summary, dataset_profile=dataset_profile)
             results["data_understanding"] = r
             if not r.success:
                 print(f"\n⚠️  DataUnderstanding failed: {r.error}. Continuing anyway.")

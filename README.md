@@ -1,46 +1,120 @@
 # Multi-Agent Data Science Team
 
-An autonomous data science pipeline where a team of specialized AI agents collaborates to analyze **any dataset** — CSV, Parquet, images, audio, JSON, multi-file directories — generate training code, execute it, and retry with a different approach on failure, all without human intervention.
+An autonomous data science pipeline where a team of specialized AI agents collaborates to analyze **any dataset** — CSV, Parquet, images, audio, JSON, multi-file directories — generate training code, execute it, and retry with a different approach on failure. Fully autonomous, zero human intervention.
 
-Point it at a directory and the **Builder Agent** automatically inspects what's inside, writes custom tool modules to disk, and spawns the right specialist agents (ImageAnalyst, AudioAnalyst, NLPAnalyst…). Those tools are instantly available to the next training subprocess with no orchestrator restart.
+Point it at a directory and the **Builder Agent** automatically inspects what's inside, writes custom tool modules to disk, installs missing libraries, and spawns the right specialist agents (ImageAnalyst, AudioAnalyst, NLPAnalyst…). Every failure at every level is retried with full error context fed back to the LLM so it can self-correct.
 
-Each agent has its own personality, long-term memory, and persistent knowledge graph. Agents learn from past runs and never repeat failed approaches. The pipeline is organized into discrete, independently-restartable phases so a big change to one phase doesn't require rerunning the whole pipeline.
+---
+
+## Quick Start
+
+### UI (recommended)
+```bash
+pip install -r requirements.txt
+streamlit run app.py
+# Opens at http://localhost:8501
+```
+
+### CLI
+```bash
+python main.py --dataset ./my_dataset/ --provider claude --mode phases --target price
+```
+
+---
+
+## UI
+
+```
+streamlit run app.py
+```
+
+```
+┌─────────────────────┬──────────────────────────────────────────────┐
+│  SIDEBAR            │  TABS                                        │
+│                     │                                              │
+│  ⚡ LLM Provider    │  📡 Live Agent Log                           │
+│  ● claude           │  ┌──────────────────────────────────────┐   │
+│  ○ openai           │  │ [BuilderAgent] 🔍 Analysing dataset  │   │
+│  ○ local (vLLM)     │  │ [DataUnderstanding] EDA agents...    │   │
+│                     │  │ ══════════════════════════════        │   │
+│  API Key ••••••••   │  │   EXPLORER                           │   │
+│                     │  │   The dataset has 12 features...     │   │
+│  ─────────────────  │  └──────────────────────────────────────┘   │
+│  🗂️ Dataset         │                                              │
+│  /home/user/data/   │  📊 Results Report                           │
+│                     │  # 🤖 Multi-Agent Analysis Report            │
+│  Task Description   │  ## 🎯 Task / Competition Context            │
+│  Kaggle competition │  ## 🔬 Agent Analysis                        │
+│  to predict prices. │  ### Explorer  ...                           │
+│  Metric: RMSE.      │  ### Skeptic   ...                           │
+│                     │                                              │
+│  Mode: phases       │  ⬇️ Download                                 │
+│  Target: SalePrice  │  ┌──────────────────────────────────────┐   │
+│                     │  │  ⬇️  Download Results ZIP            │   │
+│  [🚀 Run Analysis]  │  │  analysis_report.md                  │   │
+│                     │  │  context_log.json                    │   │
+│                     │  │  train_attempt_*.py                  │   │
+│                     │  └──────────────────────────────────────┘   │
+└─────────────────────┴──────────────────────────────────────────────┘
+```
+
+**Sidebar inputs:**
+- Provider: Claude / OpenAI / local vLLM (with server URL)
+- API key (password field — stored in session only, never written to disk)
+- Dataset path — any file or directory
+- Task / competition description — free text, pinned in context for every agent
+- Mode, target column, retries, memory toggle, builder toggle
+
+**Output tabs:**
+- **Live Agent Log** — streams every agent's output in real time as it runs
+- **Results Report** — formatted markdown grouped by phase and agent
+- **Download** — one-click ZIP with full report, context JSON, generated scripts, tool modules
 
 ---
 
 ## How It Works
 
 ```
-Dataset file OR directory (any format)
+User input: dataset path + task description
   │
   ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │  DatasetDiscovery                                               │
-│  Scans path → FileInfo per file (type, size, columns, preview)  │
-│  Supports: CSV, Parquet, JSON, Excel, images, audio, text, …    │
+│  Scans any path → FileInfo per file (type, size, columns,       │
+│  preview). Supports CSV, Parquet, JSON, Excel, images,          │
+│  audio, text, code, archives — any format.                      │
 └─────────────────────────────────────────────────────────────────┘
   │
   ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │  Phase 1: Data Understanding                                    │
 │                                                                 │
-│  [BuilderAgent] — runs only if dataset is non-trivial           │
-│  LLM reads DatasetProfile → JSON plan → writes tools to disk   │
-│  Spawns specialist agents (ImageAnalyst, AudioAnalyst, etc.)   │
+│  BuilderAgent (skipped for plain tabular)                       │
+│    LLM reads DatasetProfile → JSON plan                         │
+│    Writes custom tool modules to tool_registry/ (validated)     │
+│    Spawns specialist agents (ImageAnalyst, AudioAnalyst…)       │
+│    Retries on failure — error context fed back to LLM           │
 │                                                                 │
-│  [Core EDA] Explorer + Skeptic + Statistician (parallel)       │
-│  [Specialists] dynamic agents run in parallel                  │
-│  [Ethicist] bias + fairness review (optional)                  │
+│  LibraryInstallerAgent (auto, no user needed)                   │
+│    Detects missing packages from ImportError messages           │
+│    pip-installs them using the same Python interpreter          │
+│    Re-validates / re-runs automatically                         │
+│                                                                 │
+│  Core EDA: Explorer + Skeptic + Statistician (each with retry) │
+│  Specialists: dynamic agents run (each with retry)              │
+│  Ethicist: bias + fairness review (optional, with retry)        │
 ├─────────────────────────────────────────────────────────────────┤
 │  Phase 2: Model Design                                          │
 │  Feature Engineer → Pragmatist → Devil's Advocate → Optimizer   │
+│  (all steps with per-agent retry + error context injection)     │
 ├─────────────────────────────────────────────────────────────────┤
 │  Phase 3: Code Generation (retry loop)                          │
 │  CodeWriter → Executor (subprocess) → ✅ success                │
 │                              ↓ fail                             │
-│           Expire memories → Devil's Advocate → Pragmatist       │
-│           New run_id → CodeWriter → Executor → repeat           │
-│  (tools written by BuilderAgent are available from attempt 1)  │
+│    ImportError? → LibraryInstaller → retry same script          │
+│    Other error? → Expire memories → Devil's Advocate            │
+│                → Pragmatist → new run_id → CodeWriter           │
+│                → Executor → repeat up to N times               │
 ├─────────────────────────────────────────────────────────────────┤
 │  Phase 4: Validation                                            │
 │  Skeptic + Devil's Advocate + Statistician stress-test results  │
@@ -50,14 +124,51 @@ Dataset file OR directory (any format)
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### The Agent Team
+---
+
+## Retry Architecture
+
+Every failure anywhere in the pipeline is automatically retried — no human intervention needed.
+
+```
+BuilderAgent.run()
+  ├─ LLM plan generation  — up to 3 attempts
+  │    JSON parse fails?  → retry with "previous JSON was invalid: {error}"
+  │
+  ├─ Per-tool validation  — up to 3 attempts per tool
+  │    Syntax error?      → LLM rewrites tool with error context
+  │    Import error?      → LibraryInstallerAgent installs first → re-validate
+  │    Still broken?      → tool skipped with warning
+  │
+  └─ BuilderAgent itself  — up to 2 full attempts
+       Exception?         → retry entire builder run
+
+DataUnderstandingPhase
+  ├─ Each EDA agent       — up to 2 attempts
+  │    Any exception?     → error appended to task → LLM self-corrects
+  │    Import error?      → LibraryInstallerAgent runs first
+  │
+  └─ Each specialist      — up to 2 attempts (same pattern)
+
+Orchestrator.step()       — up to 2 attempts (default, configurable)
+  Any agent exception?    → installer check → error in task → retry
+
+CodeExecutor.run()        — 1 automatic inner retry on ImportError
+  Script ImportError?     → LibraryInstallerAgent installs package
+                          → re-runs SAME script (no outer retry consumed)
+```
+
+---
+
+## Agent Team
 
 | Agent | Role | Personality |
 |---|---|---|
 | **BuilderAgent** | Inspects dataset, creates tools + specialist agents | Architectural planner |
+| **LibraryInstallerAgent** | Detects + installs missing packages automatically | Autonomous ops |
 | **Explorer** | EDA — patterns, correlations, key features | Curious, constructive |
 | **Skeptic** | Data quality — outliers, leakage, missing values | Aggressively critical |
-| **Statistician** | Distributions, hypothesis tests, multicollinearity | Pure neutral, rigorous |
+| **Statistician** | Distributions, hypothesis tests, multicollinearity | Rigorous, neutral |
 | **Feature Engineer** | New features, encodings, transformations | Inventive |
 | **Ethicist** | Bias, fairness, responsible AI concerns | Cautious observer |
 | **Pragmatist** | Modeling plan — models to try, eval metric | Results-driven |
@@ -66,114 +177,121 @@ Dataset file OR directory (any format)
 | **Architect** | Deployment design, serving infra, monitoring | Systems-thinker |
 | **CodeWriter** | Generates executable Python training + inference scripts | Precise, code-only |
 | **Storyteller** | Final narrative for judges/stakeholders | Compelling, audience-aware |
-| **Dynamic specialists** | Created by BuilderAgent as needed (e.g. ImageAnalyst) | Domain-specific |
+| **Dynamic specialists** | Created by BuilderAgent for non-tabular data | Domain-specific |
+
+---
+
+## Supported Dataset Formats
+
+Point `--dataset` (or the UI path field) at **any file or directory**.
+
+| Type | Extensions | What BuilderAgent creates |
+|---|---|---|
+| **Tabular** | `.csv` `.tsv` `.parquet` `.feather` `.json` `.jsonl` `.xlsx` `.h5` | Nothing extra — standard EDA team handles it |
+| **Image** | `.jpg` `.png` `.tiff` `.webp` `.gif` `.bmp` | `image_loader` tool + `ImageAnalyst` agent |
+| **Text / NLP** | `.txt` `.md` `.xml` `.yaml` `.log` | `text_preprocessor` tool + `NLPAnalyst` agent |
+| **Audio** | `.wav` `.mp3` `.flac` `.ogg` | `audio_features` tool + `AudioAnalyst` agent |
+| **Video** | `.mp4` `.avi` `.mov` | `video_sampler` tool + `VideoAnalyst` agent |
+| **Multi-table** | directory with multiple CSVs | `multi_table_joiner` tool + join strategy pinned in context |
+| **Mixed** | images + CSV labels, audio + metadata, etc. | combination of the above |
+
+**Example — image classification dataset:**
+```
+my_dataset/
+├── train/
+│   ├── cat/  ← 500 .jpg files
+│   └── dog/  ← 500 .jpg files
+└── labels.csv
+```
+BuilderAgent sees `image + tabular` → writes `image_loader.py` → spawns `ImageAnalyst` → pins strategy: *"CV classification task. Class-organized images. Use CNN or ViT."*
 
 ---
 
 ## Memory Architecture
 
-Each agent maintains **individual long-term memory** across runs — they remember what worked and what didn't.
-
-### Three layers
+Each agent has **individual long-term memory** across runs — they remember what worked and what didn't, and never repeat a failed approach.
 
 ```
-┌─────────────────────────────────────────────────┐
-│  Working Memory (ContextManager)                │
-│  Current run's shared log — all agents read it  │
-│  Pinned entries (dataset summary) never trimmed  │
-│  Token-aware trimming drops oldest entries first │
-└─────────────────────────────────────────────────┘
-           ↓ stored after each step
-┌─────────────────────────────────────────────────┐
-│  Long-term Memory (ChromaDB)                    │
-│  Per-agent vector store — semantic recall       │
-│  Hybrid search: BM25 + vector + temporal decay  │
-│  Expired facts filtered out automatically       │
-│  Persists to: experiments/chroma_db/            │
-└─────────────────────────────────────────────────┘
-           ↓ indexed for lineage
-┌─────────────────────────────────────────────────┐
-│  Knowledge Graph (SQLite)                       │
-│  Nodes = agent steps, Edges = relationships     │
-│  INFORMED_BY / RETRY_OF / FAILURE_LED_TO /      │
-│  CROSS_RUN                                      │
-│  Persists to: experiments/graph.db              │
-└─────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────┐
+│  Working Memory  (ContextManager)                │
+│  Shared log for the current run                  │
+│  Pinned entries (dataset summary, strategy)      │
+│  never trimmed. Token-aware: drops oldest first. │
+└──────────────────────────────────────────────────┘
+              ↓ stored after every step
+┌──────────────────────────────────────────────────┐
+│  Long-term Memory  (ChromaDB, per-agent)         │
+│  Hybrid search: BM25 (55%) + vector (45%)        │
+│  Temporal decay: errors fade in 3d, code in 90d  │
+│  MMR re-ranking for result diversity             │
+│  Failed run memories auto-expired (filtered out) │
+└──────────────────────────────────────────────────┘
+              ↓ indexed for lineage
+┌──────────────────────────────────────────────────┐
+│  Knowledge Graph  (SQLite)                       │
+│  Nodes = agent steps                             │
+│  Edges = INFORMED_BY / RETRY_OF /                │
+│          FAILURE_LED_TO / CROSS_RUN              │
+└──────────────────────────────────────────────────┘
 ```
 
 ### Temporal Memory
-When a training run **fails**, all memories from that run are marked `expired`. Future recall queries automatically filter them out — the CodeWriter will never suggest a previously failed approach again. Each retry gets a fresh `run_id` so memory scoping is correct.
+When a training run **fails**, all its memories are marked `expired`. Future recall queries filter them out — the CodeWriter never re-suggests a failed approach. Each retry gets a fresh `run_id`.
 
-### Hybrid Search
-Memory recall uses a 5-stage pipeline (ported from OpenClaw):
-1. Fetch full corpus from ChromaDB for BM25
-2. BM25 keyword score (55% weight)
-3. ChromaDB vector similarity score (45% weight)
-4. Temporal decay — `e^(-ln(2)/half_life × age_days)`. Role-specific half-lives: `error=3d`, `result=14d`, `plan=30d`, `code=90d`. Evergreen roles (`dataset_context`, `narrative`) never decay.
-5. MMR re-ranking — Maximal Marginal Relevance for result diversity
+### Hybrid Search (5-stage)
+1. Fetch corpus from ChromaDB for BM25 scoring
+2. BM25 keyword score — 55% weight
+3. ChromaDB vector similarity — 45% weight
+4. Temporal decay — `e^(-ln(2)/half_life × age_days)`. Half-lives: error=3d, result=14d, plan=30d, code=90d. Dataset/narrative: never decay.
+5. MMR re-ranking — diversity via Maximal Marginal Relevance
 
 ### Two Recall Modes
-- **Top-K recall** — standard hybrid similarity search (used by most agents)
-- **Insight Forge** — LLM decomposes the task into 3–4 sub-questions, runs parallel searches per sub-question, deduplicates and MMR-reranks the merged results (used by Explorer, Feature Engineer, Pragmatist, Optimizer, CodeWriter)
+- **Top-K** — standard hybrid search (most agents)
+- **Insight Forge** — LLM decomposes task into 3–4 sub-questions, parallel searches, deduplication, MMR re-rank (Explorer, CodeWriter, Optimizer, Pragmatist)
 
-### Context Overflow Handling
-Two-layer protection:
-- **ToolResultContextGuard** — hard 30% cap on tool output size per step; uses head+tail truncation (biased toward tail where errors live)
-- **ContextCompactor** — when context hits 85% of token budget, LLM summarizes oldest 60% of entries with a quality audit (extracts identifiers, metric values, model names; retries up to 3× if summary is missing critical items)
+### Context Overflow Protection
+- **ToolResultContextGuard** — hard 30% cap on tool output; head+tail truncation biased toward tail (where errors live)
+- **ContextCompactor** — at 85% of token budget, LLM summarizes oldest 60% with a quality audit (retries 3× if identifiers/metrics are missing from summary)
 
 ---
 
-## BuilderAgent — Universal Dataset Support
+## BuilderAgent + Tool Registry
 
-The **BuilderAgent** is a meta-agent that runs at the start of Phase 1. It reads the `DatasetProfile` (file types, sizes, schemas, previews) and asks the LLM:
-
-> *"What tools and specialist agents do we need for this dataset?"*
-
-It then:
-1. **Writes tool modules** to `tool_registry/` — e.g. `image_loader.py`, `audio_features.py`, `multi_table_joiner.py`
-2. **Spawns specialist agents** into the orchestrator — e.g. `image_analyst`, `audio_analyst`, `nlp_analyst`
-3. **Pins the analysis strategy** to the context so all subsequent agents see it
-
-### Fast path
-For a single plain tabular file (CSV/Parquet), the LLM call is **skipped entirely** — the standard EDA team is sufficient.
-
-### How tools get loaded without restart
-Tools written to `tool_registry/` are picked up automatically by the next `CodeExecutor` subprocess because each subprocess starts fresh and imports from disk. The orchestrator keeps running — no reload required.
+### How dynamic tools work
+Tools written to `tool_registry/` are available to the **next subprocess immediately** — no orchestrator restart. Each training script runs as a fresh subprocess that imports from disk.
 
 ```
-BuilderAgent writes: tool_registry/image_loader.py
-                                   audio_features.py
-                     ↓
-Next subprocess does: sys.path.insert(0, 'tool_registry')
-                      import image_loader
-                      import audio_features
-                      ← just works, no orchestrator restart
+BuilderAgent writes:  tool_registry/image_loader.py
+                      tool_registry/audio_features.py
+
+Next training subprocess:
+  sys.path.insert(0, 'tool_registry')
+  import image_loader        ← just works
+  import audio_features      ← just works
 ```
+
+### Tool validation before writing
+Every tool the LLM generates goes through 3 stages before being saved:
+1. **Syntax** — `ast.parse()` — instant check
+2. **Compile** — `compile()` — catches structural errors
+3. **Import** — fresh subprocess — catches missing libraries
+
+If validation fails → LLM asked to fix with error context → re-validated. Up to 3 attempts per tool.
+
+### LibraryInstallerAgent
+If a tool or script needs a library that isn't installed:
+1. Parses the `ImportError` message to find the module name
+2. Maps it to a pip package (`PIL→Pillow`, `cv2→opencv-python`, `sklearn→scikit-learn`, `librosa→librosa`, `torch→torch`, 60+ mappings)
+3. Runs `pip install` using the same Python interpreter
+4. Re-runs validation / re-executes the script
+
+**Triggered automatically by:** BuilderAgent (tool validation), DataUnderstandingPhase (specialist agents), Orchestrator.step() (any agent), CodeExecutor (training scripts).
 
 ---
 
 ## Phase-Based Architecture
 
-Phases are discrete, independently-restartable units. If you update the model design logic, you can re-run from `ModelDesignPhase` without redoing EDA — the shared context already has Phase 1's outputs.
-
-```bash
-# Run the full phase pipeline on a directory
-python main.py --dataset ./my_dataset/ --provider claude --mode phases --target label
-
-# Or compose your own phase order in code
-from phases import DataUnderstandingPhase, ModelDesignPhase, CodeGenerationPhase
-
-orchestrator.run_phases(
-    dataset_summary=summary,
-    dataset_path="./my_dataset/",
-    dataset_profile=profile,          # DatasetProfile from DatasetDiscovery
-    phases=[
-        DataUnderstandingPhase(orchestrator),
-        ModelDesignPhase(orchestrator),
-        CodeGenerationPhase(orchestrator),
-    ]
-)
-```
+Each phase is an independent, re-runnable unit. Update model design logic → re-run from Phase 2 without redoing EDA.
 
 | Phase | Required Agents | Optional / Dynamic |
 |---|---|---|
@@ -183,30 +301,20 @@ orchestrator.run_phases(
 | `ValidationPhase` | skeptic | devil_advocate, statistician |
 | `InferencePhase` | code_writer | architect, storyteller |
 
----
-
-## Tool Registry
-
-Agents can write reusable Python utility modules to disk during a run. The next training subprocess picks them up automatically — **no orchestrator restart needed**.
-
-This works because `CodeExecutor` runs training scripts as fresh subprocesses. Each new subprocess imports from disk, so any file written to `tool_registry/` between attempts is immediately available.
-
 ```python
-# An agent writes a reusable preprocessing helper
-orch.tool_registry.register(
-    name="preprocessing_utils",
-    code="def robust_scale(X): ...",
-    description="Robust scaling and outlier clipping utilities",
-    tags=["preprocessing", "scaling"],
+# Custom phase composition
+orchestrator.run_phases(
+    dataset_summary=summary,
+    dataset_path="./my_dataset/",
+    dataset_profile=profile,
+    phases=[
+        DataUnderstandingPhase(orchestrator),
+        ModelDesignPhase(orchestrator),
+        CodeGenerationPhase(orchestrator),
+        # skip validation, skip inference
+    ]
 )
-
-# The registry injects this context into the CodeWriter's prompt
-# Generated scripts get sys.path extended automatically:
-#   sys.path.insert(0, '/path/to/tool_registry')
-#   import preprocessing_utils
 ```
-
-The registry is indexed in both JSON (`_index.json`) and ChromaDB for semantic search.
 
 ---
 
@@ -214,13 +322,19 @@ The registry is indexed in both JSON (`_index.json`) and ChromaDB for semantic s
 
 ```
 hackathon/
+│
+├── app.py                     ← Streamlit UI (start here)
+├── main.py                    ← CLI entry point
+├── requirements.txt
+│
 ├── agents/
+│   ├── base.py                # BaseAgent — memory recall + storage
 │   ├── agent_config.py        # Behavioral profiles (stance, activity, sentiment)
-│   ├── base.py                # BaseAgent — memory recall + storage wired in
-│   ├── builder_agent.py       # BuilderAgent — inspects dataset, creates tools + agents
+│   ├── builder_agent.py       # BuilderAgent — creates tools + specialist agents
+│   ├── installer_agent.py     # LibraryInstallerAgent — auto pip-install
 │   ├── analyst_agents.py      # Explorer, Skeptic, Statistician, Ethicist
 │   ├── planner_agents.py      # Pragmatist, DevilAdvocate, Architect, Optimizer
-│   ├── coder_agent.py         # CodeWriter — training + inference script generation
+│   ├── coder_agent.py         # CodeWriter
 │   └── storyteller_agent.py
 │
 ├── phases/
@@ -233,20 +347,21 @@ hackathon/
 │   └── inference.py           # Phase 5: inference script + deployment + narrative
 │
 ├── memory/
-│   ├── context_manager.py     # Working memory for the current run
+│   ├── context_manager.py     # Working memory (current run)
 │   ├── vector_store.py        # ChromaDB wrapper with temporal expiry
 │   ├── hybrid_search.py       # BM25 + vector + temporal decay + MMR
-│   ├── graph_store.py         # SQLite knowledge graph (nodes + edges)
+│   ├── graph_store.py         # SQLite knowledge graph
 │   ├── agent_memory.py        # Per-agent recall/remember + insight_forge
-│   └── compaction.py          # LLM context summarization with quality audit
+│   └── compaction.py          # LLM summarization with quality audit
 │
 ├── execution/
-│   ├── executor.py            # Runs generated code in subprocess, captures output
-│   ├── result_parser.py       # Parses METRICS: {...}, classifies error types
+│   ├── executor.py            # Subprocess runner + ImportError auto-fix
+│   ├── tool_validator.py      # 3-stage tool code validation
+│   ├── result_parser.py       # Parses METRICS:{}, classifies error types
 │   └── context_guard.py       # 30% output cap + head/tail truncation
 │
 ├── orchestration/
-│   ├── orchestrator.py        # Routes tasks, manages memory, drives all pipeline modes
+│   ├── orchestrator.py        # Routes tasks, retry in step(), all pipeline modes
 │   └── registry.py            # AgentRegistry — lifecycle tracking, spawn limits
 │
 ├── backends/
@@ -254,7 +369,7 @@ hackathon/
 │   └── fallback.py            # FallbackLLM — multi-provider rotation with cooldown
 │
 ├── tool_registry/
-│   └── registry.py            # ToolRegistry — agents write reusable modules here
+│   └── registry.py            # ToolRegistry — runtime tool modules
 │
 ├── prompts/
 │   ├── analyst_prompts.py
@@ -262,9 +377,14 @@ hackathon/
 │   ├── coder_prompts.py
 │   └── orchestrator_prompt.py
 │
-├── experiments/               # Auto-created — scripts, context logs, DB files, tools
-├── main.py
-└── requirements.txt
+└── experiments/               # Auto-created on first run
+    ├── chroma_db/             # Per-agent ChromaDB (persists across runs)
+    ├── graph.db               # SQLite knowledge graph
+    ├── registry.json          # AgentRegistry lifecycle log
+    ├── tool_registry/         # Tools written by agents mid-run
+    ├── train_attempt_*.py     # Generated training scripts
+    ├── inference.py           # Generated inference script
+    └── context_{run_id}.json  # Full context log
 ```
 
 ---
@@ -277,185 +397,106 @@ cd hackathon
 pip install -r requirements.txt
 ```
 
-Set your API key:
+No API key setup needed for the UI — enter it in the sidebar at runtime. For the CLI:
+
 ```bash
-export ANTHROPIC_API_KEY=your_key_here
+export ANTHROPIC_API_KEY=sk-ant-...
 # or
-export OPENAI_API_KEY=your_key_here
+export OPENAI_API_KEY=sk-...
 ```
 
 ---
 
 ## Usage
 
-### Phase-based pipeline (recommended)
+### UI (recommended — easiest)
 
 ```bash
-# Single CSV — standard pipeline
+streamlit run app.py
+```
+
+1. Select provider → paste API key (or enter vLLM server URL)
+2. Enter dataset path (file or directory, any format)
+3. Describe your task/competition in the text area
+4. Click **Run Analysis**
+5. Watch agents work live in the **Live Agent Log** tab
+6. Read the report in **Results Report**
+7. Download everything as a ZIP from **Download**
+
+---
+
+### CLI
+
+```bash
+# Single file
 python main.py --dataset data.csv --provider claude --mode phases --target SalePrice
 
-# Directory with mixed data — BuilderAgent auto-configures
+# Directory (mixed formats — BuilderAgent auto-configures)
 python main.py --dataset ./my_dataset/ --provider claude --mode phases --target label
 
-# With all options
-python main.py \
-  --dataset    ./my_dataset/ \
-  --provider   claude \
-  --mode       phases \
-  --target     price \
-  --retries    4 \
-  --save-log
-```
+# With fallback provider
+python main.py --dataset ./data/ --provider claude --fallback openai --mode phases
 
-### Other modes
-
-```bash
-# Advisory only — analysis without code execution (works on any dataset type)
-python main.py --dataset ./data/ --provider claude --mode manual
-
-# Orchestrator LLM decides each step dynamically
-python main.py --dataset ./data/ --provider claude --mode auto
-
-# Original monolithic training loop
-python main.py --dataset data.csv --provider claude --mode train --target price
-```
-
-### Multi-provider fallback
-
-```bash
-# Tries Claude first, falls back to OpenAI on rate limit
-python main.py \
-  --dataset    ./my_dataset/ \
-  --provider   claude \
-  --fallback   openai \
-  --mode       phases \
-  --target     price
-```
-
-### Other LLM backends
-
-```bash
-# OpenAI
-python main.py --dataset ./data/ --provider openai --model gpt-4o-mini --mode phases
-
-# Local vLLM server
+# Local vLLM
 python main.py --dataset ./data/ --provider local --base-url http://localhost:8000/v1 --mode phases
 
-# Disable long-term memory (fast first test)
+# Advisory only (no code execution)
+python main.py --dataset ./data/ --provider claude --mode manual
+
+# Disable memory (faster first run)
 python main.py --dataset data.csv --provider claude --mode phases --no-memory
 
-# Skip BuilderAgent (use standard agents only)
+# Skip BuilderAgent
 python main.py --dataset data.csv --provider claude --mode phases --no-builder
 ```
 
----
-
-## CLI Arguments
+### CLI Arguments
 
 | Argument | Default | Description |
 |---|---|---|
-| `--dataset` | required | Path to dataset **file or directory** (any format) |
-| `--provider` | `claude` | LLM provider: `claude`, `openai`, `local` |
+| `--dataset` | required | File or directory, any format |
+| `--provider` | `claude` | `claude` / `openai` / `local` |
 | `--model` | provider default | Model name override |
-| `--base-url` | — | Base URL for local vLLM server |
-| `--fallback` | — | Fallback provider on rate limit (e.g. `openai`) |
+| `--base-url` | — | vLLM server URL |
+| `--fallback` | — | Fallback provider on rate limit |
 | `--fallback-model` | — | Fallback model name |
-| `--mode` | `manual` | Pipeline mode: `manual`, `auto`, `train`, `phases` |
-| `--target` | — | Target column name (train/phases mode) |
+| `--mode` | `manual` | `phases` / `manual` / `auto` / `train` |
+| `--target` | — | Target column (auto-detected if blank) |
 | `--retries` | `4` | Max training retry attempts |
 | `--max-agents` | `5` | Max concurrent agents |
-| `--no-memory` | off | Disable ChromaDB long-term memory |
-| `--no-builder` | off | Skip BuilderAgent (use default agents only) |
+| `--no-memory` | off | Disable ChromaDB |
+| `--no-builder` | off | Skip BuilderAgent |
 | `--save-log` | off | Save context log to JSON |
-
----
-
-## Supported Dataset Formats
-
-`--dataset` accepts **any file or directory**. `DatasetDiscovery` scans the path and the `BuilderAgent` adapts the pipeline automatically.
-
-| Type | Extensions | What BuilderAgent creates |
-|---|---|---|
-| **Tabular** | `.csv` `.tsv` `.parquet` `.feather` `.json` `.jsonl` `.xlsx` `.h5` | Nothing extra (standard EDA team handles it) |
-| **Image** | `.jpg` `.png` `.tiff` `.webp` `.gif` `.bmp` | `image_loader` tool + `ImageAnalyst` agent |
-| **Text / NLP** | `.txt` `.md` `.xml` `.yaml` `.log` | `text_preprocessor` tool + `NLPAnalyst` agent |
-| **Audio** | `.wav` `.mp3` `.flac` `.ogg` | `audio_features` tool + `AudioAnalyst` agent |
-| **Video** | `.mp4` `.avi` `.mov` | `video_sampler` tool + `VideoAnalyst` agent |
-| **Multi-table** | directory with multiple CSVs | `multi_table_joiner` tool + join strategy in context |
-| **Mixed** | images + CSV labels, audio + metadata, etc. | combination of the above |
-
-### Example: image classification directory
-```
-my_dataset/
-├── train/
-│   ├── cat/  ← 500 .jpg files
-│   └── dog/  ← 500 .jpg files
-└── labels.csv
-```
-BuilderAgent sees: `image` + `tabular` types → writes `image_loader.py` to `tool_registry/`, spawns `ImageAnalyst` agent, pins strategy: *"Computer vision classification task. Images are class-organized. Use CNN or ViT. Labels from labels.csv."*
-
----
-
-## Agent Behavioral Profiles
-
-Agents have more than a system prompt — they have a behavioral config that shapes how they respond:
-
-```python
-# Skeptic is maximally critical
-AgentConfig(
-    activity_level = 0.7,
-    stance         = "opposing",   # actively pushes back
-    sentiment_bias = -0.7,         # frames everything negatively
-)
-
-# Explorer is thorough and constructive
-AgentConfig(
-    activity_level    = 0.9,       # exhaustive responses
-    stance            = "supportive",
-    sentiment_bias    = 0.6,
-    use_insight_forge = True,      # multi-query memory recall
-)
-
-# Devil's Advocate is contrarian to the extreme
-AgentConfig(
-    stance         = "opposing",
-    sentiment_bias = -0.8,
-)
-```
-
-These are injected as `BEHAVIORAL PARAMETERS` into each agent's system prompt at runtime.
 
 ---
 
 ## Generated Script Contract
 
-The CodeWriter produces training scripts that follow this contract:
+The CodeWriter produces training scripts that follow a strict contract:
 - Print metrics as: `METRICS: {"accuracy": 0.95, "f1": 0.94}`
 - Save model to `trained_model.pkl`
 - Exit `0` on success, `1` on failure
 
 The inference script (Phase 5):
 - Loads `trained_model.pkl`
-- Accepts a CSV path as CLI argument
+- Accepts a data path as CLI argument
 - Applies the same preprocessing pipeline
 - Outputs `predictions.csv`
 
 ---
 
-## Experiments Directory
+## Agent Behavioral Profiles
 
-After a run, `experiments/` contains:
+Agents have behavioral configs injected into their system prompts, shaping how they respond independently of their task:
 
-```
-experiments/
-├── chroma_db/                  # Per-agent ChromaDB collections (persists across runs)
-├── graph.db                    # SQLite knowledge graph
-├── registry.json               # AgentRegistry lifecycle log
-├── tool_registry/              # Reusable Python modules written by agents
-│   ├── _index.json             # Tool index
-│   └── preprocessing_utils.py  # (example tool written during run)
-├── train_attempt_1.py          # Generated training scripts
-├── train_attempt_2.py
-├── inference.py                # Generated inference script
-└── context_{run_id}.json       # Full context log for each run
+```python
+# Skeptic is maximally critical
+AgentConfig(activity_level=0.7, stance="opposing", sentiment_bias=-0.7)
+
+# Explorer is thorough and optimistic
+AgentConfig(activity_level=0.9, stance="supportive", sentiment_bias=0.6,
+            use_insight_forge=True)
+
+# Devil's Advocate is contrarian to the extreme
+AgentConfig(stance="opposing", sentiment_bias=-0.8)
 ```

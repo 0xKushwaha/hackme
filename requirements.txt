@@ -16,4 +16,7 @@ scikit-learn
 xgboost
 joblib
 
+# UI
+streamlit>=1.32.0
+
 python-dotenv

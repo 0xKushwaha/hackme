@@ -8,14 +8,33 @@ Point it at a directory and the **Builder Agent** automatically inspects what's 
 
 ## Quick Start
 
-### UI (recommended)
+### 1. Install
+
 ```bash
+git clone <repo>
+cd hackathon
 pip install -r requirements.txt
+```
+
+### 2. Health check (first run)
+
+```bash
+python check.py                    # verify Claude setup
+python check.py --provider openai  # verify OpenAI setup
+python check.py --no-llm           # skip live API call
+```
+
+Checks: dependencies → API key → paths → live LLM ping. Fix anything flagged before continuing.
+
+### 3. UI (recommended)
+
+```bash
 streamlit run app.py
 # Opens at http://localhost:8501
 ```
 
-### CLI
+### 4. CLI
+
 ```bash
 python main.py --dataset ./my_dataset/ --provider claude --mode phases --target price
 ```
@@ -87,6 +106,19 @@ User input: dataset path + task description
   │
   ▼
 ┌─────────────────────────────────────────────────────────────────┐
+│  DataProfiler  (pre-LLM, zero inference cost)                   │
+│  Fast pandas/numpy pass — computed BEFORE any LLM call:         │
+│    · Shape, missing %, outlier %, near-zero variance            │
+│    · High-correlation pairs (multicollinearity risk)            │
+│    · Class imbalance, time-series detection                     │
+│    · Data quality score 0–1                                     │
+│    · Per-agent routing hints (skip / quick / prioritize)        │
+│  Parquet files streamed via PyArrow batches — never fully       │
+│  loaded into memory regardless of file size.                    │
+└─────────────────────────────────────────────────────────────────┘
+  │
+  ▼
+┌─────────────────────────────────────────────────────────────────┐
 │  Phase 1: Data Understanding                                    │
 │                                                                 │
 │  BuilderAgent (skipped for plain tabular)                       │
@@ -100,7 +132,10 @@ User input: dataset path + task description
 │    pip-installs them using the same Python interpreter          │
 │    Re-validates / re-runs automatically                         │
 │                                                                 │
-│  Core EDA: Explorer + Skeptic + Statistician (each with retry) │
+│  Core EDA: Explorer + Skeptic + Statistician (each with retry)  │
+│    Early stopping: quality > 0.92 → Skeptic on quick pass       │
+│    Early stopping: quality > 0.95 + no signals → Ethicist skip  │
+│    Routing hints guide each agent's focus area                  │
 │  Specialists: dynamic agents run (each with retry)              │
 │  Ethicist: bias + fairness review (optional, with retry)        │
 ├─────────────────────────────────────────────────────────────────┤
@@ -111,10 +146,12 @@ User input: dataset path + task description
 │  Phase 3: Code Generation (retry loop)                          │
 │  CodeWriter → Executor (subprocess) → ✅ success                │
 │                              ↓ fail                             │
+│    DiagnosticAgent: root cause → ROOT_CAUSE / FAILURE_CLASS     │
+│                              → REDESIGN_NEEDED flag             │
 │    ImportError? → LibraryInstaller → retry same script          │
 │    Other error? → Expire memories → Devil's Advocate            │
-│                → Pragmatist → new run_id → CodeWriter           │
-│                → Executor → repeat up to N times               │
+│                → Pragmatist (if redesign) → new run_id          │
+│                → CodeWriter → Executor → repeat up to N times  │
 ├─────────────────────────────────────────────────────────────────┤
 │  Phase 4: Validation                                            │
 │  Skeptic + Devil's Advocate + Statistician stress-test results  │
@@ -153,6 +190,14 @@ DataUnderstandingPhase
 Orchestrator.step()       — up to 2 attempts (default, configurable)
   Any agent exception?    → installer check → error in task → retry
 
+CodeGenerationPhase  (retry loop)
+  On failure → DiagnosticAgent analyzes root cause FIRST
+               → ROOT_CAUSE / FAILURE_CLASS / TARGETED_FIX / REDESIGN_NEEDED
+  Expire memories from failed run → agents won't repeat failed approach
+  Devil's Advocate re-evaluates using diagnostic output
+  Pragmatist revises plan only if REDESIGN_NEEDED or attempt >= 3
+  New run_id per attempt — memory scoping stays clean
+
 CodeExecutor.run()        — 1 automatic inner retry on ImportError
   Script ImportError?     → LibraryInstallerAgent installs package
                           → re-runs SAME script (no outer retry consumed)
@@ -166,6 +211,7 @@ CodeExecutor.run()        — 1 automatic inner retry on ImportError
 |---|---|---|
 | **BuilderAgent** | Inspects dataset, creates tools + specialist agents | Architectural planner |
 | **LibraryInstallerAgent** | Detects + installs missing packages automatically | Autonomous ops |
+| **DiagnosticAgent** | Root cause analysis before every code retry | Structured, precise |
 | **Explorer** | EDA — patterns, correlations, key features | Curious, constructive |
 | **Skeptic** | Data quality — outliers, leakage, missing values | Aggressively critical |
 | **Statistician** | Distributions, hypothesis tests, multicollinearity | Rigorous, neutral |
@@ -178,6 +224,15 @@ CodeExecutor.run()        — 1 automatic inner retry on ImportError
 | **CodeWriter** | Generates executable Python training + inference scripts | Precise, code-only |
 | **Storyteller** | Final narrative for judges/stakeholders | Compelling, audience-aware |
 | **Dynamic specialists** | Created by BuilderAgent for non-tabular data | Domain-specific |
+
+### Adaptive Agent Personalities
+
+Agent configs adjust automatically based on data and failure metrics:
+
+- High missing data or outliers → Skeptic becomes more aggressive
+- Small dataset (< 500 rows) → Optimizer warns against k-fold, suggests LOO
+- High class imbalance → Optimizer prioritizes stratified CV
+- Repeated training failures → agents shift toward redesign over patching
 
 ---
 
@@ -194,6 +249,8 @@ Point `--dataset` (or the UI path field) at **any file or directory**.
 | **Video** | `.mp4` `.avi` `.mov` | `video_sampler` tool + `VideoAnalyst` agent |
 | **Multi-table** | directory with multiple CSVs | `multi_table_joiner` tool + join strategy pinned in context |
 | **Mixed** | images + CSV labels, audio + metadata, etc. | combination of the above |
+
+**Large Parquet files** are streamed via PyArrow batch reads — only the first `SAMPLE_SIZE` rows are read from disk. The full file is never loaded into memory.
 
 **Example — image classification dataset:**
 ```
@@ -297,7 +354,7 @@ Each phase is an independent, re-runnable unit. Update model design logic → re
 |---|---|---|
 | `DataUnderstandingPhase` | explorer, skeptic, statistician | ethicist, builder-spawned specialists |
 | `ModelDesignPhase` | feature_engineer, pragmatist | devil_advocate, optimizer |
-| `CodeGenerationPhase` | code_writer | devil_advocate, pragmatist |
+| `CodeGenerationPhase` | code_writer | diagnostic, devil_advocate, pragmatist |
 | `ValidationPhase` | skeptic | devil_advocate, statistician |
 | `InferencePhase` | code_writer | architect, storyteller |
 
@@ -325,24 +382,32 @@ hackathon/
 │
 ├── app.py                     ← Streamlit UI (start here)
 ├── main.py                    ← CLI entry point
-├── requirements.txt
+├── check.py                   ← First-run health check
+├── requirements.txt           ← Pinned versions
 │
 ├── agents/
 │   ├── base.py                # BaseAgent — memory recall + storage
 │   ├── agent_config.py        # Behavioral profiles (stance, activity, sentiment)
+│   │                          # adapt() adjusts personality from data/failure metrics
 │   ├── builder_agent.py       # BuilderAgent — creates tools + specialist agents
 │   ├── installer_agent.py     # LibraryInstallerAgent — auto pip-install
+│   ├── diagnostic_agent.py    # DiagnosticAgent — root cause before retry
 │   ├── analyst_agents.py      # Explorer, Skeptic, Statistician, Ethicist
 │   ├── planner_agents.py      # Pragmatist, DevilAdvocate, Architect, Optimizer
 │   ├── coder_agent.py         # CodeWriter
 │   └── storyteller_agent.py
 │
+├── analysis/
+│   ├── __init__.py
+│   └── data_profiler.py       # Pre-LLM data stats: quality score, routing hints
+│                              # Parquet streamed via PyArrow — no full-file OOM
+│
 ├── phases/
 │   ├── base.py                # BasePhase, PhaseResult
 │   ├── discovery.py           # DatasetDiscovery — scans any file/directory
-│   ├── data_understanding.py  # Phase 1: Builder → EDA → specialists → ethics
+│   ├── data_understanding.py  # Phase 1: Profiler → Builder → EDA → ethics
 │   ├── model_design.py        # Phase 2: features, plan, critique, tuning
-│   ├── code_generation.py     # Phase 3: training retry loop
+│   ├── code_generation.py     # Phase 3: DiagnosticAgent → training retry loop
 │   ├── validation.py          # Phase 4: stress-test results
 │   └── inference.py           # Phase 5: inference script + deployment + narrative
 │
@@ -362,18 +427,19 @@ hackathon/
 │
 ├── orchestration/
 │   ├── orchestrator.py        # Routes tasks, retry in step(), all pipeline modes
+│   ├── conversation_manager.py# Multi-turn agent discussions + panel reviews
 │   └── registry.py            # AgentRegistry — lifecycle tracking, spawn limits
 │
 ├── backends/
-│   ├── llm_backends.py        # Claude / OpenAI / local vLLM
+│   ├── llm_backends.py        # Claude / OpenAI / local (OpenAI-compatible)
 │   └── fallback.py            # FallbackLLM — multi-provider rotation with cooldown
 │
 ├── tool_registry/
 │   └── registry.py            # ToolRegistry — runtime tool modules
 │
 ├── prompts/
-│   ├── analyst_prompts.py
-│   ├── planner_prompts.py
+│   ├── analyst_prompts.py     # Structured outputs: FINDINGS, confidence, LEAKAGE_RISKS
+│   ├── planner_prompts.py     # REASONING, ALTERNATIVES_REJECTED, WORST_CASE, VERDICT
 │   ├── coder_prompts.py
 │   └── orchestrator_prompt.py
 │
@@ -397,12 +463,23 @@ cd hackathon
 pip install -r requirements.txt
 ```
 
-No API key setup needed for the UI — enter it in the sidebar at runtime. For the CLI:
+Create a `.env` file with your API key:
 
 ```bash
-export ANTHROPIC_API_KEY=sk-ant-...
+# .env
+ANTHROPIC_API_KEY=sk-ant-...
 # or
-export OPENAI_API_KEY=sk-...
+OPENAI_API_KEY=sk-...
+
+# local vLLM (optional)
+VLLM_URL=http://localhost:8000/v1
+VLLM_MODEL=mistral-7b-instruct
+```
+
+Then verify everything is working:
+
+```bash
+python check.py
 ```
 
 ---
@@ -437,7 +514,7 @@ python main.py --dataset ./my_dataset/ --provider claude --mode phases --target 
 # With fallback provider
 python main.py --dataset ./data/ --provider claude --fallback openai --mode phases
 
-# Local vLLM
+# Local vLLM (vLLM, Ollama, LM Studio, llama.cpp — any OpenAI-compatible server)
 python main.py --dataset ./data/ --provider local --base-url http://localhost:8000/v1 --mode phases
 
 # Advisory only (no code execution)
@@ -457,7 +534,7 @@ python main.py --dataset data.csv --provider claude --mode phases --no-builder
 | `--dataset` | required | File or directory, any format |
 | `--provider` | `claude` | `claude` / `openai` / `local` |
 | `--model` | provider default | Model name override |
-| `--base-url` | — | vLLM server URL |
+| `--base-url` | — | vLLM / Ollama / LM Studio server URL |
 | `--fallback` | — | Fallback provider on rate limit |
 | `--fallback-model` | — | Fallback model name |
 | `--mode` | `manual` | `phases` / `manual` / `auto` / `train` |
@@ -500,3 +577,5 @@ AgentConfig(activity_level=0.9, stance="supportive", sentiment_bias=0.6,
 # Devil's Advocate is contrarian to the extreme
 AgentConfig(stance="opposing", sentiment_bias=-0.8)
 ```
+
+Configs adapt at runtime based on data quality metrics and failure count — agents become more aggressive when the data is messy or when the training loop has failed multiple times.

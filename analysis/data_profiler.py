@@ -81,9 +81,16 @@ class DataProfiler:
             if ext == ".csv":
                 df = pd.read_csv(p, nrows=self.SAMPLE_SIZE)
             elif ext in (".parquet", ".feather"):
-                df = pd.read_parquet(p)
-                if len(df) > self.SAMPLE_SIZE:
-                    df = df.sample(self.SAMPLE_SIZE, random_state=42)
+                try:
+                    import pyarrow.parquet as pq
+                    pf = pq.ParquetFile(p)
+                    batch = next(pf.iter_batches(batch_size=self.SAMPLE_SIZE))
+                    df = batch.to_pandas()
+                except Exception:
+                    # feather or pyarrow unavailable — fall back (small files only)
+                    df = pd.read_parquet(p)
+                    if len(df) > self.SAMPLE_SIZE:
+                        df = df.sample(self.SAMPLE_SIZE, random_state=42)
             elif ext in (".xlsx", ".xls"):
                 df = pd.read_excel(p, nrows=self.SAMPLE_SIZE)
             elif ext in (".json",):

@@ -1,7 +1,6 @@
 import os
 from langchain_anthropic import ChatAnthropic
 from langchain_openai import ChatOpenAI
-from langchain_community.llms import VLLMOpenAI
 
 
 def get_llm(provider: str, model: str = None, base_url: str = None, **kwargs):
@@ -11,7 +10,8 @@ def get_llm(provider: str, model: str = None, base_url: str = None, **kwargs):
     Providers:
         claude : Anthropic Claude  (requires ANTHROPIC_API_KEY)
         openai : OpenAI            (requires OPENAI_API_KEY)
-        local  : Local vLLM server (requires base_url or VLLM_URL env var)
+        local  : Local vLLM server — OpenAI-compatible (requires VLLM_URL or base_url)
+                 Works with vLLM, Ollama, LM Studio, llama.cpp, any OpenAI-compatible server.
     """
     if provider == "claude":
         api_key = os.getenv("ANTHROPIC_API_KEY")
@@ -30,13 +30,16 @@ def get_llm(provider: str, model: str = None, base_url: str = None, **kwargs):
         )
 
     if provider == "local":
-        vllm_url = base_url or os.getenv("VLLM_URL") or "http://localhost:8000/v1"
-        vllm_model = model or os.getenv("VLLM_MODEL") or "mistral-7b-instruct"
-        return VLLMOpenAI(
-            openai_api_base=vllm_url,
-            model_name=vllm_model,
-            openai_api_key="EMPTY",
-            **kwargs,
+        # VLLMOpenAI from langchain-community is deprecated.
+        # All modern local servers (vLLM, Ollama, LM Studio, llama.cpp)
+        # expose an OpenAI-compatible /v1 endpoint — ChatOpenAI works directly.
+        vllm_url   = base_url or os.getenv("VLLM_URL")   or "http://localhost:8000/v1"
+        vllm_model = model    or os.getenv("VLLM_MODEL") or "mistral-7b-instruct"
+        return ChatOpenAI(
+            model=vllm_model,
+            base_url=vllm_url,
+            api_key="EMPTY",   # local servers don't need a real key
+            **kwargs
         )
 
     raise ValueError(f"Unknown provider '{provider}'. Choose from: claude, openai, local")

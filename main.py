@@ -25,6 +25,7 @@ Usage:
 
 import argparse
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv(override=True)
@@ -47,7 +48,8 @@ from phases.discovery           import DatasetDiscovery
 from tool_registry              import ToolRegistry
 
 
-EXPERIMENT_DIR = "experiments"
+BASE_DIR       = Path(__file__).parent
+EXPERIMENT_DIR = str(BASE_DIR / "experiments")
 
 AGENT_NAMES = [
     "explorer", "skeptic", "statistician", "feature_engineer",
@@ -118,7 +120,7 @@ def main():
     print(f"🔧 Fallback : {args.fallback or 'none'}")
     print(f"🔧 Mode     : {args.mode}")
     print(f"🔧 Builder  : {'disabled (--no-builder)' if args.no_builder else 'enabled'}")
-    print(f"🔧 Memory   : {'disabled' if args.no_memory else 'ChromaDB (experiments/chroma_db)'}")
+    print(f"🔧 Memory   : {'disabled' if args.no_memory else f'ChromaDB ({EXPERIMENT_DIR}/chroma_db)'}")
 
     llm_kwargs = {}
     if args.base_url:

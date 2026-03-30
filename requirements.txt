@@ -1,22 +1,23 @@
-langchain
-langchain-anthropic
-langchain-openai
-langchain-community
+langchain==0.2.14
+langchain-anthropic==0.1.23
+langchain-openai==0.1.25
+langchain-community==0.2.12
 
 # Vector DB — per-agent long-term memory
-chromadb
-sentence-transformers
+chromadb==1.5.5
+sentence-transformers==3.0.1
 
-# Hybrid search — BM25 keyword scoring (OpenClaw pattern)
-rank-bm25
+# Hybrid search — BM25 keyword scoring
+rank-bm25==0.2.2
 
 # ML training
-pandas
-scikit-learn
-xgboost
-joblib
+pandas==2.2.2
+scikit-learn==1.2.2
+xgboost==3.1.2
+joblib==1.4.2
+pyarrow==14.0.2
 
 # UI
-streamlit>=1.32.0
+streamlit==1.32.0
 
-python-dotenv
+python-dotenv==1.2.2

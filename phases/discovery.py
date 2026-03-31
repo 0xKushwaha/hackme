@@ -7,8 +7,11 @@ Supports every common data format:
   Text     : .txt  .md  .rst  .log  .xml  .yaml  .yml
   Audio    : .wav  .mp3  .flac  .ogg  .aac
   Video    : .mp4  .avi  .mov  .mkv
-  Archive  : .zip  .tar  .gz
+  Archive  : .zip  .tar  .gz  — auto-extracted to a temp dir, then scanned
   Code     : .py  .r  .ipynb  .sql
+
+ZIP / TAR / GZ files are automatically extracted before scanning so the rest
+of the pipeline always sees real files, never a raw archive.
 
 The DatasetProfile is fed to the BuilderAgent which decides what specialist
 tools and agents to create so the rest of the pipeline can handle ANY dataset.
@@ -16,6 +19,10 @@ tools and agents to create so the rest of the pipeline can handle ANY dataset.
 
 import json
 import os
+import shutil
+import tarfile
+import tempfile
+import zipfile
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -120,14 +127,22 @@ class DatasetDiscovery:
     PREVIEW_CHARS = 600
     MAX_FILES     = 500   # cap to avoid walking enormous directories
 
+    # temp dirs created during archive extraction — caller may clean up
+    _extracted_dirs: list[str] = []
+
     def scan(self, path: str) -> DatasetProfile:
         path = os.path.abspath(path)
         if not os.path.exists(path):
             raise FileNotFoundError(f"Dataset path not found: {path}")
 
         if os.path.isfile(path):
-            fi = self._inspect(path)
-            return DatasetProfile(root=path, is_file=True, files=[fi])
+            ext = os.path.splitext(path)[1].lower()
+            if ext in ARCHIVE_EXT:
+                path = self._extract_archive(path)
+                # fall through to directory walk below
+            else:
+                fi = self._inspect(path)
+                return DatasetProfile(root=path, is_file=True, files=[fi])
 
         # Directory walk — skip hidden files/dirs
         collected: list[FileInfo] = []
@@ -154,10 +169,10 @@ class DatasetDiscovery:
     # Per-file inspection                                                  #
     # ------------------------------------------------------------------ #
 
-    def _inspect(self, path: str) -> FileInfo:
-        name = os.path.basename(path)
-        ext  = os.path.splitext(name)[1].lower()
-        size = os.path.getsize(path)
+    def _inspect(self, path: str, llm=None) -> FileInfo:
+        name  = os.path.basename(path)
+        ext   = os.path.splitext(name)[1].lower()
+        size  = os.path.getsize(path)
         ftype = self._classify(ext)
 
         fi = FileInfo(path=path, name=name, ext=ext, size_bytes=size, file_type=ftype)
@@ -166,8 +181,35 @@ class DatasetDiscovery:
             self._read_tabular(fi)
         elif ftype == "text":
             self._read_text(fi)
+        elif ftype == "unknown":
+            # Unknown extension → hand off to UnknownFormatAgent
+            discovery = self._run_unknown_format_agent(path, llm)
+            if discovery is not None:
+                # Reclassify based on what the agent found
+                fi.file_type = discovery.category
+                fi.preview   = discovery.summary_text[:800]
+                if discovery.schema and discovery.schema.columns:
+                    fi.columns   = [c.name for c in discovery.schema.columns]
+                    fi.col_count = len(fi.columns)
+                    fi.row_count = discovery.schema.row_count
+                # If a converted CSV was produced, replace path so rest of
+                # pipeline can read it normally
+                if discovery.converted_csv_path:
+                    fi.path      = discovery.converted_csv_path
+                    fi.file_type = "tabular"
+                    fi.ext       = ".csv"
 
         return fi
+
+    def _run_unknown_format_agent(self, path: str, llm=None):
+        """Lazy-import and run UnknownFormatAgent to identify the file."""
+        try:
+            from agents.unknown_format_agent import UnknownFormatAgent
+            agent = UnknownFormatAgent(llm=llm, verbose=True)
+            return agent.investigate(path)
+        except Exception as exc:
+            print(f"[Discovery] UnknownFormatAgent failed for {os.path.basename(path)}: {exc}")
+            return None
 
     @staticmethod
     def _classify(ext: str) -> str:
@@ -250,6 +292,72 @@ class DatasetDiscovery:
                 fi.preview = f.read(self.PREVIEW_CHARS)
         except Exception as exc:
             fi.preview = f"(Could not read: {exc})"
+
+    def _extract_archive(self, path: str) -> str:
+        """
+        Extract a ZIP / TAR / GZ archive into a fresh temp directory.
+        Returns the path to the extracted directory.
+        Nested archives are extracted recursively (one level).
+        """
+        dest = tempfile.mkdtemp(prefix="ds_extract_")
+        # Track so callers can clean up later if needed
+        DatasetDiscovery._extracted_dirs.append(dest)
+
+        ext = os.path.splitext(path)[1].lower()
+        fname = os.path.basename(path)
+        print(f"[Discovery] 📦 Extracting archive: {fname} → {dest}")
+
+        try:
+            if ext == ".zip":
+                with zipfile.ZipFile(path, "r") as zf:
+                    # Safety: strip absolute paths and path traversal attempts
+                    for member in zf.infolist():
+                        member_path = os.path.realpath(
+                            os.path.join(dest, member.filename)
+                        )
+                        if not member_path.startswith(os.path.realpath(dest)):
+                            print(f"[Discovery] ⚠️  Skipping unsafe path: {member.filename}")
+                            continue
+                        zf.extract(member, dest)
+
+            elif ext in (".tar", ".gz", ".bz2"):
+                with tarfile.open(path, "r:*") as tf:
+                    def safe_members(members):
+                        for m in members:
+                            member_path = os.path.realpath(
+                                os.path.join(dest, m.name)
+                            )
+                            if not member_path.startswith(os.path.realpath(dest)):
+                                print(f"[Discovery] ⚠️  Skipping unsafe path: {m.name}")
+                                continue
+                            yield m
+                    tf.extractall(dest, members=safe_members(tf.getmembers()))
+
+            else:
+                # Unsupported archive type — copy as-is so the rest of the scan still works
+                shutil.copy2(path, dest)
+                return dest
+
+        except Exception as exc:
+            print(f"[Discovery] ❌ Extraction failed: {exc}")
+            shutil.copy2(path, dest)
+            return dest
+
+        # Recursively extract any nested archives (one level deep only)
+        for dirpath, _, filenames in os.walk(dest):
+            for fname_ in filenames:
+                nested_ext = os.path.splitext(fname_)[1].lower()
+                if nested_ext in ARCHIVE_EXT:
+                    nested_path = os.path.join(dirpath, fname_)
+                    nested_dest = self._extract_archive(nested_path)
+                    # Move extracted contents up
+                    for item in os.listdir(nested_dest):
+                        shutil.move(os.path.join(nested_dest, item), dirpath)
+                    shutil.rmtree(nested_dest, ignore_errors=True)
+                    os.remove(nested_path)
+
+        print(f"[Discovery] ✅ Extracted to: {dest}")
+        return dest
 
     # ------------------------------------------------------------------ #
     # Human-readable formatting for agents                                 #

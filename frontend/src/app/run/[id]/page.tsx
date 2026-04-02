@@ -1,197 +1,322 @@
 'use client'
 
-import dynamic from 'next/dynamic'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import AgentTheme from '@/components/AgentTheme'
-
-const AgentCanvas = dynamic(() => import('@/components/AgentCanvas'), { ssr: false, loading: () => null })
 
 const API = 'http://localhost:8000'
-const POLL_MS = 1500
 
-// Stages in order — visual progress only, no text label shown
-const STAGES = [
-  { key: 'init',        label: 'Init',          match: ['initializing'] },
-  { key: 'discovery',   label: 'Discovery',     match: ['scanning', 'discovery', 'dataset'] },
-  { key: 'understand',  label: 'Understanding', match: ['phase 1', 'data understanding', 'eda', 'explorer', 'skeptic', 'statistician'] },
-  { key: 'design',      label: 'Design',        match: ['phase 2', 'model design', 'pragmatist', 'architect', 'optimizer'] },
-  { key: 'generation',  label: 'Generation',    match: ['phase 3', 'code generation', 'code_writer', 'codewriter'] },
-  { key: 'validation',  label: 'Validation',    match: ['phase 4', 'validation'] },
-  { key: 'inference',   label: 'Inference',     match: ['phase 5', 'inference', 'storyteller'] },
-  { key: 'done',        label: 'Done',          match: ['complete', 'done'] },
-]
-
-function detectStageIndex(phase: string, logLines: string[]): number {
-  const haystack = (phase + ' ' + logLines.slice(-20).join(' ')).toLowerCase()
-  for (let i = STAGES.length - 1; i >= 0; i--) {
-    if (STAGES[i].match.some(m => haystack.includes(m))) return i
-  }
-  return 0
+const AGENTS: Record<string, { label: string; role: string; description: string; icon: string; color: string }> = {
+  explorer:         { label: 'Explorer',        role: 'Data Scout',        description: 'Scans dataset structure, file formats, and surface-level patterns to build a complete picture.',          icon: '◉', color: '#7c6fcd' },
+  skeptic:          { label: 'Skeptic',          role: 'Quality Guard',     description: 'Challenges every assumption and flags data anomalies, inconsistencies, and quality issues.',             icon: '⚠', color: '#d46b8a' },
+  statistician:     { label: 'Statistician',     role: 'Numbers Expert',    description: 'Computes distributions, correlations, significance tests and full statistical summaries.',              icon: '∑', color: '#4a9fd4' },
+  feature_engineer: { label: 'Feature Engineer', role: 'Signal Extractor',  description: 'Identifies predictive features, transformations, and encoding strategies for maximum performance.',    icon: '⟁', color: '#3db87a' },
+  ethicist:         { label: 'Ethicist',         role: 'Bias Detector',     description: 'Evaluates fairness, bias risks, and ethical implications across the dataset and model.',               icon: '⚖', color: '#d4874a' },
+  pragmatist:       { label: 'Pragmatist',       role: 'Reality Check',     description: 'Balances complexity vs. feasibility and ensures the plan is actionable in the real world.',            icon: '◈', color: '#c4a832' },
+  devil_advocate:   { label: 'Devil Advocate',   role: 'Critical Thinker',  description: 'Argues against prevailing conclusions to stress-test ideas and surface hidden failure modes.',         icon: '⛧', color: '#e63030' },
+  optimizer:        { label: 'Optimizer',        role: 'Efficiency Expert', description: 'Identifies hyperparameter strategies, ensemble methods, and performance optimization paths.',          icon: '⚡', color: '#8a7cd4' },
+  architect:        { label: 'Architect',        role: 'System Designer',   description: 'Designs overall model architecture and end-to-end pipeline structure.',                                icon: '⬡', color: '#a86cd4' },
+  storyteller:      { label: 'Storyteller',      role: 'Insight Narrator',  description: 'Synthesises all findings into coherent narratives and final actionable reports.',                      icon: '✦', color: '#d4a8c4' },
 }
 
+const ALL_AGENTS = Object.keys(AGENTS)
+
+function parsePhaseLabel(phase: string): string {
+  const l = phase.toLowerCase()
+  if (l.includes('understand') || l.includes('phase 1')) return 'Data Understanding'
+  if (l.includes('design')     || l.includes('phase 2')) return 'Model Design'
+  if (l.includes('discovery'))                            return 'Discovery'
+  if (l.includes('initializ'))                            return 'Initialising'
+  return phase.charAt(0).toUpperCase() + phase.slice(1).toLowerCase()
+}
+
+function logColor(line: string): string {
+  if (line.includes('✅') || line.includes('SUCCESS')) return '#34d399'
+  if (line.includes('❌') || line.includes('ERROR'))   return '#f87171'
+  if (line.includes('⚠') || line.includes('WARNING')) return '#f59e0b'
+  if (line.includes('Phase'))                           return 'rgba(255,255,255,0.65)'
+  if (line.includes('[') && line.includes(']'))         return 'rgba(255,255,255,0.4)'
+  return 'rgba(255,255,255,0.25)'
+}
+
+// ── Per-agent card (in the grid) ─────────────────────────────────────────────
+function AgentCard({ name, isCurrent, isDone }: { name: string; isCurrent: boolean; isDone: boolean }) {
+  const a = AGENTS[name]
+  if (!a) return null
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      style={{
+        padding: '13px 15px', borderRadius: 13, position: 'relative', overflow: 'hidden',
+        background: isDone   ? 'rgba(52,211,153,0.06)'
+                  : isCurrent ? `${a.color}0f`
+                  : 'rgba(255,255,255,0.02)',
+        backdropFilter: 'blur(12px)',
+        border: `1px solid ${isDone ? 'rgba(52,211,153,0.22)' : isCurrent ? `${a.color}35` : 'rgba(255,255,255,0.05)'}`,
+        boxShadow: isCurrent ? `0 0 20px ${a.color}15` : 'none',
+        transition: 'all 0.4s ease',
+      }}
+    >
+      {/* Running shimmer bar */}
+      {isCurrent && (
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, overflow: 'hidden' }}>
+          <motion.div
+            style={{ height: '100%', width: '40%', background: `linear-gradient(90deg, transparent, ${a.color}, transparent)` }}
+            animate={{ x: ['-100%', '350%'] }}
+            transition={{ repeat: Infinity, duration: 1.8, ease: 'linear' }}
+          />
+        </div>
+      )}
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{
+          width: 32, height: 32, borderRadius: 9, flexShrink: 0,
+          background: isDone ? 'rgba(52,211,153,0.1)' : `${a.color}15`,
+          border: `1px solid ${isDone ? 'rgba(52,211,153,0.25)' : `${a.color}28`}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 14, color: isDone ? '#34d399' : a.color,
+        }}>
+          {isDone ? '✓' : a.icon}
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 12.5, fontWeight: 600, color: isDone ? '#34d399' : isCurrent ? a.color : 'rgba(255,255,255,0.35)', transition: 'color 0.3s' }}>
+              {a.label}
+            </span>
+            {isCurrent && (
+              <span style={{ display: 'flex', gap: 2.5 }}>
+                {[0,1,2].map(i => <span key={i} style={{ width: 3.5, height: 3.5, borderRadius: '50%', background: a.color, display: 'inline-block', animation: `pulse-dot 1.2s ${i*0.2}s ease infinite` }} />)}
+              </span>
+            )}
+          </div>
+          <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.2)', marginTop: 1 }}>{a.role}</div>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+// ── Agent popup (bottom-right) ────────────────────────────────────────────────
+function AgentPopup({ name }: { name: string }) {
+  const a = AGENTS[name]
+  if (!a) return null
+  return (
+    <motion.div
+      key={name}
+      initial={{ opacity: 0, y: 24, scale: 0.94 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 12, scale: 0.96 }}
+      transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+      style={{
+        position: 'fixed', bottom: 28, right: 28, zIndex: 60,
+        width: 300,
+        background: 'rgba(6,2,2,0.72)',
+        backdropFilter: 'blur(28px)',
+        border: `1px solid ${a.color}38`,
+        borderRadius: 18,
+        overflow: 'hidden',
+        boxShadow: `0 24px 64px rgba(0,0,0,0.55), 0 0 0 1px ${a.color}12, 0 8px 32px ${a.color}14`,
+      }}
+    >
+      <div style={{ height: 2, background: `linear-gradient(90deg, ${a.color}, ${a.color}30)` }} />
+      <div style={{ padding: '16px 18px 18px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+          <div style={{
+            width: 42, height: 42, borderRadius: 11, flexShrink: 0,
+            background: `${a.color}12`, border: `1px solid ${a.color}35`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 19, color: a.color, boxShadow: `0 0 18px ${a.color}25`,
+          }}>
+            {a.icon}
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 15, color: a.color }}>{a.label}</div>
+            <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.28)', marginTop: 1 }}>{a.role}</div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: a.color, display: 'inline-block', animation: 'pulse-dot 1.4s ease infinite', boxShadow: `0 0 7px ${a.color}` }} />
+            <span style={{ fontSize: 9.5, color: a.color, fontFamily: "'JetBrains Mono',monospace", letterSpacing: '0.08em' }}>LIVE</span>
+          </div>
+        </div>
+        <div style={{ height: 1, background: `${a.color}15`, marginBottom: 12 }} />
+        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.38)', lineHeight: 1.65 }}>{a.description}</p>
+        <div style={{ marginTop: 14, height: 2, borderRadius: 2, background: 'rgba(255,255,255,0.05)', overflow: 'hidden' }}>
+          <motion.div
+            style={{ height: '100%', width: '35%', background: `linear-gradient(90deg, transparent, ${a.color}, transparent)` }}
+            animate={{ x: ['-100%', '400%'] }}
+            transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+          />
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+// ── Main ──────────────────────────────────────────────────────────────────────
 export default function RunPage() {
-  const { id }  = useParams<{ id: string }>()
-  const router  = useRouter()
-
-  const [phase,        setPhase]       = useState('Initializing…')
-  const [activeAgent,  setActiveAgent] = useState('')
-  const [activeAgents, setActiveAgents]= useState<string[]>([])
-  const [doneAgents,   setDoneAgents]  = useState<string[]>([])
-  const [done,         setDone]        = useState(false)
-  const [error,        setError]       = useState('')
-  const [logLines,     setLogLines]    = useState<string[]>([])
-  const [showLog,      setShowLog]     = useState(false)
-
-  const cursorRef = useRef(0)
-  const doneRef   = useRef(false)
-  const timerRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const logEndRef = useRef<HTMLDivElement>(null)
+  const { id }   = useParams<{ id: string }>()
+  const router   = useRouter()
+  const [phase,        setPhase]        = useState('Initialising')
+  const [activeAgent,  setActiveAgent]  = useState('')
+  const [activeAgents, setActiveAgents] = useState<string[]>([])
+  const [doneAgents,   setDoneAgents]   = useState<string[]>([])
+  const [done,         setDone]         = useState(false)
+  const [error,        setError]        = useState('')
+  const [logLines,     setLogLines]     = useState<string[]>([])
+  const [showLog,      setShowLog]      = useState(false)
+  const cursorRef = useRef(0); const doneRef = useRef(false)
+  const timerRef  = useRef<NodeJS.Timeout | null>(null)
   const linesRef  = useRef<string[]>([])
+  const logRef    = useRef<HTMLDivElement>(null)
 
-
-  useEffect(() => {
-    if (!id) return
-
-    const poll = async () => {
-      try {
-        const r = await fetch(`${API}/api/poll/${id}?cursor=${cursorRef.current}`)
-        const d = await r.json()
-
-        if (d.error && d.error !== 'Still running') {
-          setError(d.error); setDone(true); doneRef.current = true; return
-        }
-
-        if (d.lines?.length) {
-          const newLines = [...linesRef.current, ...d.lines].slice(-300)
-          linesRef.current = newLines
-          setLogLines(newLines)
-          cursorRef.current = d.cursor
-        }
-
-        if (d.phase) {
-          setPhase(d.phase)
-
-        }
-        if (d.agent) {
-          setActiveAgent(d.agent)
-          setActiveAgents([d.agent])
-        }
-        if (d.everActive?.length) {
-          setDoneAgents((d.everActive as string[]).filter((a: string) => a !== d.agent))
-        }
-
-        if (d.done) {
-          doneRef.current = true
-          setDone(true); setActiveAgents([]); setActiveAgent('')
-
-          if (d.error) setError(d.error)
-          else setTimeout(() => router.push(`/results/${id}`), 2200)
-          return
-        }
-      } catch { /* network blip — retry */ }
-
-      if (!doneRef.current) {
-        timerRef.current = setTimeout(poll, POLL_MS)
+  const poll = useCallback(async () => {
+    if (doneRef.current) return
+    try {
+      const r = await fetch(`${API}/api/poll/${id}?cursor=${cursorRef.current}`)
+      const d = await r.json()
+      if (d.lines?.length) { linesRef.current = [...linesRef.current, ...d.lines].slice(-600); setLogLines([...linesRef.current]) }
+      cursorRef.current = d.cursor ?? cursorRef.current
+      if (d.phase) setPhase(parsePhaseLabel(d.phase))
+      if (d.agent) setActiveAgent(d.agent.toLowerCase().replace(/['\s]+/g,'_').replace(/[^a-z_]/g,''))
+      if (d.everActive?.length) setActiveAgents((d.everActive as string[]).map((a:string) => a.toLowerCase().replace(/['\s]+/g,'_').replace(/[^a-z_]/g,'')))
+      if (d.done) {
+        doneRef.current = true; setDone(true)
+        if (d.error) setError(d.error)
+        else { setPhase('Complete'); setDoneAgents(prev => [...new Set([...prev, ...activeAgents])]); setTimeout(() => router.push(`/results/${id}`), 2500) }
       }
-    }
+    } catch {}
+    if (!doneRef.current) timerRef.current = setTimeout(poll, 1500)
+  }, [id, router, activeAgents])
 
-    timerRef.current = setTimeout(poll, 500)
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current)
-      doneRef.current = true
-    }
-  }, [id, router])
+  useEffect(() => { poll(); return () => { if (timerRef.current) clearTimeout(timerRef.current) } }, [poll])
+  useEffect(() => { if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight }, [logLines])
 
-  useEffect(() => { logEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [logLines])
+  const progress = doneAgents.length / ALL_AGENTS.length
 
   return (
-    <main style={{ width: '100vw', height: '100vh', background: '#000', overflow: 'hidden', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
 
-      {/* Agent network canvas */}
-      <AgentCanvas activeAgents={activeAgents} doneAgents={doneAgents} done={done && !error} />
-
-      {/* Per-agent theme layer (ambient glow + animation + card) */}
-      {activeAgent && !done && <AgentTheme agentName={activeAgent} />}
-
-      {/* ── Top bar ─────────────────────────────────────────────────── */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20, height: 60, background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.5rem' }}>
-
-        <button
-          onClick={() => router.push('/')}
-          style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.18)', fontSize: 12, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.08em', transition: 'color 0.2s' }}
-          onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.18)')}
-        >
-          ← back
-        </button>
-
-        <button
-          onClick={() => setShowLog(v => !v)}
-          style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.12)', fontSize: 11, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.08em', transition: 'color 0.2s' }}
-          onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.12)')}
-        >
-          {showLog ? 'hide log' : 'log'}
-        </button>
+      {/* Floating nav */}
+      <div style={{
+        position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)',
+        zIndex: 50, width: 'calc(100% - 48px)', maxWidth: 1100,
+        background: 'rgba(6,2,2,0.65)', backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255,255,255,0.07)', borderRadius: 13,
+        padding: '11px 20px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 24, height: 24, borderRadius: 6, background: 'linear-gradient(135deg,#e63030,#7a0000)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#fff' }}>◆</div>
+          <span style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 13 }}>DS Agent Team</span>
+        </div>
+        {/* Phase + progress */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {!done
+            ? <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#e63030', display: 'inline-block', animation: 'pulse-dot 1.4s ease infinite' }} />
+            : <span style={{ color: '#34d399', fontSize: 13 }}>✓</span>
+          }
+          <span style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.45)' }}>{phase}</span>
+          {/* mini progress bar */}
+          <div style={{ width: 80, height: 3, borderRadius: 3, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+            <motion.div style={{ height: '100%', background: '#e63030', borderRadius: 3 }} animate={{ scaleX: done ? 1 : Math.max(0.02, progress) }} transition={{ duration: 0.6 }} />
+          </div>
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', fontFamily: "'JetBrains Mono',monospace" }}>{doneAgents.length}/{ALL_AGENTS.length}</span>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn-ghost" onClick={() => setShowLog(v => !v)} style={{ fontSize: 11, padding: '5px 12px' }}>{showLog ? 'Hide Log' : 'Live Log'}</button>
+          <button className="btn-ghost" onClick={() => router.push('/')} style={{ fontSize: 11, padding: '5px 12px' }}>← Home</button>
+        </div>
       </div>
-      </div>
 
-      {/* ── Bottom ──────────────────────────────────────────────────── */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20 }}>
+      {/* Body */}
+      <div style={{ flex: 1, display: 'flex', paddingTop: 76 }}>
 
-        {/* Log drawer */}
+        {/* Agent grid area */}
+        <div style={{ flex: 1, padding: '28px 32px', overflowY: 'auto' }}>
+
+          {/* Stats row — floating transparent chips */}
+          <div style={{ display: 'flex', gap: 10, marginBottom: 28, flexWrap: 'wrap' }}>
+            {[
+              { label: 'Run', value: id },
+              { label: 'Phase', value: phase },
+              { label: 'Active', value: `${activeAgents.length} agents` },
+              { label: 'Done', value: `${doneAgents.length} / ${ALL_AGENTS.length}` },
+            ].map(s => (
+              <div key={s.label} style={{
+                padding: '8px 14px', borderRadius: 10,
+                background: 'rgba(255,255,255,0.02)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255,255,255,0.06)',
+              }}>
+                <div className="label" style={{ marginBottom: 3 }}>{s.label}</div>
+                <div style={{ fontSize: 12.5, fontFamily: "'JetBrains Mono',monospace", color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.value}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Agent cards */}
+          <div className="label" style={{ marginBottom: 12 }}>Agents</div>
+          <motion.div layout style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 9 }}>
+            {ALL_AGENTS.map(name => (
+              <AgentCard key={name} name={name} isCurrent={activeAgent === name} isDone={doneAgents.includes(name)} />
+            ))}
+          </motion.div>
+
+          {/* Done */}
+          <AnimatePresence>
+            {done && !error && (
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+                style={{ marginTop: 28, padding: '20px 24px', borderRadius: 14, background: 'rgba(52,211,153,0.06)', backdropFilter: 'blur(16px)', border: '1px solid rgba(52,211,153,0.18)', display: 'flex', alignItems: 'center', gap: 14 }}>
+                <span style={{ fontSize: 26, color: '#34d399' }}>✦</span>
+                <div>
+                  <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 16, color: '#34d399' }}>Analysis Complete</div>
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>Loading results…</div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Error */}
+          <AnimatePresence>
+            {error && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                style={{ marginTop: 24, padding: '18px 22px', borderRadius: 14, background: 'rgba(230,48,48,0.06)', backdropFilter: 'blur(16px)', border: '1px solid rgba(230,48,48,0.22)' }}>
+                <div style={{ fontSize: 13, color: '#f87171', fontWeight: 600, marginBottom: 10 }}>❌ Pipeline Failed</div>
+                <pre style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: 180, overflow: 'auto', fontFamily: "'JetBrains Mono',monospace" }}>{error}</pre>
+                <button className="btn-ghost" onClick={() => router.push('/')} style={{ marginTop: 12, fontSize: 12 }}>← Return Home</button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Log panel */}
         <AnimatePresence>
           {showLog && (
             <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 180, opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              style={{ overflow: 'hidden', borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(20px)' }}
+              initial={{ width: 0, opacity: 0 }} animate={{ width: 340, opacity: 1 }} exit={{ width: 0, opacity: 0 }}
+              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+              style={{ borderLeft: '1px solid rgba(255,255,255,0.05)', background: 'rgba(4,1,1,0.7)', backdropFilter: 'blur(16px)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
             >
-              <div style={{ height: 180, overflowY: 'auto', padding: '0.75rem 1.5rem', fontFamily: "'JetBrains Mono', monospace", fontSize: 11, lineHeight: 1.65 }}>
+              <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.25)', fontFamily: "'JetBrains Mono',monospace", letterSpacing: '0.1em' }}>LIVE LOG</span>
+                <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.15)', fontFamily: "'JetBrains Mono',monospace" }}>{logLines.length} lines</span>
+              </div>
+              <div ref={logRef} style={{ flex: 1, overflow: 'auto', padding: '10px 18px', display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {logLines.map((line, i) => (
-                  <div key={i} style={{ color: line.includes('❌') ? '#f87171' : line.includes('✅') || line.includes('✓') ? '#4ade80' : line.includes('📂') || line.includes('🔍') ? '#a78bfa' : 'rgba(255,255,255,0.22)' }}>
-                    {line}
-                  </div>
+                  <div key={i} style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10.5, color: logColor(line), lineHeight: 1.75, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{line}</div>
                 ))}
-                <div ref={logEndRef} />
               </div>
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Completion message */}
-        <AnimatePresence>
-          {done && !error && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              style={{ padding: '1rem 1.5rem 1.8rem', display: 'flex', alignItems: 'center', gap: 10, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)' }}
-            >
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 8px #4ade80' }} />
-              <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, color: '#4ade80' }}>
-                Analysis complete — loading results…
-              </span>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
 
-      {/* Error overlay */}
-      <AnimatePresence>
-        {error && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(12px)', padding: '2rem' }}>
-            <div className="glass" style={{ maxWidth: 520, width: '100%', padding: '2rem' }}>
-              <h2 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 18, color: '#f87171', marginBottom: '1rem' }}>Pipeline error</h2>
-              <pre style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.03)', borderRadius: 8, padding: '1rem', overflow: 'auto', maxHeight: 260, whiteSpace: 'pre-wrap', marginBottom: '1.2rem' }}>{error}</pre>
-              <button className="btn-primary" onClick={() => router.push('/')}>← Back to setup</button>
-            </div>
-          </motion.div>
-        )}
+      {/* Agent popup */}
+      <AnimatePresence mode="wait">
+        {activeAgent && !done && <AgentPopup key={activeAgent} name={activeAgent} />}
       </AnimatePresence>
-    </main>
+    </div>
   )
 }

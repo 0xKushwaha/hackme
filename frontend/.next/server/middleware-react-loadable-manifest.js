@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{\"app/page.tsx -> @/components/ParticleField\":{\"id\":\"app/page.tsx -> @/components/ParticleField\",\"files\":[\"static/chunks/_app-pages-browser_src_components_ParticleField_tsx.js\"]},\"app/run/[id]/page.tsx -> @/components/AgentCanvas\":{\"id\":\"app/run/[id]/page.tsx -> @/components/AgentCanvas\",\"files\":[\"static/chunks/_app-pages-browser_src_components_AgentCanvas_tsx.js\"]}}"
+self.__REACT_LOADABLE_MANIFEST="{}"

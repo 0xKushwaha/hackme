@@ -26,14 +26,20 @@ export default function ParticleField({ launching = false }: Props) {
   }, [launching])
 
   useEffect(() => {
-    const mount = mountRef.current!
+    const mount = mountRef.current
+    if (!mount) return
     let W = window.innerWidth, H = window.innerHeight
 
     const scene    = new THREE.Scene()
     const camera   = new THREE.PerspectiveCamera(65, W / H, 0.1, 100)
     camera.position.z = 13
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    let renderer: THREE.WebGLRenderer
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    } catch {
+      return
+    }
     renderer.setSize(W, H)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.setClearColor(0x000000, 0)

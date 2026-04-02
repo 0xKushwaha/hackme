@@ -38,7 +38,10 @@ class VectorStore:
             return
 
         os.makedirs(persist_dir, exist_ok=True)
-        self.client = chromadb.PersistentClient(path=persist_dir)
+        self.client = chromadb.PersistentClient(
+            path=persist_dir,
+            settings=chromadb.Settings(anonymized_telemetry=False),
+        )
         self._embed_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
             model_name=EMBED_MODEL
         )

@@ -108,7 +108,7 @@ class AgentMemory:
 
     def _decompose_query(self, query: str, llm) -> list[str]:
         """Use LLM to split a complex task into focused sub-questions for retrieval."""
-        from langchain.schema import HumanMessage, SystemMessage
+        from langchain_core.messages import HumanMessage, SystemMessage
         try:
             messages = [
                 SystemMessage(content=(

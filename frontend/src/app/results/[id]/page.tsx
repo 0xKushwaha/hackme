@@ -1,532 +1,330 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { AGENT_THEMES } from '@/components/AgentTheme'
 
 const API = 'http://localhost:8000'
 
-interface Entry  { role: string; agent: string; content: string; metadata: Record<string, unknown> }
-interface Result { run_id: string; entries: Entry[]; error?: string }
+interface Entry { role: string; agent: string; content: string; metadata: Record<string, unknown> }
 
-const AGENT_MAP: Record<string, string> = {
-  explorer: 'Explorer', skeptic: 'Skeptic', statistician: 'Statistician',
-  feature_engineer: 'Feat.Eng', ethicist: 'Ethicist', pragmatist: 'Pragmatist',
-  devil_advocate: "Devil's Adv", optimizer: 'Optimizer', diagnostic: 'Diagnostic',
-  code_writer: 'CodeWriter', architect: 'Architect', storyteller: 'Storyteller',
+const AGENT_META: Record<string, { label: string; icon: string; color: string; role: string }> = {
+  explorer:         { label: 'Explorer',        icon: '◉', color: '#7c6fcd', role: 'Data Scout'       },
+  skeptic:          { label: 'Skeptic',          icon: '⚠', color: '#d46b8a', role: 'Quality Guard'    },
+  statistician:     { label: 'Statistician',     icon: '∑', color: '#4a9fd4', role: 'Numbers Expert'   },
+  feature_engineer: { label: 'Feature Engineer', icon: '⟁', color: '#3db87a', role: 'Signal Extractor' },
+  ethicist:         { label: 'Ethicist',         icon: '⚖', color: '#d4874a', role: 'Bias Detector'    },
+  pragmatist:       { label: 'Pragmatist',       icon: '◈', color: '#c4a832', role: 'Reality Check'    },
+  devil_advocate:   { label: 'Devil Advocate',   icon: '⛧', color: '#e63030', role: 'Critical Thinker' },
+  optimizer:        { label: 'Optimizer',        icon: '⚡', color: '#8a7cd4', role: 'Efficiency Expert'},
+  architect:        { label: 'Architect',        icon: '⬡', color: '#a86cd4', role: 'System Designer'  },
+  storyteller:      { label: 'Storyteller',      icon: '✦', color: '#d4a8c4', role: 'Insight Narrator' },
+  compactor:        { label: 'Compactor',        icon: '◎', color: '#888',    role: 'Context Manager'  },
+  system:           { label: 'System',           icon: '◌', color: '#666',    role: 'Context'          },
+  data_profiler:    { label: 'Data Profiler',    icon: '⊙', color: '#22d3ee', role: 'Auto Profiler'    },
 }
 
-const PHASE_GROUPS: string[][] = [
-  ['Explorer', 'Skeptic', 'Statistician', 'Feat.Eng'],
-  ['Pragmatist', "Devil's Adv", 'Ethicist', 'Architect'],
-  ['CodeWriter', 'Optimizer'],
-  ['Storyteller', 'Diagnostic'],
-]
-
-interface AgentNode {
-  id:      string
-  x: number; y: number; vx: number; vy: number
-  entries: Entry[]
-  color:   string
-  icon:    string
-  role:    string
-  phase:   number
+function agentKey(raw: string): string {
+  return raw?.toLowerCase().replace(/[\s']+/g, '_').replace(/[^a-z_]/g, '') ?? 'unknown'
 }
 
-function hexToRgb(hex: string): [number, number, number] {
-  const n = parseInt(hex.replace('#', ''), 16)
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
-}
+interface NodeData { key: string; label: string; icon: string; color: string; role: string; content: string }
 
-function buildReportMd(entries: Entry[]): string {
-  const sections: Record<string, Entry[]> = {}
-  for (const e of entries) { (sections[e.role] ??= []).push(e) }
-  const order = ['dataset_context','meta','analysis','plan','code','result','narrative','error']
-  const labels: Record<string,string> = { dataset_context:'Dataset Profile', meta:'Builder', analysis:'Analysis', plan:'Plans', code:'Code', result:'Results', narrative:'Narrative', error:'Errors' }
-  return order.flatMap(role => {
-    const ents = sections[role]; if (!ents?.length) return []
-    const lines = [`## ${labels[role] ?? role}\n`]
-    for (const e of ents) {
-      const t = e.agent.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())
-      if (role === 'code') lines.push(`### ${t}\n\`\`\`python\n${e.content.slice(0,4000)}\n\`\`\`\n`)
-      else lines.push(`### ${t}\n\n${e.content}\n`)
-    }
-    return lines
-  }).join('\n')
-}
-
-// ── Node graph canvas ─────────────────────────────────────────────────
-const NODE_R = 46
-
-function NodeGraph({ agents, connections, onNodeClick }: {
-  agents:      AgentNode[]
-  connections: [number, number][]
-  onNodeClick: (n: AgentNode) => void
-}) {
-  const canvasRef  = useRef<HTMLCanvasElement>(null)
-  const nodesRef   = useRef(agents)
-  const mouseRef   = useRef({ x: -9999, y: -9999 })
-  const hoveredRef = useRef(-1)
-  const cbRef      = useRef(onNodeClick)
-
-  useEffect(() => { nodesRef.current = agents },     [agents])
-  useEffect(() => { cbRef.current    = onNodeClick }, [onNodeClick])
-
-  useEffect(() => {
-    if (!agents.length) return
-    const canvas = canvasRef.current!
-    const dpr    = Math.min(window.devicePixelRatio || 1, 2)
-    let W = window.innerWidth, H = window.innerHeight
-
-    const setSize = () => {
-      canvas.width  = W * dpr; canvas.height = H * dpr
-      canvas.style.width  = W + 'px'; canvas.style.height = H + 'px'
-    }
-    setSize()
-    const ctx = canvas.getContext('2d')!
-    ctx.scale(dpr, dpr)
-
-    // Scatter nodes around a soft ellipse
-    const nodes = nodesRef.current
-    const cx = W / 2, cy = H / 2
-    nodes.forEach((node, i) => {
-      const a   = (i / nodes.length) * Math.PI * 2 - Math.PI / 2
-      const jit = 0.55 + Math.random() * 0.7
-      node.x  = cx + Math.cos(a) * W * 0.32 * jit
-      node.y  = cy + Math.sin(a) * H * 0.32 * jit
-      node.vx = (Math.random() - 0.5) * 0.4
-      node.vy = (Math.random() - 0.5) * 0.4
-    })
-
-    // Starfield (drawn once into offscreen canvas)
-    const starCV = document.createElement('canvas')
-    starCV.width = W; starCV.height = H
-    const sctx = starCV.getContext('2d')!
-    sctx.fillStyle = '#000'
-    sctx.fillRect(0, 0, W, H)
-    for (let i = 0; i < 700; i++) {
-      const op  = 0.1 + Math.random() * 0.5
-      const sz  = Math.random() * 1.2
-      sctx.beginPath()
-      sctx.arc(Math.random()*W, Math.random()*H, sz, 0, Math.PI*2)
-      sctx.fillStyle = `rgba(255,255,255,${op})`
-      sctx.fill()
-    }
-
-    // Flow dot progress per connection
-    const flowT = connections.map(() => Math.random())
-
-    let t = 0, raf: number
-
-    const draw = () => {
-      raf = requestAnimationFrame(draw)
-      t  += 0.010
-
-      ctx.clearRect(0, 0, W, H)
-      ctx.drawImage(starCV, 0, 0)
-
-      // Center radial vignette
-      const vig = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W, H) * 0.72)
-      vig.addColorStop(0, 'rgba(5,7,18,0)')
-      vig.addColorStop(1, 'rgba(0,0,0,0.55)')
-      ctx.fillStyle = vig
-      ctx.fillRect(0, 0, W, H)
-
-      // Physics
-      nodes.forEach((n, i) => {
-        n.vx += (Math.random() - 0.5) * 0.035
-        n.vy += (Math.random() - 0.5) * 0.035
-
-        nodes.forEach((o, j) => {
-          if (i === j) return
-          const dx = n.x - o.x, dy = n.y - o.y
-          const d2 = dx*dx + dy*dy
-          const min = NODE_R * 5
-          if (d2 < min*min && d2 > 0) {
-            const d = Math.sqrt(d2)
-            const f = 100 / d2
-            n.vx += (dx/d)*f; n.vy += (dy/d)*f
-          }
-        })
-
-        n.vx *= 0.93; n.vy *= 0.93
-        const m = NODE_R + 80
-        if (n.x < m)     n.vx += (m - n.x)     * 0.04
-        if (n.x > W - m) n.vx -= (n.x - W + m) * 0.04
-        if (n.y < m)     n.vy += (m - n.y)     * 0.04
-        if (n.y > H - m) n.vy -= (n.y - H + m) * 0.04
-        n.x += n.vx; n.y += n.vy
-      })
-
-      // Connections + flow dots
-      connections.forEach(([ai, bi], ci) => {
-        const a = nodes[ai], b = nodes[bi]
-        if (!a || !b) return
-        const [ar,ag,ab] = hexToRgb(a.color)
-        const [br,bg,bb] = hexToRgb(b.color)
-
-        const gr = ctx.createLinearGradient(a.x, a.y, b.x, b.y)
-        gr.addColorStop(0, `rgba(${ar},${ag},${ab},0.22)`)
-        gr.addColorStop(1, `rgba(${br},${bg},${bb},0.22)`)
-        ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y)
-        ctx.strokeStyle = gr; ctx.lineWidth = 1; ctx.stroke()
-
-        // Animated flow dot
-        flowT[ci] = (flowT[ci] + 0.0025) % 1
-        const ft = flowT[ci]
-        const fx = a.x + (b.x-a.x)*ft, fy = a.y + (b.y-a.y)*ft
-        const fr = Math.round(ar+(br-ar)*ft), fg2 = Math.round(ag+(bg-ag)*ft), fb = Math.round(ab+(bb-ab)*ft)
-        ctx.beginPath(); ctx.arc(fx, fy, 3, 0, Math.PI*2)
-        ctx.fillStyle = `rgba(${fr},${fg2},${fb},0.95)`
-        ctx.fill()
-      })
-
-      // Nodes
-      const {x: mx, y: my} = mouseRef.current
-      let newHov = -1
-
-      nodes.forEach((node, i) => {
-        const pulse   = Math.sin(t * 1.8 + i * 1.3) * 0.5 + 0.5
-        const isHov   = Math.hypot(mx - node.x, my - node.y) < NODE_R + 14
-        if (isHov) newHov = i
-        const scale   = isHov ? 1.18 : 1
-        const r       = NODE_R * scale
-        const [cr,cg,cb] = hexToRgb(node.color)
-
-        // Multi-layer glow
-        ;([
-          [r*3.2, 0.03 + pulse*0.04],
-          [r*2.1, 0.07 + pulse*0.06],
-          [r*1.5, 0.13 + pulse*0.09],
-        ] as [number,number][]).forEach(([rad, op]) => {
-          const g = ctx.createRadialGradient(node.x,node.y,0, node.x,node.y,rad)
-          g.addColorStop(0, `rgba(${cr},${cg},${cb},${op})`)
-          g.addColorStop(1, `rgba(${cr},${cg},${cb},0)`)
-          ctx.beginPath(); ctx.arc(node.x,node.y,rad,0,Math.PI*2)
-          ctx.fillStyle = g; ctx.fill()
-        })
-
-        // Ring
-        ctx.beginPath(); ctx.arc(node.x, node.y, r, 0, Math.PI*2)
-        ctx.strokeStyle = `rgba(${cr},${cg},${cb},${isHov ? 0.95 : 0.45 + pulse*0.35})`
-        ctx.lineWidth = isHov ? 2.5 : 1.5
-        ctx.stroke()
-
-        // Inner fill
-        const fill = ctx.createRadialGradient(node.x-r*.2, node.y-r*.2, 0, node.x, node.y, r)
-        fill.addColorStop(0, `rgba(${cr},${cg},${cb},0.18)`)
-        fill.addColorStop(1, 'rgba(0,0,0,0.9)')
-        ctx.beginPath(); ctx.arc(node.x,node.y,r-1,0,Math.PI*2)
-        ctx.fillStyle = fill; ctx.fill()
-
-        // Icon
-        ctx.fillStyle = `rgba(${cr},${cg},${cb},${isHov ? 1 : 0.8})`
-        ctx.font = `${Math.round(r*.52)}px "JetBrains Mono",monospace`
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-        ctx.fillText(node.icon, node.x, node.y - 3)
-
-        // Name
-        ctx.font = `600 ${Math.round(r*.29)}px "Space Grotesk",sans-serif`
-        ctx.fillStyle = isHov ? '#fff' : 'rgba(255,255,255,0.72)'
-        ctx.textBaseline = 'top'
-        ctx.fillText(node.id, node.x, node.y + r + 7)
-
-        // Role badge
-        ctx.font = `${Math.round(r*.21)}px "JetBrains Mono",monospace`
-        ctx.fillStyle = `rgba(${cr},${cg},${cb},${isHov ? 0.7 : 0.38})`
-        ctx.fillText(node.role.toUpperCase(), node.x, node.y + r + 7 + Math.round(r*.31))
-
-        // Count badge
-        if (node.entries.length > 1) {
-          const bx = node.x + r*.72, by = node.y - r*.72
-          ctx.beginPath(); ctx.arc(bx,by,10,0,Math.PI*2)
-          ctx.fillStyle = `rgba(${cr},${cg},${cb},0.9)`; ctx.fill()
-          ctx.fillStyle = '#000'
-          ctx.font = 'bold 9px monospace'
-          ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-          ctx.fillText(String(node.entries.length), bx, by)
-        }
-      })
-
-      hoveredRef.current = newHov
-      canvas.style.cursor = newHov >= 0 ? 'pointer' : 'default'
-    }
-    draw()
-
-    const onResize = () => {
-      W = window.innerWidth; H = window.innerHeight; setSize()
-      ctx.scale(dpr, dpr)
-    }
-    const onMove  = (e: MouseEvent) => { mouseRef.current = {x: e.clientX, y: e.clientY} }
-    const onClick = () => { const h = hoveredRef.current; if (h >= 0) cbRef.current(nodesRef.current[h]) }
-
-    window.addEventListener('resize', onResize)
-    canvas.addEventListener('mousemove', onMove)
-    canvas.addEventListener('click', onClick)
-
-    return () => {
-      cancelAnimationFrame(raf)
-      window.removeEventListener('resize', onResize)
-      canvas.removeEventListener('mousemove', onMove)
-      canvas.removeEventListener('click', onClick)
-    }
-  }, [agents.length, connections])  // run once agents are loaded
-
-  return <canvas ref={canvasRef} style={{ position: 'fixed', inset: 0, zIndex: 0 }} />
-}
-
-// ── Agent modal ───────────────────────────────────────────────────────
-function AgentModal({ node, onClose }: { node: AgentNode; onClose: () => void }) {
-  const [tab, setTab] = useState(0)
-  const entry  = node.entries[tab] ?? node.entries[0]
-  const isCode = entry?.role === 'code'
-  const [cr,cg,cb] = hexToRgb(node.color)
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.18 }}
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 100,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'rgba(0,0,0,0.82)',
-        backdropFilter: 'blur(28px)',
-        padding: '2rem',
-      }}
-    >
-      <motion.div
-        initial={{ scale: 0.80, opacity: 0, y: 40 }}
-        animate={{ scale: 1,    opacity: 1, y: 0  }}
-        exit={{    scale: 0.88, opacity: 0, y: 24 }}
-        transition={{ type: 'spring', stiffness: 340, damping: 30 }}
-        onClick={e => e.stopPropagation()}
-        style={{
-          width: '100%', maxWidth: 660, maxHeight: '80vh',
-          overflowY: 'auto', position: 'relative',
-          background: `rgba(6,8,18,0.98)`,
-          border: `1px solid rgba(${cr},${cg},${cb},0.22)`,
-          borderRadius: 22,
-          boxShadow: `0 0 80px rgba(${cr},${cg},${cb},0.14), 0 50px 100px rgba(0,0,0,0.7)`,
-        }}
-      >
-        {/* Top color bar */}
-        <div style={{
-          height: 3, borderRadius: '22px 22px 0 0',
-          background: `linear-gradient(90deg, rgba(${cr},${cg},${cb},0.9) 0%, rgba(${cr},${cg},${cb},0.05) 100%)`,
-        }} />
-
-        {/* Header */}
-        <div style={{ padding: '1.6rem 2rem 1rem', display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{
-            width: 56, height: 56, flexShrink: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            borderRadius: 16,
-            background: `rgba(${cr},${cg},${cb},0.10)`,
-            border: `1px solid rgba(${cr},${cg},${cb},0.28)`,
-            boxShadow: `0 0 24px rgba(${cr},${cg},${cb},0.15)`,
-            fontSize: 24, color: node.color,
-          }}>
-            {node.icon}
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 4 }}>
-              {node.id}
-            </div>
-            <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: node.color, opacity: 0.7 }}>
-              {node.role}
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.18)', fontSize: 22, cursor: 'pointer', lineHeight: 1, padding: '6px 10px', transition: 'color 0.2s' }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.65)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.18)')}
-          >×</button>
-        </div>
-
-        {/* Tabs (if multiple entries) */}
-        {node.entries.length > 1 && (
-          <div style={{ display: 'flex', gap: 6, padding: '0 2rem 1rem', flexWrap: 'wrap' }}>
-            {node.entries.map((e, i) => (
-              <button key={i} onClick={() => setTab(i)} style={{
-                background: tab===i ? `rgba(${cr},${cg},${cb},0.14)` : 'transparent',
-                border: `1px solid ${tab===i ? `rgba(${cr},${cg},${cb},0.4)` : 'rgba(255,255,255,0.07)'}`,
-                borderRadius: 6, padding: '4px 12px', cursor: 'pointer',
-                color: tab===i ? node.color : 'rgba(255,255,255,0.3)',
-                fontFamily: "'JetBrains Mono',monospace", fontSize: 10,
-                letterSpacing: '0.08em', textTransform: 'uppercase', transition: 'all 0.2s',
-              }}>
-                {e.role}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Divider */}
-        <div style={{ height: 1, background: `rgba(${cr},${cg},${cb},0.08)`, margin: '0 2rem' }} />
-
-        {/* Content */}
-        {entry && (
-          <div className="report" style={{ padding: '1.6rem 2rem 2.2rem' }}>
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {isCode ? `\`\`\`python\n${entry.content.slice(0, 6000)}\n\`\`\`` : entry.content}
-            </ReactMarkdown>
-          </div>
-        )}
-      </motion.div>
-    </motion.div>
-  )
-}
-
-// ── Results page ──────────────────────────────────────────────────────
 export default function ResultsPage() {
   const { id }  = useParams<{ id: string }>()
   const router  = useRouter()
-  const [result,       setResult]       = useState<Result | null>(null)
-  const [loading,      setLoading]      = useState(true)
-  const [selectedNode, setSelectedNode] = useState<AgentNode | null>(null)
-  const [report,       setReport]       = useState('')
+
+  const [result,     setResult]     = useState<{ run_id: string; entries: Entry[]; error?: string } | null>(null)
+  const [loading,    setLoading]    = useState(true)
+  const [selected,   setSelected]   = useState<NodeData | null>(null)
+  const [showReport, setShowReport] = useState(false)
 
   useEffect(() => {
-    if (!id) return
+    let attempts = 0
     const poll = async () => {
       try {
         const r = await fetch(`${API}/api/result/${id}`)
         const d = await r.json()
-        if (d.error === 'Still running') { setTimeout(poll, 1000); return }
-        setResult(d)
-        if (d.entries) setReport(buildReportMd(d.entries))
-        setLoading(false)
-      } catch { setTimeout(poll, 2000) }
+        if (d.run_id || d.error) { setResult(d); setLoading(false); return }
+      } catch {}
+      if (++attempts < 20) setTimeout(poll, 2000)
+      else setLoading(false)
     }
     poll()
   }, [id])
 
-  const agentNodes = useMemo<AgentNode[]>(() => {
+  const nodes = useMemo<NodeData[]>(() => {
     if (!result?.entries) return []
-    const byAgent: Record<string, Entry[]> = {}
-    for (const e of result.entries) { (byAgent[e.agent] ??= []).push(e) }
-    return Object.entries(byAgent).map(([key, entries]) => {
-      const name  = AGENT_MAP[key] ?? key
-      const theme = AGENT_THEMES[name]
-      let phase = 0
-      PHASE_GROUPS.forEach((g, i) => { if (g.includes(name)) phase = i })
+    const seen = new Map<string, string>()
+    result.entries.forEach(e => {
+      const k = agentKey(e.agent)
+      if (!seen.has(k) && e.content && e.role !== 'task') seen.set(k, e.content)
+    })
+    return Array.from(seen.entries()).map(([k, content]) => {
+      const m = AGENT_META[k]
       return {
-        id: name, x: 0, y: 0, vx: 0, vy: 0,
-        entries, phase,
-        color: theme?.color ?? '#6366f1',
-        icon:  theme?.icon  ?? '◎',
-        role:  theme?.role  ?? name,
+        key:     k,
+        label:   m?.label ?? k.replace(/_/g, ' '),
+        icon:    m?.icon  ?? '◌',
+        color:   m?.color ?? '#666',
+        role:    m?.role  ?? '',
+        content,
       }
     })
   }, [result])
 
-  const connections = useMemo<[number, number][]>(() => {
-    const names = agentNodes.map(n => n.id)
-    const pairs: [number, number][] = []
-    PHASE_GROUPS.forEach(group => {
-      const inG = group.filter(n => names.includes(n))
-      for (let i = 0; i < inG.length; i++)
-        for (let j = i+1; j < inG.length; j++) {
-          const ai = names.indexOf(inG[i]), bi = names.indexOf(inG[j])
-          if (ai >= 0 && bi >= 0) pairs.push([ai, bi])
-        }
-    })
-    return pairs
-  }, [agentNodes])
+  const report = useMemo(() => {
+    if (!result?.entries) return ''
+    return result.entries
+      .filter(e => e.content && !['task', 'dataset_context'].includes(e.role))
+      .map(e => {
+        const m = AGENT_META[agentKey(e.agent)]
+        const label = m?.label ?? e.agent
+        return `## ${label}\n\n${e.content}`
+      })
+      .join('\n\n---\n\n')
+  }, [result])
 
-  const handleNodeClick = useCallback((node: AgentNode) => setSelectedNode(node), [])
+  const downloadReport = useCallback(() => {
+    const blob = new Blob([report], { type: 'text/markdown' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href = url; a.download = `analysis_${id}.md`; a.click()
+    URL.revokeObjectURL(url)
+  }, [report, id])
 
+  // ── Loading ──────────────────────────────────────────────────────────────
   if (loading) return (
-    <main style={{ minHeight: '100vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-        <div style={{ width: 32, height: 32, border: '2px solid rgba(99,102,241,0.18)', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-        <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, color: 'rgba(255,255,255,0.15)' }}>Loading results…</p>
+    <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ width: 40, height: 40, borderRadius: '50%', border: '2px solid rgba(230,48,48,0.2)', borderTopColor: '#e63030', margin: '0 auto 20px', animation: 'spin-slow 0.9s linear infinite' }} />
+        <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.12em' }}>LOADING RESULTS</div>
       </div>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </main>
+    </div>
   )
 
-  const hasError = !!result?.error
+  // ── Error ────────────────────────────────────────────────────────────────
+  if (result?.error) return (
+    <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+      <div style={{ maxWidth: 480, width: '100%', background: '#111', border: '1px solid rgba(230,48,48,0.25)', borderRadius: 18, padding: '28px' }}>
+        <div style={{ fontSize: 13, color: '#f87171', fontWeight: 600, marginBottom: 12 }}>❌ Pipeline Error</div>
+        <pre style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.3)', whiteSpace: 'pre-wrap', maxHeight: 240, overflow: 'auto', fontFamily: "'JetBrains Mono',monospace" }}>{result.error}</pre>
+        <button className="btn-ghost" onClick={() => router.push('/')} style={{ marginTop: 16, width: '100%' }}>← Home</button>
+      </div>
+    </div>
+  )
 
   return (
-    <main style={{ width: '100vw', height: '100vh', overflow: 'hidden', background: '#000', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: 'transparent', display: 'flex', flexDirection: 'column' }}>
 
-      {/* Node graph */}
-      {!hasError && agentNodes.length > 0 && (
-        <NodeGraph agents={agentNodes} connections={connections} onNodeClick={handleNodeClick} />
-      )}
 
-      {/* Nav — always on top */}
-      <div style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
+      {/* Nav */}
+      <nav style={{
+        position: 'sticky', top: 0, zIndex: 100,
+        padding: '16px 32px',
+        background: 'rgba(10,10,10,0.92)',
+        backdropFilter: 'blur(16px)',
+        borderBottom: '1px solid rgba(255,255,255,0.05)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '1.1rem 2rem',
-        background: 'linear-gradient(to bottom, rgba(0,0,0,0.65) 0%, transparent 100%)',
-        pointerEvents: 'none',
       }}>
-        <button
-          onClick={() => router.push('/')}
-          style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)', fontSize: 13, cursor: 'pointer', fontFamily: "'JetBrains Mono',monospace", transition: 'color 0.2s', pointerEvents: 'all' }}
-          onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.55)')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.2)')}
-        >← new analysis</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{
+            width: 26, height: 26, borderRadius: 7,
+            background: 'linear-gradient(135deg, #e63030, #8b0000)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 11, color: '#fff',
+          }}>◆</div>
+          <span style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 14 }}>DS Agent Team</span>
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', fontFamily: "'JetBrains Mono',monospace" }}>/ {id}</span>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn-ghost" onClick={() => setShowReport(true)} style={{ fontSize: 12 }}>Full Report</button>
+          <button className="btn-outline" onClick={downloadReport} style={{ fontSize: 12 }}>↓ Export .md</button>
+          <button className="btn-ghost" onClick={() => router.push('/')} style={{ fontSize: 12 }}>← Home</button>
+        </div>
+      </nav>
 
-        <span className={hasError ? 'pill pill-error' : 'pill pill-done'} style={{ pointerEvents: 'none' }}>
-          {hasError ? '✗ Failed' : `✓ ${id}`}
-        </span>
+      {/* Main content */}
+      <div style={{ flex: 1, padding: '40px 32px', maxWidth: 1200, margin: '0 auto', width: '100%', position: 'relative', zIndex: 10 }}>
 
-        {!hasError && report && (
-          <a
-            href={`data:text/markdown;charset=utf-8,${encodeURIComponent(report)}`}
-            download={`analysis_${id}.md`}
-            style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: 'rgba(255,255,255,0.2)', textDecoration: 'none', transition: 'color 0.2s', pointerEvents: 'all' }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.2)')}
-          >↓ .md</a>
-        )}
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 36 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+            <span style={{ color: '#34d399', fontSize: 18 }}>✓</span>
+            <h1 style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 26, letterSpacing: '-0.02em' }}>
+              Analysis Complete
+            </h1>
+          </div>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 14 }}>
+            {nodes.length} agents completed their analysis. Click any card to read their full output.
+          </p>
+        </motion.div>
+
+        {/* Agent cards grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
+          {nodes.map((node, i) => (
+            <motion.div
+              key={node.key}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              onClick={() => setSelected(node)}
+              style={{
+                padding: '18px 20px',
+                borderRadius: 16,
+                background: '#111111',
+                border: `1px solid rgba(255,255,255,0.06)`,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+              whileHover={{
+                borderColor: `${node.color}44`,
+                backgroundColor: `${node.color}06`,
+                y: -2,
+              }}
+            >
+              {/* Top color bar */}
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${node.color}, transparent)` }} />
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: 11,
+                  background: `${node.color}14`,
+                  border: `1px solid ${node.color}30`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 18, color: node.color,
+                }}>
+                  {node.icon}
+                </div>
+                <div>
+                  <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, color: 'rgba(255,255,255,0.85)' }}>{node.label}</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.28)', marginTop: 1 }}>{node.role}</div>
+                </div>
+              </div>
+
+              <p style={{
+                fontSize: 12, color: 'rgba(255,255,255,0.3)', lineHeight: 1.6,
+                overflow: 'hidden', display: '-webkit-box',
+                WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
+                fontFamily: "'Inter',sans-serif",
+              }}>
+                {node.content.replace(/#+\s/g, '').slice(0, 160)}…
+              </p>
+
+              <div style={{ marginTop: 14, display: 'flex', justifyContent: 'flex-end' }}>
+                <span style={{ fontSize: 11, color: node.color, fontFamily: "'Inter',sans-serif", fontWeight: 500 }}>Read output →</span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
 
-      {/* Hint */}
-      {!hasError && agentNodes.length > 0 && !selectedNode && (
-        <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2 }}
-          style={{
-            position: 'fixed', bottom: '2.5rem', left: '50%', transform: 'translateX(-50%)',
-            fontFamily: "'JetBrains Mono',monospace", fontSize: 11,
-            color: 'rgba(255,255,255,0.18)', letterSpacing: '0.10em',
-            pointerEvents: 'none', zIndex: 10,
-          }}
-        >
-          click any node to explore
-        </motion.div>
-      )}
-
-      {/* Error */}
-      {hasError && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-          <div className="glass" style={{ maxWidth: 520, width: '100%', padding: '2rem' }}>
-            <h2 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 18, color: '#f87171', marginBottom: '1rem' }}>Pipeline error</h2>
-            <pre style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.03)', borderRadius: 8, padding: '1rem', overflow: 'auto', whiteSpace: 'pre-wrap' }}>{result?.error}</pre>
-            <button className="btn-primary" onClick={() => router.push('/')}>← Back to setup</button>
-          </div>
-        </div>
-      )}
-
-      {/* Modal */}
+      {/* ── Selected agent panel ── */}
       <AnimatePresence>
-        {selectedNode && (
-          <AgentModal node={selectedNode} onClose={() => setSelectedNode(null)} />
+        {selected && !showReport && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setSelected(null)}
+              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 200, backdropFilter: 'blur(4px)' }}
+            />
+            {/* Drawer */}
+            <motion.div
+              initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              style={{
+                position: 'fixed', right: 0, top: 0, bottom: 0, zIndex: 201,
+                width: 'min(560px, 100vw)',
+                background: '#0f0f0f',
+                borderLeft: `1px solid ${selected.color}30`,
+                display: 'flex', flexDirection: 'column',
+                boxShadow: `-20px 0 60px rgba(0,0,0,0.5)`,
+              }}
+            >
+              {/* Top accent */}
+              <div style={{ height: 2, background: `linear-gradient(90deg, ${selected.color}, ${selected.color}33)` }} />
+
+              {/* Header */}
+              <div style={{ padding: '24px 28px 20px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 4 }}>
+                  <div style={{
+                    width: 48, height: 48, borderRadius: 14,
+                    background: `${selected.color}14`,
+                    border: `1px solid ${selected.color}33`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 22, color: selected.color,
+                  }}>
+                    {selected.icon}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 18, color: selected.color }}>{selected.label}</div>
+                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>{selected.role}</div>
+                  </div>
+                  <button
+                    onClick={() => setSelected(null)}
+                    style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >✕</button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div style={{ flex: 1, overflow: 'auto', padding: '20px 28px' }}>
+                <div className="report">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{selected.content}</ReactMarkdown>
+                </div>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
-    </main>
+
+      {/* ── Full report modal ── */}
+      <AnimatePresence>
+        {showReport && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setShowReport(false)}
+              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 200, backdropFilter: 'blur(6px)' }}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.97, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.97 }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              style={{
+                position: 'fixed', inset: '5vh 5vw', zIndex: 201,
+                background: '#0f0f0f',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: 20,
+                display: 'flex', flexDirection: 'column',
+                boxShadow: '0 40px 120px rgba(0,0,0,0.7)',
+              }}
+            >
+              <div style={{ padding: '22px 28px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 18 }}>Full Analysis Report</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 2, fontFamily: "'JetBrains Mono',monospace" }}>Run {id}</div>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button className="btn-outline" onClick={downloadReport} style={{ fontSize: 12 }}>↓ Export</button>
+                  <button onClick={() => setShowReport(false)} style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                </div>
+              </div>
+              <div style={{ flex: 1, overflow: 'auto', padding: '24px 36px', maxWidth: 860, margin: '0 auto', width: '100%' }}>
+                <div className="report">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{report}</ReactMarkdown>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }

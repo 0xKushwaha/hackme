@@ -117,15 +117,18 @@ class DatasetDiscovery:
     """
     Scans a file or directory and returns a DatasetProfile.
 
-    For tabular files: loads a small preview (row count, columns, sample rows).
-    For text files: captures first N characters.
-    For images: reports count and directory structure.
-    For everything else: records file name, type, size.
+    Strategy (two-pass):
+      Pass 1 — walk the entire tree collecting only path/size/type metadata.
+               No file reading, no limit.  Gives true file counts per type.
+      Pass 2 — sample up to SAMPLE_PER_TYPE files from each type for deep
+               inspection (preview, columns, row count).  Cheap and fast.
+
+    This avoids both the hard 500-file cap and the cost of reading every file.
     """
 
-    PREVIEW_ROWS  = 3
-    PREVIEW_CHARS = 600
-    MAX_FILES     = 500   # cap to avoid walking enormous directories
+    PREVIEW_ROWS    = 3
+    PREVIEW_CHARS   = 600
+    SAMPLE_PER_TYPE = 5   # files per type to read in detail
 
     # temp dirs created during archive extraction — caller may clean up
     _extracted_dirs: list[str] = []
@@ -144,22 +147,54 @@ class DatasetDiscovery:
                 fi = self._inspect(path)
                 return DatasetProfile(root=path, is_file=True, files=[fi])
 
-        # Directory walk — skip hidden files/dirs
-        collected: list[FileInfo] = []
+        # ── Pass 1: full metadata walk (no reading) ──────────────────────
+        by_type: dict[str, list[str]] = {}   # type → [full_path, ...]
+        total = 0
         for dirpath, dirnames, filenames in os.walk(path):
             dirnames[:] = [d for d in dirnames if not d.startswith(".")]
             for fname in sorted(filenames):
                 if fname.startswith("."):
                     continue
-                if len(collected) >= self.MAX_FILES:
-                    print(f"[Discovery] ⚠️  Reached {self.MAX_FILES} file limit — stopping walk.")
-                    break
-                full = os.path.join(dirpath, fname)
+                full  = os.path.join(dirpath, fname)
+                ext   = os.path.splitext(fname)[1].lower()
+                ftype = self._classify(ext)
+                by_type.setdefault(ftype, []).append(full)
+                total += 1
+
+        print(f"[Discovery] 📂 Found {total} files across {len(by_type)} type(s): "
+              f"{', '.join(sorted(by_type))}")
+
+        # ── Pass 2: sample + deep-inspect per type ───────────────────────
+        import random
+        collected: list[FileInfo] = []
+        for ftype, paths in by_type.items():
+            sample = paths if len(paths) <= self.SAMPLE_PER_TYPE else random.sample(paths, self.SAMPLE_PER_TYPE)
+            skipped = len(paths) - len(sample)
+            if skipped:
+                print(f"[Discovery] 🔍 {ftype}: sampling {len(sample)}/{len(paths)} files "
+                      f"({skipped} skipped — represented in counts only)")
+            for fpath in sample:
                 try:
-                    fi = self._inspect(full)
-                    collected.append(fi)
+                    collected.append(self._inspect(fpath))
                 except Exception as exc:
-                    print(f"[Discovery] Skipping {fname}: {exc}")
+                    print(f"[Discovery] Skipping {os.path.basename(fpath)}: {exc}")
+
+            # Add lightweight stub entries for the un-sampled files so the
+            # profile's total counts are accurate
+            sampled_set = set(sample)
+            for fpath in paths:
+                if fpath in sampled_set:
+                    continue
+                fname_ = os.path.basename(fpath)
+                ext_   = os.path.splitext(fname_)[1].lower()
+                try:
+                    size_ = os.path.getsize(fpath)
+                except OSError:
+                    size_ = 0
+                collected.append(FileInfo(
+                    path=fpath, name=fname_, ext=ext_,
+                    size_bytes=size_, file_type=ftype,
+                ))
 
         # Sort: tabular first, then by type, then by name
         collected.sort(key=lambda f: (f.file_type != "tabular", f.file_type, f.name))
@@ -370,12 +405,15 @@ class DatasetDiscovery:
             f"TOTAL FILES   : {len(profile.files)}",
             f"DATA TYPES    : {', '.join(profile.types_present) or 'none'}",
             f"MIXED DATASET : {'Yes' if profile.is_mixed() else 'No'}",
+            f"NOTE          : Deep preview shown for up to {self.SAMPLE_PER_TYPE} sampled files per type.",
             "",
         ]
 
         for ftype, file_list in sorted(profile.by_type.items(), key=lambda x: x[0] != "tabular"):
-            lines.append(f"── {ftype.upper()} FILES ({len(file_list)}) " + "─" * 30)
-            for fi in file_list:
+            inspected = [f for f in file_list if f.preview or f.columns or f.row_count]
+            skipped   = len(file_list) - len(inspected)
+            lines.append(f"── {ftype.upper()} FILES ({len(file_list)} total, {len(inspected)} inspected) " + "─" * 20)
+            for fi in inspected:
                 rel = os.path.relpath(fi.path, profile.root)
                 line = f"  📄 {rel}  ({fi.size_kb:.1f} KB)"
                 if fi.row_count is not None:
@@ -393,7 +431,10 @@ class DatasetDiscovery:
                 if fi.preview:
                     preview_lines = fi.preview.strip().split("\n")[:5]
                     lines.append("       preview :")
-                    lines.extend(f"         {l}" for l in preview_lines)
+                    lines.extend(f"         {l[:200]}" for l in preview_lines)
+                lines.append("")
+            if skipped:
+                lines.append(f"  ... {skipped:,} more {ftype} file(s) not shown")
                 lines.append("")
 
         return "\n".join(lines)

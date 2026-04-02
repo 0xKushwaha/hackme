@@ -1,4 +1,4 @@
-from langchain.schema import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from agents.agent_config import AgentConfig
 
 

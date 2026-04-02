@@ -103,9 +103,6 @@ _AGENT_KEYS = {
     "devil_advocate":   "Devil's Adv",
     "devil's advocate": "Devil's Adv",
     "optimizer":        "Optimizer",
-    "diagnostic":       "Diagnostic",
-    "code_writer":      "CodeWriter",
-    "codewriter":       "CodeWriter",
     "architect":        "Architect",
     "storyteller":      "Storyteller",
 }
@@ -203,6 +200,7 @@ class _Tee:
         except Exception: pass
 
     def fileno(self): return self.orig.fileno()
+    def isatty(self): return False
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -212,16 +210,13 @@ def _run_pipeline(cfg: dict) -> dict:
     from backends.llm_backends    import get_llm
     from agents import (ExplorerAgent, SkepticAgent, StatisticianAgent, EthicistAgent,
                         PragmatistAgent, DevilAdvocateAgent, ArchitectAgent, OptimizerAgent,
-                        StorytellerAgent, CodeWriterAgent)
+                        StorytellerAgent)
     from agents.agent_config        import AGENT_CONFIGS
     from agents.base                import BaseAgent
-    from agents.builder_agent       import BuilderAgent
-    from execution.executor         import CodeExecutor
     from memory.agent_memory        import MemorySystem
     from orchestration.orchestrator import Orchestrator
     from orchestration.registry     import AgentRegistry
     from phases.discovery           import DatasetDiscovery
-    from tool_registry              import ToolRegistry
     from prompts.planner_prompts    import FEATURE_ENGINEER_PROMPT
 
     exp_dir = cfg.get("experiment_dir", "experiments")
@@ -253,7 +248,6 @@ def _run_pipeline(cfg: dict) -> dict:
         "optimizer":        OptimizerAgent(llm,      config=AGENT_CONFIGS["optimizer"]),
         "architect":        ArchitectAgent(llm,      config=AGENT_CONFIGS["architect"]),
         "storyteller":      StorytellerAgent(llm,    config=AGENT_CONFIGS["storyteller"]),
-        "code_writer":      CodeWriterAgent(llm,     config=AGENT_CONFIGS["code_writer"]),
     }
 
     mem = (MemorySystem(agent_names=list(agents.keys()),
@@ -262,16 +256,11 @@ def _run_pipeline(cfg: dict) -> dict:
            if cfg.get("enable_memory", True) else None)
 
     mode     = cfg.get("mode", "phases")
-    ne       = mode in ("train", "phases")
-    executor = CodeExecutor(work_dir=exp_dir) if ne else None
-    trdir    = os.path.join(exp_dir, "tool_registry")
-    tool_reg = ToolRegistry(registry_dir=trdir) if ne else None
     registry = AgentRegistry(max_concurrent=cfg.get("max_agents", 5),
                               persist_path=os.path.join(exp_dir, "registry.json"))
-    builder  = BuilderAgent(llm=llm, tool_registry=tool_reg) if cfg.get("enable_builder", True) else None
 
-    orch = Orchestrator(agents=agents, llm=llm, executor=executor, memory_system=mem,
-                        registry=registry, tool_registry=tool_reg, builder_agent=builder,
+    orch = Orchestrator(agents=agents, llm=llm, memory_system=mem,
+                        registry=registry,
                         task_description=cfg.get("task_description", ""))
 
     absp = os.path.abspath(cfg["dataset_path"])
@@ -280,8 +269,7 @@ def _run_pipeline(cfg: dict) -> dict:
 
     if   mode == "manual": orch.run_manual(ds_sum)
     elif mode == "auto":   orch.run_auto(ds_sum)
-    elif mode == "train":  orch.run_training_loop(dataset_summary=ds_sum, dataset_path=absp, target_col=tgt, max_retries=ret, experiment_dir=exp_dir)
-    elif mode == "phases": orch.run_phases(dataset_summary=ds_sum, dataset_path=absp, target_col=tgt, max_retries=ret, experiment_dir=exp_dir, dataset_profile=profile)
+    elif mode == "phases": orch.run_phases(dataset_summary=ds_sum, dataset_path=absp, target_col=tgt, experiment_dir=exp_dir, dataset_profile=profile)
 
     lp = os.path.join(exp_dir, f"context_{orch.run_id}.json")
     orch.context.save(lp)
@@ -320,6 +308,7 @@ def get_creds():
         "provider":  c.get("provider", "claude"),
         "hasKey":    bool(key),
         "serverUrl": c.get("server_url", ""),
+        "model":     c.get("model", ""),
     }
 
 
@@ -327,10 +316,12 @@ class CredsPayload(BaseModel):
     provider:   str
     api_key:    str = ""
     server_url: str = ""
+    model:      str = ""
 
 @app.post("/api/creds")
 def save_creds(body: CredsPayload):
-    _save_creds({"provider": body.provider, "api_key": body.api_key, "server_url": body.server_url})
+    _save_creds({"provider": body.provider, "api_key": body.api_key,
+                 "server_url": body.server_url, "model": body.model})
     return {"ok": True}
 
 
@@ -350,10 +341,8 @@ class RunPayload(BaseModel):
     mode:             str  = "phases"
     target_col:       str  = ""
     model:            str  = ""
-    max_retries:      int  = 4
     max_agents:       int  = 5
     enable_memory:    bool = True
-    enable_builder:   bool = True
     experiment_dir:   str  = "experiments"
 
 @app.post("/api/run")
@@ -398,4 +387,11 @@ def get_result(run_id: str):
 # ─────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     import uvicorn
+    import logging
+
+    class _FilterPoll(logging.Filter):
+        def filter(self, record):
+            return "/api/poll/" not in record.getMessage()
+
+    logging.getLogger("uvicorn.access").addFilter(_FilterPoll())
     uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=False)

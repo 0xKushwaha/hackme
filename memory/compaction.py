@@ -16,7 +16,7 @@ import re
 from dataclasses import dataclass
 from typing import Optional
 
-from langchain.schema import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 
 MAX_AUDIT_RETRIES  = 3
 MAX_SUMMARY_CHARS  = 800     # cap on custom compaction instructions (OpenClaw: 800)

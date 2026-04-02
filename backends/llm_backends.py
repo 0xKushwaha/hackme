@@ -30,11 +30,17 @@ def get_llm(provider: str, model: str = None, base_url: str = None, **kwargs):
         )
 
     if provider == "local":
-        # VLLMOpenAI from langchain-community is deprecated.
         # All modern local servers (vLLM, Ollama, LM Studio, llama.cpp)
         # expose an OpenAI-compatible /v1 endpoint — ChatOpenAI works directly.
-        vllm_url   = base_url or os.getenv("VLLM_URL")   or "http://localhost:8000/v1"
+        vllm_url   = base_url or os.getenv("VLLM_URL") or "http://localhost:8001/v1"
         vllm_model = model    or os.getenv("VLLM_MODEL") or "mistral-7b-instruct"
+
+        # Normalize: ensure the base_url ends with /v1
+        # Users often paste just http://host:port without the /v1 suffix
+        vllm_url = vllm_url.rstrip("/")
+        if not vllm_url.endswith("/v1"):
+            vllm_url = vllm_url + "/v1"
+
         return ChatOpenAI(
             model=vllm_model,
             base_url=vllm_url,

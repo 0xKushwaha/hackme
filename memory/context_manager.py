@@ -89,8 +89,12 @@ class ContextManager:
         self.entries.append(entry)
         return entry
 
+    MAX_DATASET_CHARS = 40_000   # hard cap — prevents huge datasets from blowing context
+
     def add_dataset_context(self, summary: str) -> ContextEntry:
         """Dataset summary is always pinned — it never gets trimmed."""
+        if len(summary) > self.MAX_DATASET_CHARS:
+            summary = summary[:self.MAX_DATASET_CHARS] + "\n... [dataset summary truncated]"
         return self.add("system", ROLE_DATASET, summary, pinned=True)
 
     def add_task_context(self, task_description: str) -> ContextEntry:

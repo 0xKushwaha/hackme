@@ -502,6 +502,9 @@ video {
 [hidden]:where(:not([hidden="until-found"])) {
   display: none;
 }
+.visible {
+  visibility: visible;
+}
 .fixed {
   position: fixed;
 }
@@ -510,9 +513,6 @@ video {
 }
 .relative {
   position: relative;
-}
-.sticky {
-  position: sticky;
 }
 .block {
   display: block;
@@ -711,6 +711,103 @@ body {
 .pulse-dot  { animation: pulse-dot 1.6s ease infinite; }
 .spin-slow  { animation: spin-slow 1s linear infinite; }
 .float-anim { animation: float 3s ease-in-out infinite; }
+
+/* ── Typewriter cursor ── */
+@keyframes blink-cursor { 0%,100% { opacity:1; } 50% { opacity:0; } }
+.cursor-blink { display:inline-block; width:2px; height:1em; background:var(--red); margin-left:4px; vertical-align:text-bottom; animation: blink-cursor 0.9s step-end infinite; }
+
+/* ── Step workflow ── */
+.step-track { display:flex; align-items:center; gap:0; }
+.step-node {
+  display:flex; align-items:center; justify-content:center;
+  width:32px; height:32px; border-radius:50%;
+  font-size:12px; font-weight:700; font-family:'JetBrains Mono',monospace;
+  border:2px solid rgba(255,255,255,0.08);
+  color:rgba(255,255,255,0.2);
+  background:rgba(255,255,255,0.02);
+  transition: all 0.4s ease;
+  position:relative; z-index:1;
+}
+.step-node.active {
+  border-color:var(--red);
+  color:var(--red);
+  background:rgba(230,48,48,0.1);
+  box-shadow:0 0 16px rgba(230,48,48,0.25);
+}
+.step-node.done {
+  border-color:#34d399;
+  color:#34d399;
+  background:rgba(52,211,153,0.1);
+}
+.step-connector {
+  height:2px; flex:1; min-width:24px;
+  background:rgba(255,255,255,0.06);
+  position:relative; overflow:hidden;
+}
+.step-connector.active::after {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(90deg, var(--red), rgba(230,48,48,0.3));
+  animation: bar-slide 2s linear infinite;
+}
+.step-connector.done { background:#34d399; }
+
+/* ── Console box ── */
+.console-box {
+  border:1.5px dashed rgba(255,255,255,0.1);
+  border-radius:14px;
+  background:rgba(0,0,0,0.35);
+  backdrop-filter:blur(12px);
+  transition: border-color 0.3s, background 0.3s;
+}
+.console-box:hover {
+  border-color:rgba(230,48,48,0.3);
+  background:rgba(0,0,0,0.5);
+}
+
+/* ── Status indicator ── */
+.status-dot {
+  width:6px; height:6px; border-radius:50%;
+  display:inline-block;
+}
+.status-dot.live { background:#34d399; box-shadow:0 0 8px rgba(52,211,153,0.5); animation: pulse-dot 2s ease infinite; }
+.status-dot.idle { background:rgba(255,255,255,0.15); }
+
+/* ── View toggle ── */
+.view-toggle {
+  display:inline-flex; border-radius:8px; overflow:hidden;
+  border:1px solid rgba(255,255,255,0.07);
+  background:rgba(0,0,0,0.3);
+}
+.view-toggle button {
+  padding:6px 14px; font-size:11px; font-weight:500;
+  font-family:'JetBrains Mono',monospace;
+  color:rgba(255,255,255,0.3); background:transparent;
+  border:none; cursor:pointer; transition:all 0.2s;
+  letter-spacing:0.04em;
+}
+.view-toggle button:hover { color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.03); }
+.view-toggle button.active { color:var(--red); background:rgba(230,48,48,0.1); }
+
+/* ── Gradient text ── */
+.gradient-text {
+  background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.5) 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+/* ── Workflow mini cards ── */
+.workflow-step {
+  padding:10px 14px; border-radius:10px;
+  background:rgba(255,255,255,0.02);
+  border:1px solid rgba(255,255,255,0.05);
+  transition:all 0.3s;
+}
+.workflow-step:hover { border-color:rgba(230,48,48,0.2); background:rgba(230,48,48,0.03); }
+.workflow-step .step-num {
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px; font-weight:700; color:var(--red);
+  opacity:0.6;
+}
 
 /* ── Report markdown ── */
 .report { color: var(--muted); line-height: 1.8; }

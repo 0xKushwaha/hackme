@@ -15,6 +15,8 @@ Stage 1 — Core EDA agents (always run, sequential-with-retry)
 Stage 2 — Ethicist (optional, with retry)
 """
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from memory.context_manager import ROLE_ANALYSIS, ROLE_META
 from agents.installer_agent import LibraryInstallerAgent
 from analysis.data_profiler import DataProfiler
@@ -74,8 +76,8 @@ class DataUnderstandingPhase(BasePhase):
                 "class_imbalance":    data_metrics.class_imbalance,
             }
 
-        # ── Stage 1: Core EDA agents ──────────────────────────────────────
-        print("\n⚡ [DataUnderstanding] Core EDA agents starting...")
+        # ── Stage 1: Core EDA agents — run in PARALLEL ───────────────────
+        print("\n⚡ [DataUnderstanding] Core EDA agents starting in parallel...")
 
         task_desc = getattr(orch, "task_description", "").strip()
         goal_suffix = (
@@ -88,24 +90,21 @@ class DataUnderstandingPhase(BasePhase):
         routing     = data_metrics.routing if data_metrics else {}
         profile_ctx = f"\n\n{data_metrics.summary_text}" if data_metrics else ""
 
-        # Explorer — always runs; guide focus based on profile
+        # ── Build tasks ──────────────────────────────────────────────────
         explorer_focus = ""
         if routing.get("explorer") == "focus_correlations":
             explorer_focus = "\nFOCUS: High-correlation pairs were detected — prioritize multicollinearity analysis."
         elif routing.get("explorer") == "focus_temporal":
             explorer_focus = "\nFOCUS: Time-series columns detected — prioritize temporal patterns and lag relationships."
 
-        self._step_with_retry(
-            "explorer",
+        explorer_task = (
             "Perform a thorough exploratory data analysis. Identify the most likely "
             "target variable, key predictive features, important patterns, and noteworthy "
             "correlations. If this is a multi-file or non-tabular dataset, describe each "
             "component and how they relate to each other."
-            + profile_ctx + explorer_focus + goal_suffix,
-            ROLE_ANALYSIS,
+            + profile_ctx + explorer_focus + goal_suffix
         )
 
-        # Skeptic — quick pass if data is very clean (early stopping)
         skeptic_mode = routing.get("skeptic", "normal")
         if data_metrics and data_metrics.data_quality_score > SKIP_SKEPTIC_QUALITY_THRESHOLD:
             print(f"\n⚡ [DataUnderstanding] Data quality={data_metrics.data_quality_score:.2f} → Skeptic on QUICK pass")
@@ -124,14 +123,11 @@ class DataUnderstandingPhase(BasePhase):
                 "Inspect data quality: missing values, outliers, duplicate rows, class "
                 "imbalance, and any potential data leakage between features and target. "
                 "If multiple file types are present, flag format inconsistencies."
-                + focus_note
-                + profile_ctx
+                + focus_note + profile_ctx
                 + (f"\n\nGiven the goal: {task_desc} — flag issues that would specifically "
                    "hurt performance on that objective." if task_desc else "")
             )
-        self._step_with_retry("skeptic", skeptic_task, ROLE_ANALYSIS)
 
-        # Statistician — guide focus if multicollinearity detected
         stat_focus = ""
         if data_metrics and len(data_metrics.high_corr_pairs) > FOCUS_STATISTICIAN_CORR_PAIRS:
             top_pairs = data_metrics.high_corr_pairs[:5]
@@ -142,14 +138,28 @@ class DataUnderstandingPhase(BasePhase):
         if data_metrics and data_metrics.is_time_series:
             stat_focus += "\nFOCUS: Time-series data — also check autocorrelation and stationarity."
 
-        self._step_with_retry(
-            "statistician",
+        statistician_task = (
             "Analyze feature distributions, skewness, multicollinearity, and the "
             "statistical significance of key correlations. For non-tabular data, "
             "describe what statistical measures apply and flag distributional red flags."
-            + stat_focus + profile_ctx,
-            ROLE_ANALYSIS,
+            + stat_focus + profile_ctx
         )
+
+        # ── Run Explorer, Skeptic, Statistician concurrently ─────────────
+        # These three are independent — none reads another's output.
+        # Orchestrator.step() is thread-safe (context writes use a lock).
+        with ThreadPoolExecutor(max_workers=3) as pool:
+            futures = {
+                pool.submit(self._step_with_retry, "explorer",     explorer_task,     ROLE_ANALYSIS): "explorer",
+                pool.submit(self._step_with_retry, "skeptic",      skeptic_task,      ROLE_ANALYSIS): "skeptic",
+                pool.submit(self._step_with_retry, "statistician", statistician_task, ROLE_ANALYSIS): "statistician",
+            }
+            for fut in as_completed(futures):
+                name = futures[fut]
+                try:
+                    fut.result()
+                except Exception as exc:
+                    print(f"[DataUnderstanding] ⚠️  {name} parallel run raised: {exc}")
 
         # ── Stage 2: Ethicist (optional, early-stop if data is very clean) ──
         ethics_notes = ""

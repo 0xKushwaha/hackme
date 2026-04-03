@@ -29,6 +29,8 @@ from typing import Optional
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
+import platform
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -66,9 +68,20 @@ def _save_creds(data: dict):
 
 
 # ─────────────────────────────────────────────────────────────────────
-# File / folder picker (subprocess — avoids macOS main-thread crash)
+# File / folder picker (macOS only — subprocess avoids main-thread crash)
 # ─────────────────────────────────────────────────────────────────────
+def _has_display() -> bool:
+    """True when a GUI display is available (always on macOS, env-dependent on Linux)."""
+    if platform.system() == "Darwin":
+        return True
+    if platform.system() == "Linux":
+        return bool(os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))
+    return False   # Windows: not implemented
+
+
 def _pick_path_sync(pick_dir: bool = False) -> str:
+    if not _has_display():
+        return ""
     script = f"""
 import tkinter as tk
 from tkinter import filedialog
@@ -207,7 +220,7 @@ class _Tee:
 # Pipeline runner
 # ─────────────────────────────────────────────────────────────────────
 def _run_pipeline(cfg: dict) -> dict:
-    from backends.llm_backends    import get_llm
+    from backends.llm_backends    import get_llm, get_fast_llm
     from agents import (ExplorerAgent, SkepticAgent, StatisticianAgent, EthicistAgent,
                         PragmatistAgent, DevilAdvocateAgent, ArchitectAgent, OptimizerAgent,
                         StorytellerAgent)
@@ -235,16 +248,20 @@ def _run_pipeline(cfg: dict) -> dict:
 
     llm_kw = {}
     if cfg.get("server_url"): llm_kw["base_url"] = cfg["server_url"]
-    llm = get_llm(cfg["provider"], model=cfg.get("model"), **llm_kw)
+    explicit_model = cfg.get("model")
+    llm      = get_llm(cfg["provider"], model=explicit_model, **llm_kw)
+    # Fast tier: cheaper/faster model for critique agents — skip if user picked a specific model
+    fast_llm = get_fast_llm(cfg["provider"], **llm_kw) if not explicit_model else llm
+    f = fast_llm
 
     agents = {
         "explorer":         ExplorerAgent(llm,      config=AGENT_CONFIGS["explorer"]),
-        "skeptic":          SkepticAgent(llm,        config=AGENT_CONFIGS["skeptic"]),
+        "skeptic":          SkepticAgent(f,          config=AGENT_CONFIGS["skeptic"]),
         "statistician":     StatisticianAgent(llm,   config=AGENT_CONFIGS["statistician"]),
         "feature_engineer": BaseAgent("Feature Engineer", FEATURE_ENGINEER_PROMPT, llm, config=AGENT_CONFIGS["feature_engineer"]),
-        "ethicist":         EthicistAgent(llm,       config=AGENT_CONFIGS["ethicist"]),
-        "pragmatist":       PragmatistAgent(llm,     config=AGENT_CONFIGS["pragmatist"]),
-        "devil_advocate":   DevilAdvocateAgent(llm,  config=AGENT_CONFIGS["devil_advocate"]),
+        "ethicist":         EthicistAgent(f,         config=AGENT_CONFIGS["ethicist"]),
+        "pragmatist":       PragmatistAgent(f,       config=AGENT_CONFIGS["pragmatist"]),
+        "devil_advocate":   DevilAdvocateAgent(f,    config=AGENT_CONFIGS["devil_advocate"]),
         "optimizer":        OptimizerAgent(llm,      config=AGENT_CONFIGS["optimizer"]),
         "architect":        ArchitectAgent(llm,      config=AGENT_CONFIGS["architect"]),
         "storyteller":      StorytellerAgent(llm,    config=AGENT_CONFIGS["storyteller"]),
@@ -325,11 +342,50 @@ def save_creds(body: CredsPayload):
     return {"ok": True}
 
 
+@app.get("/api/resolve")
+def resolve_path(name: str, dir: bool = False):
+    """
+    Browser file pickers don't expose the absolute path.
+    This endpoint searches for the file/folder by name in common locations
+    and returns the first match so the pipeline can use it directly.
+    Search order: cwd, home, Desktop, Downloads.
+    """
+    import fnmatch
+    # For folder picks, name is like "myfolder/file.csv" — we want the root folder
+    root_name = Path(name).parts[0] if Path(name).parts else name
+
+    search_roots = [
+        Path.cwd(),
+        Path.home(),
+        Path.home() / "Desktop",
+        Path.home() / "Downloads",
+        Path.home() / "Documents",
+    ]
+
+    target = root_name if dir else name
+    for base in search_roots:
+        candidate = base / target
+        if candidate.exists():
+            return {"path": str(candidate), "name": candidate.name}
+
+    # Broader search one level deep under home
+    for child in Path.home().iterdir():
+        if child.is_dir():
+            candidate = child / target
+            if candidate.exists():
+                return {"path": str(candidate), "name": candidate.name}
+
+    return {"path": "", "name": ""}
+
+
 @app.get("/api/browse")
 async def browse(dir: bool = False):
+    if not _has_display():
+        return {"path": "", "canBrowse": False}
     loop   = asyncio.get_event_loop()
     result = await loop.run_in_executor(None, lambda: _pick_path_sync(dir))
-    return {"path": result}
+    return {"path": result, "canBrowse": True}
+
 
 
 class RunPayload(BaseModel):

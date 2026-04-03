@@ -38,10 +38,12 @@ class BaseAgent:
         role:     str  = "analysis",
         success:  bool = True,
     ) -> str:
-        # 1. Recall relevant memories (insight_forge if configured, else top-K)
+        # 1. Recall relevant memories
+        # insight_forge costs an extra LLM call to decompose the query — only worth it
+        # when there are actual memories to search. Skip it on the first run.
         memory_block = ""
         if self.memory and run_id:
-            if self.config.use_insight_forge:
+            if self.config.use_insight_forge and self.memory.has_entries():
                 _, memory_block = self.memory.insight_forge_recall(
                     task=task, run_id=run_id, llm=self.llm
                 )

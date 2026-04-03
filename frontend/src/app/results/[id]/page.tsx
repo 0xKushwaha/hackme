@@ -32,6 +32,8 @@ function agentKey(raw: string): string {
 
 interface NodeData { key: string; label: string; icon: string; color: string; role: string; content: string }
 
+type ResultView = 'cards' | 'report'
+
 export default function ResultsPage() {
   const { id }  = useParams<{ id: string }>()
   const router  = useRouter()
@@ -39,7 +41,7 @@ export default function ResultsPage() {
   const [result,     setResult]     = useState<{ run_id: string; entries: Entry[]; error?: string } | null>(null)
   const [loading,    setLoading]    = useState(true)
   const [selected,   setSelected]   = useState<NodeData | null>(null)
-  const [showReport, setShowReport] = useState(false)
+  const [resultView, setResultView] = useState<ResultView>('cards')
 
   useEffect(() => {
     let attempts = 0
@@ -95,9 +97,9 @@ export default function ResultsPage() {
     URL.revokeObjectURL(url)
   }, [report, id])
 
-  // ── Loading ──────────────────────────────────────────────────────────────
+  // Loading
   if (loading) return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
         <div style={{ width: 40, height: 40, borderRadius: '50%', border: '2px solid rgba(230,48,48,0.2)', borderTopColor: '#e63030', margin: '0 auto 20px', animation: 'spin-slow 0.9s linear infinite' }} />
         <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.12em' }}>LOADING RESULTS</div>
@@ -105,11 +107,11 @@ export default function ResultsPage() {
     </div>
   )
 
-  // ── Error ────────────────────────────────────────────────────────────────
+  // Error
   if (result?.error) return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-      <div style={{ maxWidth: 480, width: '100%', background: '#111', border: '1px solid rgba(230,48,48,0.25)', borderRadius: 18, padding: '28px' }}>
-        <div style={{ fontSize: 13, color: '#f87171', fontWeight: 600, marginBottom: 12 }}>❌ Pipeline Error</div>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+      <div style={{ maxWidth: 480, width: '100%', background: 'rgba(8,2,2,0.55)', backdropFilter: 'blur(20px)', border: '1px solid rgba(230,48,48,0.25)', borderRadius: 18, padding: '28px' }}>
+        <div style={{ fontSize: 13, color: '#f87171', fontWeight: 600, marginBottom: 12 }}>Pipeline Error</div>
         <pre style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.3)', whiteSpace: 'pre-wrap', maxHeight: 240, overflow: 'auto', fontFamily: "'JetBrains Mono',monospace" }}>{result.error}</pre>
         <button className="btn-ghost" onClick={() => router.push('/')} style={{ marginTop: 16, width: '100%' }}>← Home</button>
       </div>
@@ -117,123 +119,187 @@ export default function ResultsPage() {
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: 'transparent', display: 'flex', flexDirection: 'column' }}>
-
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
 
       {/* Nav */}
       <nav style={{
-        position: 'sticky', top: 0, zIndex: 100,
-        padding: '16px 32px',
-        background: 'rgba(10,10,10,0.92)',
-        backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
+        position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)',
+        zIndex: 100, width: 'calc(100% - 48px)', maxWidth: 1200,
+        padding: '12px 24px',
+        background: 'rgba(6,2,2,0.65)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255,255,255,0.07)',
+        borderRadius: 13,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{
-            width: 26, height: 26, borderRadius: 7,
-            background: 'linear-gradient(135deg, #e63030, #8b0000)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 11, color: '#fff',
-          }}>◆</div>
-          <span style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 14 }}>DS Agent Team</span>
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', fontFamily: "'JetBrains Mono',monospace" }}>/ {id}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', fontFamily: "'JetBrains Mono',monospace" }}>/ results</span>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn-ghost" onClick={() => setShowReport(true)} style={{ fontSize: 12 }}>Full Report</button>
-          <button className="btn-outline" onClick={downloadReport} style={{ fontSize: 12 }}>↓ Export .md</button>
-          <button className="btn-ghost" onClick={() => router.push('/')} style={{ fontSize: 12 }}>← Home</button>
+
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {/* View toggle */}
+          <div className="view-toggle">
+            <button className={resultView === 'cards' ? 'active' : ''} onClick={() => setResultView('cards')}>Agents</button>
+            <button className={resultView === 'report' ? 'active' : ''} onClick={() => setResultView('report')}>Report</button>
+          </div>
+          <button className="btn-outline" onClick={downloadReport} style={{ fontSize: 11.5, padding: '6px 14px' }}>↓ Export .md</button>
+          <button className="btn-ghost" onClick={() => router.push('/')} style={{ fontSize: 11.5, padding: '6px 12px' }}>← Home</button>
         </div>
       </nav>
 
       {/* Main content */}
-      <div style={{ flex: 1, padding: '40px 32px', maxWidth: 1200, margin: '0 auto', width: '100%', position: 'relative', zIndex: 10 }}>
+      <div style={{ flex: 1, paddingTop: 80, maxWidth: 1200, margin: '0 auto', width: '100%', position: 'relative', zIndex: 10 }}>
 
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 36 }}>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ padding: '28px 32px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-            <span style={{ color: '#34d399', fontSize: 18 }}>✓</span>
-            <h1 style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 26, letterSpacing: '-0.02em' }}>
-              Analysis Complete
-            </h1>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ color: '#34d399', fontSize: 18 }}>✓</span>
+            </div>
+            <div>
+              <h1 style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 24, letterSpacing: '-0.02em' }}>
+                Analysis Complete
+              </h1>
+              <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12.5, marginTop: 2 }}>
+                {nodes.length} agents completed — Run <span style={{ fontFamily: "'JetBrains Mono',monospace", color: 'rgba(255,255,255,0.4)' }}>{id}</span>
+              </p>
+            </div>
           </div>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 14 }}>
-            {nodes.length} agents completed their analysis. Click any card to read their full output.
-          </p>
+
+          {/* Completed agents strip */}
+          <div style={{ display: 'flex', gap: 6, marginTop: 16, marginBottom: 24, flexWrap: 'wrap' }}>
+            {nodes.map((node, i) => (
+              <motion.div key={node.key}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.04 }}
+                onClick={() => { setSelected(node); setResultView('cards') }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '5px 10px', borderRadius: 8,
+                  background: `${node.color}0a`,
+                  border: `1px solid ${node.color}20`,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <span style={{ fontSize: 12, color: node.color }}>{node.icon}</span>
+                <span style={{ fontSize: 10.5, color: `${node.color}cc`, fontFamily: "'JetBrains Mono',monospace" }}>{node.label}</span>
+              </motion.div>
+            ))}
+          </div>
         </motion.div>
 
-        {/* Agent cards grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
-          {nodes.map((node, i) => (
-            <motion.div
-              key={node.key}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-              onClick={() => setSelected(node)}
-              style={{
-                padding: '18px 20px',
-                borderRadius: 16,
-                background: '#111111',
-                border: `1px solid rgba(255,255,255,0.06)`,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                position: 'relative',
-                overflow: 'hidden',
-              }}
-              whileHover={{
-                borderColor: `${node.color}44`,
-                backgroundColor: `${node.color}06`,
-                y: -2,
-              }}
-            >
-              {/* Top color bar */}
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${node.color}, transparent)` }} />
+        {/* Cards view */}
+        {resultView === 'cards' && (
+          <div style={{ padding: '0 32px 40px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
+              {nodes.map((node, i) => (
+                <motion.div
+                  key={node.key}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  onClick={() => setSelected(node)}
+                  style={{
+                    padding: '18px 20px',
+                    borderRadius: 16,
+                    background: 'rgba(8,2,2,0.55)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}
+                  whileHover={{
+                    borderColor: `${node.color}44`,
+                    backgroundColor: `${node.color}06`,
+                    y: -2,
+                  }}
+                >
+                  {/* Top color bar */}
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${node.color}, transparent)` }} />
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                <div style={{
-                  width: 40, height: 40, borderRadius: 11,
-                  background: `${node.color}14`,
-                  border: `1px solid ${node.color}30`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 18, color: node.color,
-                }}>
-                  {node.icon}
-                </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                    <div style={{
+                      width: 40, height: 40, borderRadius: 11,
+                      background: `${node.color}14`,
+                      border: `1px solid ${node.color}30`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 18, color: node.color,
+                    }}>
+                      {node.icon}
+                    </div>
+                    <div>
+                      <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, color: 'rgba(255,255,255,0.85)' }}>{node.label}</div>
+                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.28)', marginTop: 1 }}>{node.role}</div>
+                    </div>
+                  </div>
+
+                  <p style={{
+                    fontSize: 12, color: 'rgba(255,255,255,0.3)', lineHeight: 1.6,
+                    overflow: 'hidden', display: '-webkit-box',
+                    WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
+                    fontFamily: "'Inter',sans-serif",
+                  }}>
+                    {node.content.replace(/#+\s/g, '').slice(0, 160)}…
+                  </p>
+
+                  <div style={{ marginTop: 14, display: 'flex', justifyContent: 'flex-end' }}>
+                    <span style={{ fontSize: 11, color: node.color, fontFamily: "'Inter',sans-serif", fontWeight: 500 }}>Read output →</span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Report view — inline full report */}
+        {resultView === 'report' && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{ padding: '0 32px 60px' }}
+          >
+            <div style={{
+              background: 'rgba(8,2,2,0.55)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.07)',
+              borderRadius: 18,
+              overflow: 'hidden',
+            }}>
+              {/* Report header */}
+              <div style={{ padding: '20px 28px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, color: 'rgba(255,255,255,0.85)' }}>{node.label}</div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.28)', marginTop: 1 }}>{node.role}</div>
+                  <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 16 }}>Full Analysis Report</div>
+                  <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.2)', marginTop: 2, fontFamily: "'JetBrains Mono',monospace" }}>
+                    {nodes.length} sections — Run {id}
+                  </div>
                 </div>
+                <button className="btn-outline" onClick={downloadReport} style={{ fontSize: 11.5 }}>↓ Download</button>
               </div>
 
-              <p style={{
-                fontSize: 12, color: 'rgba(255,255,255,0.3)', lineHeight: 1.6,
-                overflow: 'hidden', display: '-webkit-box',
-                WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
-                fontFamily: "'Inter',sans-serif",
-              }}>
-                {node.content.replace(/#+\s/g, '').slice(0, 160)}…
-              </p>
-
-              <div style={{ marginTop: 14, display: 'flex', justifyContent: 'flex-end' }}>
-                <span style={{ fontSize: 11, color: node.color, fontFamily: "'Inter',sans-serif", fontWeight: 500 }}>Read output →</span>
+              {/* Report sections — expandable like MiroFish */}
+              <div style={{ padding: '24px 32px', maxWidth: 820, margin: '0 auto' }}>
+                {nodes.map((node, i) => (
+                  <ReportSection key={node.key} node={node} index={i} />
+                ))}
               </div>
-            </motion.div>
-          ))}
-        </div>
+            </div>
+          </motion.div>
+        )}
       </div>
 
-      {/* ── Selected agent panel ── */}
+      {/* Selected agent drawer */}
       <AnimatePresence>
-        {selected && !showReport && (
+        {selected && resultView === 'cards' && (
           <>
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setSelected(null)}
               style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 200, backdropFilter: 'blur(4px)' }}
             />
-            {/* Drawer */}
             <motion.div
               initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
@@ -246,10 +312,7 @@ export default function ResultsPage() {
                 boxShadow: `-20px 0 60px rgba(0,0,0,0.5)`,
               }}
             >
-              {/* Top accent */}
               <div style={{ height: 2, background: `linear-gradient(90deg, ${selected.color}, ${selected.color}33)` }} />
-
-              {/* Header */}
               <div style={{ padding: '24px 28px 20px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 4 }}>
                   <div style={{
@@ -271,8 +334,6 @@ export default function ResultsPage() {
                   >✕</button>
                 </div>
               </div>
-
-              {/* Content */}
               <div style={{ flex: 1, overflow: 'auto', padding: '20px 28px' }}>
                 <div className="report">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{selected.content}</ReactMarkdown>
@@ -282,49 +343,75 @@ export default function ResultsPage() {
           </>
         )}
       </AnimatePresence>
+    </div>
+  )
+}
 
-      {/* ── Full report modal ── */}
+// Expandable report section (MiroFish-inspired)
+function ReportSection({ node, index }: { node: NodeData; index: number }) {
+  const [expanded, setExpanded] = useState(index === 0)
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.06 }}
+      style={{ marginBottom: 12 }}
+    >
+      <button
+        onClick={() => setExpanded(v => !v)}
+        style={{
+          width: '100%', textAlign: 'left', cursor: 'pointer',
+          padding: '14px 16px', borderRadius: expanded ? '12px 12px 0 0' : 12,
+          background: expanded ? `${node.color}08` : 'rgba(255,255,255,0.02)',
+          border: `1px solid ${expanded ? `${node.color}20` : 'rgba(255,255,255,0.05)'}`,
+          borderBottom: expanded ? 'none' : `1px solid ${expanded ? `${node.color}20` : 'rgba(255,255,255,0.05)'}`,
+          display: 'flex', alignItems: 'center', gap: 12,
+          transition: 'all 0.2s',
+        }}
+      >
+        <div style={{
+          width: 32, height: 32, borderRadius: 9,
+          background: `${node.color}12`,
+          border: `1px solid ${node.color}25`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 14, color: node.color, flexShrink: 0,
+        }}>
+          {node.icon}
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: expanded ? node.color : 'rgba(255,255,255,0.6)' }}>{node.label}</div>
+          <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.2)', marginTop: 1 }}>{node.role}</div>
+        </div>
+        <motion.span
+          animate={{ rotate: expanded ? 180 : 0 }}
+          style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)' }}
+        >▼</motion.span>
+      </button>
+
       <AnimatePresence>
-        {showReport && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setShowReport(false)}
-              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 200, backdropFilter: 'blur(6px)' }}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.97, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.97 }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              style={{
-                position: 'fixed', inset: '5vh 5vw', zIndex: 201,
-                background: '#0f0f0f',
-                border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: 20,
-                display: 'flex', flexDirection: 'column',
-                boxShadow: '0 40px 120px rgba(0,0,0,0.7)',
-              }}
-            >
-              <div style={{ padding: '22px 28px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 18 }}>Full Analysis Report</div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 2, fontFamily: "'JetBrains Mono',monospace" }}>Run {id}</div>
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button className="btn-outline" onClick={downloadReport} style={{ fontSize: 12 }}>↓ Export</button>
-                  <button onClick={() => setShowReport(false)} style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
-                </div>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{
+              padding: '16px 20px',
+              borderRadius: '0 0 12px 12px',
+              background: `${node.color}05`,
+              border: `1px solid ${node.color}20`,
+              borderTop: `1px solid ${node.color}10`,
+            }}>
+              <div className="report">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{node.content}</ReactMarkdown>
               </div>
-              <div style={{ flex: 1, overflow: 'auto', padding: '24px 36px', maxWidth: 860, margin: '0 auto', width: '100%' }}>
-                <div className="report">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{report}</ReactMarkdown>
-                </div>
-              </div>
-            </motion.div>
-          </>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   )
 }

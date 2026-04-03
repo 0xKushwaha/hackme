@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import AgentGraph from '@/components/AgentGraph'
 
 const API = 'http://localhost:8000'
 
@@ -21,10 +22,30 @@ const AGENTS: Record<string, { label: string; role: string; description: string;
 
 const ALL_AGENTS = Object.keys(AGENTS)
 
+const PHASES = [
+  { id: 'discovery',      label: 'Discovery',          short: 'DSC' },
+  { id: 'understanding',  label: 'Data Understanding', short: 'P1' },
+  { id: 'design',         label: 'Model Design',       short: 'P2' },
+  { id: 'generation',     label: 'Code Generation',    short: 'P3' },
+  { id: 'complete',       label: 'Complete',            short: '✓' },
+]
+
+function phaseIndex(phase: string): number {
+  const l = phase.toLowerCase()
+  if (l.includes('complete'))                              return 4
+  if (l.includes('code') || l.includes('generation') || l.includes('phase 3')) return 3
+  if (l.includes('design') || l.includes('phase 2'))       return 2
+  if (l.includes('understand') || l.includes('phase 1'))   return 1
+  if (l.includes('discovery'))                              return 0
+  if (l.includes('initializ'))                              return -1
+  return -1
+}
+
 function parsePhaseLabel(phase: string): string {
   const l = phase.toLowerCase()
   if (l.includes('understand') || l.includes('phase 1')) return 'Data Understanding'
   if (l.includes('design')     || l.includes('phase 2')) return 'Model Design'
+  if (l.includes('code') || l.includes('generation') || l.includes('phase 3')) return 'Code Generation'
   if (l.includes('discovery'))                            return 'Discovery'
   if (l.includes('initializ'))                            return 'Initialising'
   return phase.charAt(0).toUpperCase() + phase.slice(1).toLowerCase()
@@ -39,7 +60,9 @@ function logColor(line: string): string {
   return 'rgba(255,255,255,0.25)'
 }
 
-// ── Per-agent card (in the grid) ─────────────────────────────────────────────
+type ViewMode = 'grid' | 'split' | 'log' | 'graph'
+
+// Agent card
 function AgentCard({ name, isCurrent, isDone }: { name: string; isCurrent: boolean; isDone: boolean }) {
   const a = AGENTS[name]
   if (!a) return null
@@ -59,7 +82,6 @@ function AgentCard({ name, isCurrent, isDone }: { name: string; isCurrent: boole
         transition: 'all 0.4s ease',
       }}
     >
-      {/* Running shimmer bar */}
       {isCurrent && (
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, overflow: 'hidden' }}>
           <motion.div
@@ -69,7 +91,6 @@ function AgentCard({ name, isCurrent, isDone }: { name: string; isCurrent: boole
           />
         </div>
       )}
-
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{
           width: 32, height: 32, borderRadius: 9, flexShrink: 0,
@@ -98,7 +119,7 @@ function AgentCard({ name, isCurrent, isDone }: { name: string; isCurrent: boole
   )
 }
 
-// ── Agent popup (bottom-right) ────────────────────────────────────────────────
+// Agent popup
 function AgentPopup({ name }: { name: string }) {
   const a = AGENTS[name]
   if (!a) return null
@@ -115,8 +136,7 @@ function AgentPopup({ name }: { name: string }) {
         background: 'rgba(6,2,2,0.72)',
         backdropFilter: 'blur(28px)',
         border: `1px solid ${a.color}38`,
-        borderRadius: 18,
-        overflow: 'hidden',
+        borderRadius: 18, overflow: 'hidden',
         boxShadow: `0 24px 64px rgba(0,0,0,0.55), 0 0 0 1px ${a.color}12, 0 8px 32px ${a.color}14`,
       }}
     >
@@ -154,7 +174,26 @@ function AgentPopup({ name }: { name: string }) {
   )
 }
 
-// ── Main ──────────────────────────────────────────────────────────────────────
+// Log panel component
+function LogPanel({ logLines, logRef }: { logLines: string[]; logRef: React.RefObject<HTMLDivElement> }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.15)', fontFamily: "'JetBrains Mono',monospace" }}>$</span>
+          <span style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.25)', fontFamily: "'JetBrains Mono',monospace", letterSpacing: '0.1em' }}>LIVE LOG</span>
+        </div>
+        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.15)', fontFamily: "'JetBrains Mono',monospace" }}>{logLines.length} lines</span>
+      </div>
+      <div ref={logRef} style={{ flex: 1, overflow: 'auto', padding: '10px 18px', display: 'flex', flexDirection: 'column', gap: 1 }}>
+        {logLines.map((line, i) => (
+          <div key={i} style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10.5, color: logColor(line), lineHeight: 1.75, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{line}</div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function RunPage() {
   const { id }   = useParams<{ id: string }>()
   const router   = useRouter()
@@ -165,11 +204,13 @@ export default function RunPage() {
   const [done,         setDone]         = useState(false)
   const [error,        setError]        = useState('')
   const [logLines,     setLogLines]     = useState<string[]>([])
-  const [showLog,      setShowLog]      = useState(false)
+  const [viewMode,     setViewMode]     = useState<ViewMode>('graph')
   const cursorRef = useRef(0); const doneRef = useRef(false)
   const timerRef  = useRef<NodeJS.Timeout | null>(null)
   const linesRef  = useRef<string[]>([])
   const logRef    = useRef<HTMLDivElement>(null)
+
+  const currentPhaseIdx = phaseIndex(phase)
 
   const poll = useCallback(async () => {
     if (doneRef.current) return
@@ -201,31 +242,37 @@ export default function RunPage() {
       {/* Floating nav */}
       <div style={{
         position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)',
-        zIndex: 50, width: 'calc(100% - 48px)', maxWidth: 1100,
+        zIndex: 50, width: 'calc(100% - 48px)', maxWidth: 1200,
         background: 'rgba(6,2,2,0.65)', backdropFilter: 'blur(20px)',
         border: '1px solid rgba(255,255,255,0.07)', borderRadius: 13,
         padding: '11px 20px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 24, height: 24, borderRadius: 6, background: 'linear-gradient(135deg,#e63030,#7a0000)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#fff' }}>◆</div>
-          <span style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 13 }}>DS Agent Team</span>
+        {/* Step workflow indicator */}
+        <div className="step-track">
+          {PHASES.map((p, i) => (
+            <div key={p.id} style={{ display: 'flex', alignItems: 'center' }}>
+              <div
+                className={`step-node ${currentPhaseIdx > i ? 'done' : currentPhaseIdx === i ? 'active' : ''}`}
+                title={p.label}
+              >
+                {currentPhaseIdx > i ? '✓' : p.short}
+              </div>
+              {i < PHASES.length - 1 && (
+                <div className={`step-connector ${currentPhaseIdx > i ? 'done' : currentPhaseIdx === i ? 'active' : ''}`} />
+              )}
+            </div>
+          ))}
         </div>
-        {/* Phase + progress */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {!done
-            ? <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#e63030', display: 'inline-block', animation: 'pulse-dot 1.4s ease infinite' }} />
-            : <span style={{ color: '#34d399', fontSize: 13 }}>✓</span>
-          }
-          <span style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.45)' }}>{phase}</span>
-          {/* mini progress bar */}
-          <div style={{ width: 80, height: 3, borderRadius: 3, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
-            <motion.div style={{ height: '100%', background: '#e63030', borderRadius: 3 }} animate={{ scaleX: done ? 1 : Math.max(0.02, progress) }} transition={{ duration: 0.6 }} />
+
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {/* View mode toggle */}
+          <div className="view-toggle">
+            <button className={viewMode === 'grid' ? 'active' : ''} onClick={() => setViewMode('grid')}>Grid</button>
+            <button className={viewMode === 'split' ? 'active' : ''} onClick={() => setViewMode('split')}>Split</button>
+            <button className={viewMode === 'log' ? 'active' : ''} onClick={() => setViewMode('log')}>Log</button>
+            <button className={viewMode === 'graph' ? 'active' : ''} onClick={() => setViewMode('graph')}>Graph</button>
           </div>
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', fontFamily: "'JetBrains Mono',monospace" }}>{doneAgents.length}/{ALL_AGENTS.length}</span>
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn-ghost" onClick={() => setShowLog(v => !v)} style={{ fontSize: 11, padding: '5px 12px' }}>{showLog ? 'Hide Log' : 'Live Log'}</button>
           <button className="btn-ghost" onClick={() => router.push('/')} style={{ fontSize: 11, padding: '5px 12px' }}>← Home</button>
         </div>
       </div>
@@ -233,89 +280,110 @@ export default function RunPage() {
       {/* Body */}
       <div style={{ flex: 1, display: 'flex', paddingTop: 76 }}>
 
-        {/* Agent grid area */}
-        <div style={{ flex: 1, padding: '28px 32px', overflowY: 'auto' }}>
+        {/* Agent grid area — visible in grid & split modes */}
+        {(viewMode === 'grid' || viewMode === 'split') && (
+          <div style={{ flex: 1, padding: '28px 32px', overflowY: 'auto' }}>
 
-          {/* Stats row — floating transparent chips */}
-          <div style={{ display: 'flex', gap: 10, marginBottom: 28, flexWrap: 'wrap' }}>
-            {[
-              { label: 'Run', value: id },
-              { label: 'Phase', value: phase },
-              { label: 'Active', value: `${activeAgents.length} agents` },
-              { label: 'Done', value: `${doneAgents.length} / ${ALL_AGENTS.length}` },
-            ].map(s => (
-              <div key={s.label} style={{
-                padding: '8px 14px', borderRadius: 10,
-                background: 'rgba(255,255,255,0.02)',
-                backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255,255,255,0.06)',
-              }}>
-                <div className="label" style={{ marginBottom: 3 }}>{s.label}</div>
-                <div style={{ fontSize: 12.5, fontFamily: "'JetBrains Mono',monospace", color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.value}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Agent cards */}
-          <div className="label" style={{ marginBottom: 12 }}>Agents</div>
-          <motion.div layout style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 9 }}>
-            {ALL_AGENTS.map(name => (
-              <AgentCard key={name} name={name} isCurrent={activeAgent === name} isDone={doneAgents.includes(name)} />
-            ))}
-          </motion.div>
-
-          {/* Done */}
-          <AnimatePresence>
-            {done && !error && (
-              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-                style={{ marginTop: 28, padding: '20px 24px', borderRadius: 14, background: 'rgba(52,211,153,0.06)', backdropFilter: 'blur(16px)', border: '1px solid rgba(52,211,153,0.18)', display: 'flex', alignItems: 'center', gap: 14 }}>
-                <span style={{ fontSize: 26, color: '#34d399' }}>✦</span>
-                <div>
-                  <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 16, color: '#34d399' }}>Analysis Complete</div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>Loading results…</div>
+            {/* Stats row */}
+            <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
+              {[
+                { label: 'Run', value: id },
+                { label: 'Phase', value: phase },
+                { label: 'Active', value: `${activeAgents.length} agents` },
+                { label: 'Done', value: `${doneAgents.length} / ${ALL_AGENTS.length}` },
+              ].map(s => (
+                <div key={s.label} style={{
+                  padding: '8px 14px', borderRadius: 10,
+                  background: 'rgba(255,255,255,0.02)',
+                  backdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                }}>
+                  <div className="label" style={{ marginBottom: 3 }}>{s.label}</div>
+                  <div style={{ fontSize: 12.5, fontFamily: "'JetBrains Mono',monospace", color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.value}</div>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              ))}
+            </div>
 
-          {/* Error */}
-          <AnimatePresence>
-            {error && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                style={{ marginTop: 24, padding: '18px 22px', borderRadius: 14, background: 'rgba(230,48,48,0.06)', backdropFilter: 'blur(16px)', border: '1px solid rgba(230,48,48,0.22)' }}>
-                <div style={{ fontSize: 13, color: '#f87171', fontWeight: 600, marginBottom: 10 }}>❌ Pipeline Failed</div>
-                <pre style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: 180, overflow: 'auto', fontFamily: "'JetBrains Mono',monospace" }}>{error}</pre>
-                <button className="btn-ghost" onClick={() => router.push('/')} style={{ marginTop: 12, fontSize: 12 }}>← Return Home</button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+            {/* Progress bar */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                <span className="label">Progress</span>
+                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', fontFamily: "'JetBrains Mono',monospace" }}>
+                  {done ? 'COMPLETE' : `${Math.round(progress * 100)}%`}
+                </span>
+              </div>
+              <div style={{ height: 4, borderRadius: 4, background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
+                <motion.div
+                  style={{ height: '100%', borderRadius: 4, background: done ? '#34d399' : 'linear-gradient(90deg, #e63030, #ff5555)' }}
+                  animate={{ width: `${done ? 100 : Math.max(2, progress * 100)}%` }}
+                  transition={{ duration: 0.6 }}
+                />
+              </div>
+            </div>
 
-        {/* Log panel */}
-        <AnimatePresence>
-          {showLog && (
-            <motion.div
-              initial={{ width: 0, opacity: 0 }} animate={{ width: 340, opacity: 1 }} exit={{ width: 0, opacity: 0 }}
-              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-              style={{ borderLeft: '1px solid rgba(255,255,255,0.05)', background: 'rgba(4,1,1,0.7)', backdropFilter: 'blur(16px)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-            >
-              <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.25)', fontFamily: "'JetBrains Mono',monospace", letterSpacing: '0.1em' }}>LIVE LOG</span>
-                <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.15)', fontFamily: "'JetBrains Mono',monospace" }}>{logLines.length} lines</span>
-              </div>
-              <div ref={logRef} style={{ flex: 1, overflow: 'auto', padding: '10px 18px', display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {logLines.map((line, i) => (
-                  <div key={i} style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10.5, color: logColor(line), lineHeight: 1.75, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{line}</div>
-                ))}
-              </div>
+            {/* Agent cards */}
+            <div className="label" style={{ marginBottom: 12 }}>Agents</div>
+            <motion.div layout style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 9 }}>
+              {ALL_AGENTS.map(name => (
+                <AgentCard key={name} name={name} isCurrent={activeAgent === name} isDone={doneAgents.includes(name)} />
+              ))}
             </motion.div>
-          )}
-        </AnimatePresence>
+
+            {/* Done */}
+            <AnimatePresence>
+              {done && !error && (
+                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+                  style={{ marginTop: 28, padding: '20px 24px', borderRadius: 14, background: 'rgba(52,211,153,0.06)', backdropFilter: 'blur(16px)', border: '1px solid rgba(52,211,153,0.18)', display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <span style={{ fontSize: 26, color: '#34d399' }}>✦</span>
+                  <div>
+                    <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 16, color: '#34d399' }}>Analysis Complete</div>
+                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>Loading results…</div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Error */}
+            <AnimatePresence>
+              {error && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  style={{ marginTop: 24, padding: '18px 22px', borderRadius: 14, background: 'rgba(230,48,48,0.06)', backdropFilter: 'blur(16px)', border: '1px solid rgba(230,48,48,0.22)' }}>
+                  <div style={{ fontSize: 13, color: '#f87171', fontWeight: 600, marginBottom: 10 }}>Pipeline Failed</div>
+                  <pre style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: 180, overflow: 'auto', fontFamily: "'JetBrains Mono',monospace" }}>{error}</pre>
+                  <button className="btn-ghost" onClick={() => router.push('/')} style={{ marginTop: 12, fontSize: 12 }}>← Return Home</button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
+
+        {/* Graph panel — full-screen force-directed agent graph */}
+        {viewMode === 'graph' && (
+          <div style={{ flex: 1, height: 'calc(100vh - 76px)', overflow: 'hidden' }}>
+            <AgentGraph activeAgent={activeAgent} doneAgents={doneAgents} done={done} />
+          </div>
+        )}
+
+        {/* Log panel — visible in split & log modes */}
+        {(viewMode === 'split' || viewMode === 'log') && (
+          <motion.div
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: viewMode === 'log' ? '100%' : 400, opacity: 1 }}
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              borderLeft: viewMode === 'split' ? '1px solid rgba(255,255,255,0.05)' : 'none',
+              background: 'rgba(4,1,1,0.7)', backdropFilter: 'blur(16px)',
+              display: 'flex', flexDirection: 'column', overflow: 'hidden',
+            }}
+          >
+            <LogPanel logLines={logLines} logRef={logRef} />
+          </motion.div>
+        )}
       </div>
 
       {/* Agent popup */}
       <AnimatePresence mode="wait">
-        {activeAgent && !done && <AgentPopup key={activeAgent} name={activeAgent} />}
+        {activeAgent && !done && viewMode !== 'log' && viewMode !== 'graph' && <AgentPopup key={activeAgent} name={activeAgent} />}
       </AnimatePresence>
     </div>
   )

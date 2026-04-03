@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 const Background = dynamic(() => import('@/components/Background'), { ssr: false })
 
 export const metadata: Metadata = {
-  title: 'DS Agent Team',
+  title: 'Multi-Agent DS',
   description: 'Autonomous · Adaptive · Intelligent',
 }
 

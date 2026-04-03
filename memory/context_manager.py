@@ -189,6 +189,24 @@ class ContextManager:
 
         return "\n\n".join(e.render() for e in all_entries)
 
+    def get_slim_context_string(self, max_recent: int = 2) -> str:
+        """
+        Lightweight context for critique/planning agents that don't need the full log.
+        Always includes all pinned entries (dataset summary, task goal).
+        Only includes the most recent `max_recent` non-pinned entries.
+        This significantly reduces prompt size and LLM latency for agents like
+        Skeptic, Ethicist, Devil's Advocate, and Pragmatist.
+        """
+        pinned     = [e for e in self.entries if e.pinned]
+        non_pinned = [e for e in self.entries if not e.pinned]
+        recent     = non_pinned[-max_recent:] if non_pinned else []
+
+        all_entries = pinned + recent
+        order = {e.id: i for i, e in enumerate(self.entries)}
+        all_entries.sort(key=lambda e: order[e.id])
+
+        return "\n\n".join(e.render() for e in all_entries)
+
     # ------------------------------------------------------------------ #
     # Persistence                                                          #
     # ------------------------------------------------------------------ #

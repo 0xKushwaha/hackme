@@ -8,6 +8,7 @@ Modes:
 """
 
 import os
+import threading
 import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
@@ -24,6 +25,10 @@ from prompts.orchestrator_prompt import ORCHESTRATOR_PROMPT
 
 MAX_AUTO_STEPS    = 10
 MAX_STEP_RETRIES  = 2
+
+# Agents that only need recent context (pinned entries + last 2 outputs)
+# rather than the full growing log — saves tokens and LLM latency
+SLIM_CONTEXT_AGENTS = {"skeptic", "ethicist", "devil_advocate", "pragmatist"}
 
 
 class Orchestrator:
@@ -45,6 +50,7 @@ class Orchestrator:
         self.run_id           = str(uuid.uuid4())[:12]
         self._last_node_id    = None
         self._data_metrics    = {}
+        self._ctx_lock        = threading.Lock()   # guards context writes during parallel steps
 
         # Wire LLM into compactor
         if self.memory and self.llm:
@@ -88,7 +94,11 @@ class Orchestrator:
             self._maybe_compact()
 
             agent   = self.agents[agent_name]
-            ctx_str = self.context.get_context_string()
+            ctx_str = (
+                self.context.get_slim_context_string()
+                if agent_name in SLIM_CONTEXT_AGENTS
+                else self.context.get_context_string()
+            )
 
             try:
                 response = agent.run(
@@ -120,15 +130,15 @@ class Orchestrator:
                 continue
 
             # ── Success path ──────────────────────────────────────────
-            self.context.add(agent_name, role, response)
-
-            if self.memory and self._last_node_id:
-                self.memory.graph_store.add_edge(
-                    from_node=self._last_node_id,
-                    to_node=node_id,
-                    edge_type=INFORMED_BY,
-                )
-            self._last_node_id = node_id
+            with self._ctx_lock:
+                self.context.add(agent_name, role, response)
+                if self.memory and self._last_node_id:
+                    self.memory.graph_store.add_edge(
+                        from_node=self._last_node_id,
+                        to_node=node_id,
+                        edge_type=INFORMED_BY,
+                    )
+                self._last_node_id = node_id
 
             print(f"\n{'='*60}")
             print(f"  {agent_name.upper()}{' (retry succeeded)' if attempt > 1 else ''}")

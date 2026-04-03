@@ -166,6 +166,10 @@ class AgentMemory:
         """Mark all this agent's memories from run_id as expired."""
         self.vector_store.expire_run(self.agent_name, run_id)
 
+    def has_entries(self) -> bool:
+        """True if this agent has any stored memories (used to skip insight forge on first run)."""
+        return self.vector_store.agent_memory_size(self.agent_name) > 0
+
     def memory_size(self) -> int:
         return self.vector_store.agent_memory_size(self.agent_name)
 

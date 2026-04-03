@@ -11,6 +11,47 @@ const PROVIDERS = [
   { id: 'local',  label: 'Local vLLM', sub: 'Self-hosted', icon: '◎' },
 ]
 
+const WORKFLOW_STEPS = [
+  { num: '01', title: 'Data Discovery',   desc: 'Auto-detect format, profile structure & quality' },
+  { num: '02', title: 'Understanding',    desc: 'Explorer, Skeptic & Statistician analyse patterns' },
+  { num: '03', title: 'Model Design',     desc: 'Feature engineering, architecture & optimization' },
+  { num: '04', title: 'Code Generation',  desc: 'Autonomous code writing with retry & diagnostics' },
+  { num: '05', title: 'Final Report',     desc: 'Synthesised insights and actionable recommendations' },
+]
+
+const AGENTS = [
+  { label: 'Explorer',       icon: '◉', color: '#7c6fcd', role: 'Data Scout' },
+  { label: 'Skeptic',        icon: '⚠', color: '#d46b8a', role: 'Quality Guard' },
+  { label: 'Statistician',   icon: '∑', color: '#4a9fd4', role: 'Numbers Expert' },
+  { label: 'Feature Eng.',   icon: '⟁', color: '#3db87a', role: 'Signal Extractor' },
+  { label: 'Ethicist',       icon: '⚖', color: '#d4874a', role: 'Bias Detector' },
+  { label: 'Pragmatist',     icon: '◈', color: '#c4a832', role: 'Reality Check' },
+  { label: 'Devil Adv.',     icon: '⛧', color: '#e63030', role: 'Critical Thinker' },
+  { label: 'Optimizer',      icon: '⚡', color: '#8a7cd4', role: 'Efficiency Expert' },
+  { label: 'Architect',      icon: '⬡', color: '#a86cd4', role: 'System Designer' },
+  { label: 'Storyteller',    icon: '✦', color: '#d4a8c4', role: 'Insight Narrator' },
+]
+
+// Typewriter hook
+function useTypewriter(text: string, speed = 60, delay = 800) {
+  const [displayed, setDisplayed] = useState('')
+  const [done, setDone] = useState(false)
+  useEffect(() => {
+    setDisplayed(''); setDone(false)
+    const timeout = setTimeout(() => {
+      let i = 0
+      const interval = setInterval(() => {
+        setDisplayed(text.slice(0, i + 1))
+        i++
+        if (i >= text.length) { clearInterval(interval); setDone(true) }
+      }, speed)
+      return () => clearInterval(interval)
+    }, delay)
+    return () => clearTimeout(timeout)
+  }, [text, speed, delay])
+  return { displayed, done }
+}
+
 export default function Home() {
   const router = useRouter()
   const [provider,    setProvider]    = useState('local')
@@ -18,15 +59,19 @@ export default function Home() {
   const [serverUrl,   setServerUrl]   = useState('')
   const [modelName,   setModelName]   = useState('')
   const [hasKey,      setHasKey]      = useState(false)
-  const [datasetPath, setDatasetPath] = useState('')
-  const [datasetName, setDatasetName] = useState('')
+  const [datasetPath,    setDatasetPath]    = useState('')
+  const [datasetName,    setDatasetName]    = useState('')
   const [task,        setTask]        = useState('')
   const [launching,   setLaunching]   = useState(false)
   const [errors,      setErrors]      = useState<string[]>([])
   const [showCreds,   setShowCreds]   = useState(false)
   const [ovKey,       setOvKey]       = useState('')
-  const runIdRef  = useRef('')
-  const canNavRef = useRef(false)
+  const runIdRef     = useRef('')
+  const canNavRef    = useRef(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const dirInputRef  = useRef<HTMLInputElement>(null)
+
+  const tagline = useTypewriter('Autonomous multi-agent data science pipeline', 45, 600)
 
   const tryNavigate = useCallback(() => {
     if (runIdRef.current && canNavRef.current) router.push(`/run/${runIdRef.current}`)
@@ -39,12 +84,29 @@ export default function Home() {
     }).catch(() => {})
   }, [])
 
-  const browse = async (dir: boolean) => {
+
+  const pickPath = async (e: React.ChangeEvent<HTMLInputElement>, isDir: boolean) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    const f = files[0]
+    // Some environments (Electron / Tauri) expose the real path directly
+    const nativePath = (f as File & { path?: string }).path
+    if (nativePath) {
+      const p = isDir ? nativePath.substring(0, nativePath.lastIndexOf('/') || nativePath.lastIndexOf('\\')) : nativePath
+      setDatasetPath(p); setDatasetName(p.split(/[/\\]/).filter(Boolean).pop() ?? p)
+      e.target.value = ''; return
+    }
+    // Browser — no absolute path available. Ask server to resolve by filename.
+    const rel = isDir ? (f.webkitRelativePath || f.name) : f.name
     try {
-      const r = await fetch(`${API}/api/browse?dir=${dir}`)
+      const r = await fetch(`${API}/api/resolve?name=${encodeURIComponent(rel)}&dir=${isDir}`)
       const d = await r.json()
-      if (d.path) { setDatasetPath(d.path); setDatasetName(d.path.split('/').pop() ?? d.path) }
-    } catch { setErrors(['Cannot reach server. Run: python server.py']) }
+      if (d.path) { setDatasetPath(d.path); setDatasetName(d.name ?? rel) }
+      else { setDatasetPath(rel); setDatasetName(rel.split(/[/\\]/).filter(Boolean).pop() ?? rel) }
+    } catch {
+      setDatasetPath(rel); setDatasetName(rel.split(/[/\\]/).filter(Boolean).pop() ?? rel)
+    }
+    e.target.value = ''
   }
 
   const saveCreds = async () => {
@@ -77,93 +139,132 @@ export default function Home() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
 
-      {/* Nav — floating glass strip */}
-      <motion.nav
-        initial={{ opacity: 0, y: -16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        style={{
-          position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)',
-          zIndex: 50, width: 'calc(100% - 64px)', maxWidth: 960,
-          background: 'rgba(8,2,2,0.65)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255,255,255,0.07)',
-          borderRadius: 14,
-          padding: '12px 20px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 26, height: 26, borderRadius: 7, background: 'linear-gradient(135deg,#e63030,#7a0000)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff', fontWeight: 700 }}>◆</div>
-          <span style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 14 }}>DS Agent Team</span>
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn-ghost" onClick={() => setShowCreds(v => !v)} style={{ fontSize: 11.5, padding: '6px 12px' }}>⚙ Credentials</button>
-        </div>
-      </motion.nav>
+      {/* Main content — 3-column layout */}
+      <div style={{ flex: 1, display: 'flex', paddingTop: 90, paddingBottom: 40, gap: 24, maxWidth: 1200, margin: '0 auto', width: '100%', padding: '40px 32px' }}>
 
-      {/* Hero */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '100px 32px 60px', gap: 48 }}>
-
-        {/* Left — floating text (no background) */}
+        {/* LEFT COLUMN — System status + workflow */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-          style={{ flex: 1, maxWidth: 420 }}
+          style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}
         >
-          <div className="tag tag-red" style={{ marginBottom: 22, width: 'fit-content' }}>Multi-Agent Analysis</div>
-          <h1 style={{
-            fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700,
-            fontSize: 'clamp(36px,4.5vw,58px)', lineHeight: 1.05,
-            letterSpacing: '-0.03em', marginBottom: 20,
-          }}>
-            Analyse any<br />
-            <span style={{ color: '#e63030' }}>dataset.</span>
-          </h1>
-          <p style={{ color: 'rgba(255,255,255,0.32)', fontSize: 14.5, lineHeight: 1.75, marginBottom: 36 }}>
-            A team of specialised AI agents explores your data, identifies patterns, and builds a complete analysis plan — autonomously.
-          </p>
-
-          {/* Agent chips — floating, no card */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+          {/* System status panel */}
+          <div style={{ background: 'rgba(8,2,2,0.55)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 18px' }}>
+            <div className="label" style={{ marginBottom: 14 }}>System Status</div>
             {[
-              { label: 'Explorer',       color: '#7c6fcd' },
-              { label: 'Skeptic',        color: '#d46b8a' },
-              { label: 'Statistician',   color: '#4a9fd4' },
-              { label: 'Ethicist',       color: '#d4874a' },
-              { label: 'Feature Eng.',   color: '#3db87a' },
-              { label: 'Pragmatist',     color: '#c4a832' },
-              { label: 'Devil Adv.',     color: '#e63030' },
-              { label: 'Optimizer',      color: '#8a7cd4' },
-            ].map((a, i) => (
-              <motion.span
-                key={a.label}
-                initial={{ opacity: 0, scale: 0.85 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3 + i * 0.04 }}
-                style={{
-                  padding: '4px 11px', borderRadius: 7,
-                  background: `${a.color}0f`,
-                  border: `1px solid ${a.color}28`,
-                  color: `${a.color}cc`,
-                  fontSize: 10.5, fontFamily: "'JetBrains Mono',monospace",
-                  backdropFilter: 'blur(6px)',
-                }}
-              >
-                {a.label}
-              </motion.span>
+              { key: 'Agents',   val: '10 ready', color: '#34d399' },
+              { key: 'Pipeline', val: '3 phases', color: '#4a9fd4' },
+              { key: 'Formats',  val: '15+ supported', color: '#c4a832' },
+              { key: 'Memory',   val: 'ChromaDB + Graph', color: '#a86cd4' },
+            ].map((s, i) => (
+              <motion.div key={s.key}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 + i * 0.08 }}
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontFamily: "'JetBrains Mono',monospace" }}>{s.key}</span>
+                <span style={{ fontSize: 11, color: s.color, fontFamily: "'JetBrains Mono',monospace", fontWeight: 500 }}>{s.val}</span>
+              </motion.div>
             ))}
+          </div>
+
+          {/* Workflow sequence */}
+          <div style={{ background: 'rgba(8,2,2,0.55)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 18px' }}>
+            <div className="label" style={{ marginBottom: 14 }}>Pipeline Workflow</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {WORKFLOW_STEPS.map((step, i) => (
+                <motion.div key={step.num}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 + i * 0.1 }}
+                  className="workflow-step"
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <span className="step-num">{step.num}</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>{step.title}</span>
+                  </div>
+                  <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.2)', lineHeight: 1.5 }}>{step.desc}</div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Agent roster mini */}
+          <div style={{ background: 'rgba(8,2,2,0.55)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 18px' }}>
+            <div className="label" style={{ marginBottom: 12 }}>Agent Roster</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {AGENTS.map((a, i) => (
+                <motion.div key={a.label}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.8 + i * 0.04 }}
+                  title={`${a.label} — ${a.role}`}
+                  style={{
+                    width: 30, height: 30, borderRadius: 8,
+                    background: `${a.color}12`,
+                    border: `1px solid ${a.color}25`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 13, color: a.color,
+                    cursor: 'default',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {a.icon}
+                </motion.div>
+              ))}
+            </div>
           </div>
         </motion.div>
 
-        {/* Right — glass form broken into sections */}
+        {/* CENTER — Hero + tagline */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
+          style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', minWidth: 0 }}
+        >
+          {/* Tagline with typewriter */}
+          <div style={{ marginBottom: 24 }}>
+            <span className="tag tag-red" style={{ fontSize: 10, letterSpacing: '0.1em' }}>
+              {tagline.displayed}<span className="cursor-blink" />
+            </span>
+          </div>
+
+          <h1 style={{
+            fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700,
+            fontSize: 'clamp(40px,5vw,64px)', lineHeight: 1.0,
+            letterSpacing: '-0.04em', marginBottom: 20,
+          }}>
+            <span className="gradient-text">Analyse any</span><br />
+            <span style={{ color: '#e63030' }}>dataset.</span>
+          </h1>
+
+          <p style={{ color: 'rgba(255,255,255,0.28)', fontSize: 14.5, lineHeight: 1.75, maxWidth: 420, marginBottom: 40 }}>
+            A team of 10 specialised AI agents explores your data, identifies patterns, builds models, and generates complete analysis — autonomously, with zero human intervention.
+          </p>
+
+          {/* Scroll indicator */}
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+            style={{ color: 'rgba(255,255,255,0.12)', fontSize: 22, cursor: 'default' }}
+          >
+            ↓
+          </motion.div>
+        </motion.div>
+
+        {/* RIGHT COLUMN — Console-style upload + config */}
         <motion.div
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-          style={{ flex: 1, maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 12 }}
+          style={{ width: 360, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}
         >
+          {/* Credentials toggle */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button className="btn-ghost" onClick={() => setShowCreds(v => !v)} style={{ fontSize: 11, padding: '5px 12px' }}>⚙ Credentials</button>
+          </div>
 
           {/* Credentials drawer */}
           <AnimatePresence>
@@ -178,7 +279,7 @@ export default function Home() {
             )}
           </AnimatePresence>
 
-          {/* Provider — standalone floating section */}
+          {/* Provider */}
           <div style={{ background: 'rgba(8,2,2,0.55)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 18px' }}>
             <div className="label" style={{ marginBottom: 10 }}>Provider</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
@@ -199,7 +300,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Auth — standalone floating section */}
+          {/* Auth */}
           <div style={{ background: 'rgba(8,2,2,0.55)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 18px' }}>
             {provider === 'local' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -218,28 +319,56 @@ export default function Home() {
             )}
           </div>
 
-          {/* Dataset — standalone floating section */}
-          <div style={{ background: 'rgba(8,2,2,0.55)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 18px' }}>
-            <div className="label" style={{ marginBottom: 10 }}>Dataset</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <button className="btn-ghost" onClick={() => browse(false)}>📄 File</button>
-              <button className="btn-ghost" onClick={() => browse(true)}>📁 Folder</button>
+          {/* Dataset */}
+          <div className="console-box" style={{ padding: '18px 18px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.15)', fontFamily: "'JetBrains Mono',monospace" }}>$</span>
+              <div className="label">Dataset</div>
             </div>
+
+            {/* Pick buttons */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+              <button className="btn-ghost" onClick={() => fileInputRef.current?.click()}
+                style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11 }}>⊞ file</button>
+              <button className="btn-ghost" onClick={() => dirInputRef.current?.click()}
+                style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11 }}>⊟ folder</button>
+            </div>
+
+            {/* Hidden browser-native pickers — no upload, just metadata */}
+            <input ref={fileInputRef} type="file"
+              accept=".csv,.tsv,.parquet,.feather,.json,.jsonl,.xlsx,.xls,.h5,.zip,.tar,.gz"
+              style={{ display: 'none' }} onChange={e => pickPath(e, false)} />
+            <input ref={dirInputRef} type="file"
+              // @ts-expect-error non-standard but widely supported
+              webkitdirectory="true" multiple style={{ display: 'none' }}
+              onChange={e => pickPath(e, true)} />
+
+            {/* Manual path override */}
+            <input className="field"
+              placeholder="or paste full path here…"
+              value={datasetPath}
+              onChange={e => { setDatasetPath(e.target.value); setDatasetName(e.target.value.split(/[/\\]/).filter(Boolean).pop() ?? '') }}
+              style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11 }}
+            />
+
             <AnimatePresence>
-              {datasetPath && (
+              {datasetName && (
                 <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                  style={{ marginTop: 10, padding: '7px 12px', borderRadius: 8, background: 'rgba(52,211,153,0.07)', border: '1px solid rgba(52,211,153,0.18)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  style={{ marginTop: 8, padding: '7px 12px', borderRadius: 8, background: 'rgba(52,211,153,0.07)', border: '1px solid rgba(52,211,153,0.18)', display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ color: '#34d399', fontSize: 11 }}>✓</span>
-                  <span style={{ fontSize: 11.5, color: 'rgba(52,211,153,0.8)', fontFamily: "'JetBrains Mono',monospace", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{datasetName}</span>
+                  <span style={{ fontSize: 11, color: 'rgba(52,211,153,0.8)', fontFamily: "'JetBrains Mono',monospace", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{datasetPath}</span>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
-          {/* Goal — standalone floating section */}
+          {/* Goal */}
           <div style={{ background: 'rgba(8,2,2,0.55)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 18px' }}>
-            <div className="label" style={{ marginBottom: 8 }}>Goal <span style={{ textTransform: 'none', fontSize: 10, color: 'rgba(255,255,255,0.15)', letterSpacing: 0 }}>— optional</span></div>
-            <textarea className="field" rows={2} placeholder="e.g. Predict churn. Metric: AUC." value={task} onChange={e => setTask(e.target.value)} style={{ resize: 'none', lineHeight: 1.55 }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.15)', fontFamily: "'JetBrains Mono',monospace" }}>&gt;</span>
+              <div className="label">Task Description <span style={{ textTransform: 'none', fontSize: 10, color: 'rgba(255,255,255,0.15)', letterSpacing: 0 }}>— optional</span></div>
+            </div>
+            <textarea className="field" rows={2} placeholder="e.g. Predict churn. Metric: AUC." value={task} onChange={e => setTask(e.target.value)} style={{ resize: 'none', lineHeight: 1.55, fontFamily: "'JetBrains Mono',monospace", fontSize: 12 }} />
           </div>
 
           {/* Errors */}
@@ -254,21 +383,25 @@ export default function Home() {
 
           {/* Launch */}
           <motion.button className="btn" onClick={launch} disabled={launching} whileTap={{ scale: 0.98 }}
-            style={{ padding: '14px 20px', fontSize: 14, fontWeight: 600, letterSpacing: '0.02em' }}>
+            style={{ padding: '14px 20px', fontSize: 14, fontWeight: 600, letterSpacing: '0.02em', fontFamily: "'Space Grotesk',sans-serif" }}>
             {launching ? (
               <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
                 <span style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.25)', borderTopColor: '#fff', display: 'inline-block' }} className="spin-slow" />
-                Launching…
+                Initialising Pipeline…
               </span>
             ) : 'Launch Analysis →'}
           </motion.button>
         </motion.div>
       </div>
 
-      {/* Floating footer */}
-      <div style={{ padding: '16px 32px', display: 'flex', justifyContent: 'space-between' }}>
+      {/* Footer */}
+      <div style={{ padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span className="mono" style={{ fontSize: 10 }}>DS-AGENT-TEAM v2.0</span>
-        <span className="mono" style={{ fontSize: 10 }}>localhost:8000</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <span className="mono" style={{ fontSize: 10 }}>10 agents</span>
+          <span className="mono" style={{ fontSize: 10 }}>3 phases</span>
+          <span className="mono" style={{ fontSize: 10 }}>localhost:8000</span>
+        </div>
       </div>
     </div>
   )

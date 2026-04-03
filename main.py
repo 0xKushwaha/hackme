@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 
 load_dotenv(override=True)
 
-from backends.llm_backends  import get_llm
+from backends.llm_backends  import get_llm, get_fast_llm, FAST_TIER_AGENTS
 from backends.fallback       import build_fallback_llm
 from agents import (
     ExplorerAgent, SkepticAgent, StatisticianAgent, EthicistAgent,
@@ -49,17 +49,23 @@ AGENT_NAMES = [
 # Agent factory                                                        #
 # ------------------------------------------------------------------ #
 
-def build_agents(llm) -> dict:
+def build_agents(llm, fast_llm=None) -> dict:
+    """
+    Build the agent team with model tiering.
+    fast_llm is used for critique/planning agents (Skeptic, Ethicist, Devil's Advocate, Pragmatist).
+    Falls back to llm if fast_llm is not provided.
+    """
     from prompts.planner_prompts import FEATURE_ENGINEER_PROMPT
+    f = fast_llm or llm   # fast tier falls back to full if not provided
 
     return {
         "explorer":         ExplorerAgent(llm,       config=AGENT_CONFIGS["explorer"]),
-        "skeptic":          SkepticAgent(llm,        config=AGENT_CONFIGS["skeptic"]),
+        "skeptic":          SkepticAgent(f,          config=AGENT_CONFIGS["skeptic"]),
         "statistician":     StatisticianAgent(llm,   config=AGENT_CONFIGS["statistician"]),
         "feature_engineer": BaseAgent("Feature Engineer", FEATURE_ENGINEER_PROMPT, llm, config=AGENT_CONFIGS["feature_engineer"]),
-        "ethicist":         EthicistAgent(llm,       config=AGENT_CONFIGS["ethicist"]),
-        "pragmatist":       PragmatistAgent(llm,     config=AGENT_CONFIGS["pragmatist"]),
-        "devil_advocate":   DevilAdvocateAgent(llm,  config=AGENT_CONFIGS["devil_advocate"]),
+        "ethicist":         EthicistAgent(f,         config=AGENT_CONFIGS["ethicist"]),
+        "pragmatist":       PragmatistAgent(f,       config=AGENT_CONFIGS["pragmatist"]),
+        "devil_advocate":   DevilAdvocateAgent(f,    config=AGENT_CONFIGS["devil_advocate"]),
         "optimizer":        OptimizerAgent(llm,      config=AGENT_CONFIGS["optimizer"]),
         "architect":        ArchitectAgent(llm,      config=AGENT_CONFIGS["architect"]),
         "storyteller":      StorytellerAgent(llm,    config=AGENT_CONFIGS["storyteller"]),
@@ -116,10 +122,15 @@ def main():
             {"provider": args.fallback,  "model": args.fallback_model},
         ])
         print(f"🔧 FallbackLLM: {args.provider} → {args.fallback}")
+        fast_llm = llm   # fallback LLM already handles routing internally
     else:
-        llm = get_llm(args.provider, model=args.model, **llm_kwargs)
+        llm      = get_llm(args.provider, model=args.model, **llm_kwargs)
+        # Fast tier only applies when no explicit model override is given
+        fast_llm = get_fast_llm(args.provider, **llm_kwargs) if not args.model else llm
+        if not args.model:
+            print(f"🔧 Fast tier  : enabled (Skeptic, Ethicist, Devil's Advocate, Pragmatist)")
 
-    agents = build_agents(llm)
+    agents = build_agents(llm, fast_llm=fast_llm)
 
     # Memory system (per-agent ChromaDB + SQLite graph)
     memory_system = None

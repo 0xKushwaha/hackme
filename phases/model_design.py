@@ -11,6 +11,8 @@ Outputs:
   tuning_strategy   — optimizer's hyperparameter + CV strategy
 """
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from memory.context_manager import ROLE_ANALYSIS, ROLE_PLAN
 from .base import BasePhase, PhaseResult
 
@@ -64,32 +66,44 @@ class ModelDesignPhase(BasePhase):
             ROLE_PLAN,
         )
 
-        # Devil's Advocate challenges the plan (optional)
+        # Devil's Advocate + Optimizer both only need Pragmatist's output — run in parallel
+        parallel_steps = []
+
         if "devil_advocate" in orch.agents:
-            print("\n⚡ [ModelDesign] Devil's Advocate stress-testing the plan...")
-            orch.step(
-                "devil_advocate",
+            devil_task = (
                 "Critically challenge the Pragmatist's modeling plan. What assumptions might be wrong? "
                 "What could go catastrophically wrong? Propose one concrete alternative approach that "
-                "takes a meaningfully different direction." + (
-                    f"\n\nRemember the goal is: {task_desc}" if task_desc else ""
-                ),
-                ROLE_PLAN,
+                "takes a meaningfully different direction."
+                + (f"\n\nRemember the goal is: {task_desc}" if task_desc else "")
             )
+            parallel_steps.append(("devil_advocate", devil_task, ROLE_PLAN))
 
-        # Optimizer adds tuning strategy (optional)
         if "optimizer" in orch.agents:
-            print("\n⚡ [ModelDesign] Optimizer adding tuning strategy...")
-            orch.step(
-                "optimizer",
+            optimizer_task = (
                 "For the models in the plan above, recommend a hyperparameter tuning strategy: "
                 "which parameters to tune, ranges to search, cross-validation approach (folds, "
-                "stratification), and early stopping criteria if applicable." + (
-                    f"\n\nOptimise specifically for the metric chosen for: {task_desc}"
-                    if task_desc else ""
-                ),
-                ROLE_PLAN,
+                "stratification), and early stopping criteria if applicable."
+                + (f"\n\nOptimise specifically for the metric chosen for: {task_desc}" if task_desc else "")
             )
+            parallel_steps.append(("optimizer", optimizer_task, ROLE_PLAN))
+
+        if len(parallel_steps) == 2:
+            print("\n⚡ [ModelDesign] Devil's Advocate + Optimizer running in parallel...")
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                futures = {
+                    pool.submit(orch.step, name, task, role): name
+                    for name, task, role in parallel_steps
+                }
+                for fut in as_completed(futures):
+                    name = futures[fut]
+                    try:
+                        fut.result()
+                    except Exception as exc:
+                        print(f"[ModelDesign] ⚠️  {name} parallel run raised: {exc}")
+        elif parallel_steps:
+            name, task, role = parallel_steps[0]
+            print(f"\n⚡ [ModelDesign] {name} running...")
+            orch.step(name, task, role)
 
         return PhaseResult(
             phase_name=self.name,

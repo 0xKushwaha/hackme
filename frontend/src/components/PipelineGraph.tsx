@@ -17,8 +17,7 @@ export const PIPELINE_NODES: Omit<NodeData, 'content'>[] = [
   { key: 'pragmatist',       label: 'Pragmatist',       icon: '◈', color: '#c4a832', role: 'Reality Check',     description: 'Model plan — which models, eval metric, split.' },
   { key: 'devil_advocate',   label: 'Devil Adv.',       icon: '⛧', color: '#e63030', role: 'Critical Thinker',  description: 'Stress-tests the plan, proposes alternatives.' },
   { key: 'optimizer',        label: 'Optimizer',        icon: '⚡', color: '#8a7cd4', role: 'Efficiency Expert', description: 'Hyperparameter tuning, CV strategy, ensembles.' },
-  { key: 'architect',        label: 'Architect',        icon: '⬡', color: '#a86cd4', role: 'System Designer',   description: 'Deployment architecture and serving infra.' },
-  { key: 'storyteller',      label: 'Storyteller',      icon: '✦', color: '#d4a8c4', role: 'Insight Narrator',  description: 'Synthesises findings into the final narrative.' },
+  { key: 'architect',        label: 'Architect',        icon: '⬡', color: '#a86cd4', role: 'System Designer',   description: 'Research-backed architecture with arxiv references.' },
   { key: 'final_report',     label: 'Final Report',     icon: '◎', color: '#f0c040', role: 'Pipeline Output',   description: 'Complete analysis: findings, metrics, recommendations.' },
 ]
 
@@ -38,8 +37,7 @@ const LINKS: D3Link[] = [
   { source: 'pragmatist',       target: 'architect',         label: 'design'  },
   { source: 'devil_advocate',   target: 'architect',         label: 'critique'},
   { source: 'optimizer',        target: 'architect',         label: 'tuning'  },
-  { source: 'architect',        target: 'storyteller',       label: 'system'  },
-  { source: 'storyteller',      target: 'final_report',      label: 'report'  },
+  { source: 'architect',        target: 'final_report',      label: 'architecture' },
 ]
 
 const R = 26
@@ -254,8 +252,8 @@ export default function PipelineGraph({ activeAgent, doneAgents, done, nodes, se
 
       {/* Description card — shown during run when node has no content yet */}
       {selMeta && !hasContent && (
-        <div style={{
-          position: 'absolute', top: 16, right: 16, width: 250,
+        <div onClick={e => e.stopPropagation()} style={{
+          position: 'absolute', top: 16, right: 16, width: 250, zIndex: 20,
           background: 'rgba(4,1,1,0.92)', backdropFilter: 'blur(24px)',
           border: `1px solid ${selMeta.color}40`, borderRadius: 14, overflow: 'hidden',
           boxShadow: `0 16px 48px rgba(0,0,0,0.6), 0 0 32px ${selMeta.color}18`,
@@ -270,7 +268,7 @@ export default function PipelineGraph({ activeAgent, doneAgents, done, nodes, se
                 <div style={{ fontSize: 13, fontWeight: 700, color: selMeta.color, fontFamily: "'Space Grotesk',sans-serif" }}>{selMeta.label}</div>
                 <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.28)', marginTop: 1 }}>{selMeta.role}</div>
               </div>
-              <button onClick={() => setSelected(null)} style={{ width: 22, height: 22, borderRadius: 6, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+              <button onClick={e => { e.stopPropagation(); setSelected(null) }} style={{ width: 22, height: 22, borderRadius: 6, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
             </div>
             <div style={{ height: 1, background: `${selMeta.color}15`, marginBottom: 10 }} />
             <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)', lineHeight: 1.65, margin: 0 }}>{selMeta.description}</p>

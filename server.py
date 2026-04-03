@@ -117,7 +117,6 @@ _AGENT_KEYS = {
     "devil's advocate": "Devil's Adv",
     "optimizer":        "Optimizer",
     "architect":        "Architect",
-    "storyteller":      "Storyteller",
 }
 
 import re as _re
@@ -221,8 +220,7 @@ class _Tee:
 def _run_pipeline(cfg: dict) -> dict:
     from backends.llm_backends    import get_llm, get_fast_llm
     from agents import (ExplorerAgent, SkepticAgent, StatisticianAgent, EthicistAgent,
-                        PragmatistAgent, DevilAdvocateAgent, ArchitectAgent, OptimizerAgent,
-                        StorytellerAgent)
+                        PragmatistAgent, DevilAdvocateAgent, ArchitectAgent, OptimizerAgent)
     from agents.agent_config        import AGENT_CONFIGS
     from agents.base                import BaseAgent
     from memory.agent_memory        import MemorySystem
@@ -263,7 +261,6 @@ def _run_pipeline(cfg: dict) -> dict:
         "devil_advocate":   DevilAdvocateAgent(f,    config=AGENT_CONFIGS["devil_advocate"]),
         "optimizer":        OptimizerAgent(llm,      config=AGENT_CONFIGS["optimizer"]),
         "architect":        ArchitectAgent(llm,      config=AGENT_CONFIGS["architect"]),
-        "storyteller":      StorytellerAgent(llm,    config=AGENT_CONFIGS["storyteller"]),
     }
 
     mem = (MemorySystem(agent_names=list(agents.keys()),
@@ -295,7 +292,34 @@ def _run_pipeline(cfg: dict) -> dict:
          "metadata": e.metadata if isinstance(e.metadata, dict) else {}}
         for e in orch.context.entries
     ]
-    return {"run_id": orch.run_id, "log_path": lp, "exp_dir": exp_dir, "entries": entries}
+    return {
+        "run_id": orch.run_id,
+        "log_path": lp,
+        "exp_dir": exp_dir,
+        "entries": entries,
+        "agent_results": orch.agent_results,
+    }
+
+
+RESULTS_DIR = Path("experiments") / "results"
+
+def _persist_result(run_id: str, result: dict):
+    """Save completed run result to disk so it survives server restarts."""
+    try:
+        RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+        (RESULTS_DIR / f"{run_id}.json").write_text(json.dumps(result, default=str))
+    except Exception:
+        pass
+
+def _load_result(run_id: str) -> Optional[dict]:
+    """Load a persisted run result from disk."""
+    try:
+        p = RESULTS_DIR / f"{run_id}.json"
+        if p.exists():
+            return json.loads(p.read_text())
+    except Exception:
+        pass
+    return None
 
 
 def _thread_runner(run_id: str, cfg: dict):
@@ -304,6 +328,7 @@ def _thread_runner(run_id: str, cfg: dict):
     sys.stdout = _Tee(state, old)
     try:
         state.result = _run_pipeline(cfg)
+        _persist_result(run_id, state.result)
     except Exception:
         state.error = traceback.format_exc()
         state.add_text(f"\n❌ ERROR:\n{state.error}")
@@ -430,13 +455,17 @@ def poll(run_id: str, cursor: int = 0):
 @app.get("/api/result/{run_id}")
 def get_result(run_id: str):
     state = runs.get(run_id)
-    if not state:
-        return {"error": "Unknown run ID"}
-    if not state.done:
-        return {"error": "Still running"}
-    if state.error:
-        return {"error": state.error}
-    return state.result
+    if state:
+        if not state.done:
+            return {"error": "Still running"}
+        if state.error:
+            return {"error": state.error}
+        return state.result
+    # Not in memory — try disk (server may have restarted)
+    saved = _load_result(run_id)
+    if saved:
+        return saved
+    return {"error": "Unknown run ID"}
 
 
 # ─────────────────────────────────────────────────────────────────────

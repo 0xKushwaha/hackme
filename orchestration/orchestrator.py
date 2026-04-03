@@ -52,6 +52,10 @@ class Orchestrator:
         self._data_metrics    = {}
         self._ctx_lock        = threading.Lock()   # guards context writes during parallel steps
 
+        # Stores full agent outputs — never touched by compactor.
+        # Keyed by agent_name; value is the LAST successful output string.
+        self.agent_results: dict[str, str] = {}
+
         # Wire LLM into compactor
         if self.memory and self.llm:
             self.memory.set_llm(self.llm)
@@ -134,6 +138,7 @@ class Orchestrator:
             # ── Success path ──────────────────────────────────────────
             with self._ctx_lock:
                 self.context.add(agent_name, role, response)
+                self.agent_results[agent_name] = response
                 if self.memory and self._last_node_id:
                     self.memory.graph_store.add_edge(
                         from_node=self._last_node_id,
@@ -206,9 +211,6 @@ class Orchestrator:
 
         print("\n🏗️  Round 6: Architect designing deployment...")
         self.step("architect", "Design the deployment architecture: serving infra, latency, monitoring.", ROLE_PLAN)
-
-        print("\n📖 Round 7: Storyteller writing the narrative...")
-        self.step("storyteller", "Synthesize everything into a compelling narrative for judges.", ROLE_NARRATIVE)
 
     # ------------------------------------------------------------------ #
     # Auto pipeline                                                        #
@@ -307,6 +309,35 @@ class Orchestrator:
             if not r.success:
                 print(f"\n⚠️  ModelDesign failed: {r.error}. Continuing anyway.")
 
+        # --- Phase 3: Architecture ---
+        if "architect" in self.agents:
+            print("\n⚡ [Architecture] Architect researching and designing...")
+            research_ctx = self._research_search(dataset_profile, dataset_path)
+            architect_task = (
+                "Based on the full analysis above, design the complete deployment architecture.\n"
+                "Consider the full spectrum of model architectures — classical ML, tree-based models,\n"
+                "AND deep learning (Transformers, CNNs, LSTMs, etc.) — choose what fits best.\n"
+                "Include: model architecture recommendation, serving pattern, stack, latency estimates,\n"
+                "training-serving skew risks, monitoring strategy, and memory footprint.\n"
+            )
+            if research_ctx:
+                architect_task += (
+                    f"\n\nRELEVANT RESEARCH & RESOURCES (you MUST cite these in your response):\n"
+                    f"{research_ctx}\n\n"
+                    "IMPORTANT: You MUST include a References section at the end citing specific\n"
+                    "papers and articles using [Author(s), Year] format. Every architectural decision\n"
+                    "must be justified with at least one citation from the above resources."
+                )
+            try:
+                self.step("architect", architect_task, ROLE_PLAN)
+            except Exception as exc:
+                print(f"\n⚠️  Architect failed: {exc}. Continuing anyway.")
+
+        # --- Synthesize Final Report ---
+        print("\n📋 [Final Report] Synthesising pipeline output...")
+        self.agent_results["final_report"] = self._synthesize_final_report()
+        print("\n✅ [AGENT_DONE:final_report]")
+
         # --- Persist context ---
         log_path = os.path.join(experiment_dir, f"context_{self.run_id}.json")
         self.context.save(log_path)
@@ -353,6 +384,131 @@ class Orchestrator:
     def converge(self, agent_a: str, agent_b: str, question: str, max_turns: int = 4) -> str:
         from orchestration.conversation_manager import ConversationManager
         return ConversationManager(self).converge(agent_a, agent_b, question, max_turns)
+
+    # ------------------------------------------------------------------ #
+    # Research search for Architect (arxiv + Wikipedia)                   #
+    # ------------------------------------------------------------------ #
+
+    def _research_search(self, dataset_profile=None, dataset_path: str = "") -> str:
+        """Search arxiv and Wikipedia for papers/articles relevant to the dataset and task."""
+        results: list[str] = []
+
+        # Determine query keywords from dataset modality
+        types = getattr(dataset_profile, "types_present", []) if dataset_profile else []
+        if "image" in types:
+            primary_query = "image classification deep learning CNN transformer"
+            wiki_topics   = ["Convolutional neural network", "Vision transformer", "Image classification"]
+        elif "audio" in types:
+            primary_query = "audio classification deep learning spectrogram"
+            wiki_topics   = ["Audio signal processing", "Mel-frequency cepstrum", "Speech recognition"]
+        elif "text" in types:
+            primary_query = "NLP text classification transformer BERT"
+            wiki_topics   = ["Transformer (machine learning model)", "BERT (language model)", "Text classification"]
+        else:
+            primary_query = "tabular data machine learning gradient boosting XGBoost LightGBM"
+            wiki_topics   = ["Gradient boosting", "XGBoost", "Feature engineering"]
+
+        task_suffix = self.task_description[:60] if self.task_description else ""
+        arxiv_query = f"{primary_query} {task_suffix}".strip()
+
+        # ── arxiv ──────────────────────────────────────────────────────
+        import urllib.request
+        import urllib.parse
+        import xml.etree.ElementTree as ET
+        import json as _json
+
+        try:
+            encoded = urllib.parse.quote(arxiv_query)
+            url = (
+                f"http://export.arxiv.org/api/query?search_query=all:{encoded}"
+                f"&start=0&max_results=5&sortBy=relevance"
+            )
+            req = urllib.request.Request(url, headers={"User-Agent": "DSAgentTeam/1.0"})
+            with urllib.request.urlopen(req, timeout=12) as resp:
+                xml_data = resp.read().decode("utf-8")
+
+            root = ET.fromstring(xml_data)
+            ns = {"atom": "http://www.w3.org/2005/Atom"}
+            papers = []
+            for entry in root.findall("atom:entry", ns):
+                title   = entry.find("atom:title", ns).text.strip().replace("\n", " ")
+                summary = entry.find("atom:summary", ns).text.strip()[:250]
+                authors = [a.find("atom:name", ns).text for a in entry.findall("atom:author", ns)][:3]
+                link    = entry.find("atom:id", ns).text.strip()
+                year    = entry.find("atom:published", ns).text[:4]
+                papers.append(
+                    f"[ARXIV] [{', '.join(authors)}, {year}] \"{title}\"\n"
+                    f"  URL: {link}\n"
+                    f"  Abstract: {summary}..."
+                )
+            if papers:
+                print(f"[Architect] arxiv: found {len(papers)} papers")
+                results.append("### arxiv Research Papers\n\n" + "\n\n".join(papers))
+        except Exception as exc:
+            print(f"[Architect] arxiv search failed: {exc}")
+
+        # ── Wikipedia ──────────────────────────────────────────────────
+        wiki_articles = []
+        for topic in wiki_topics:
+            try:
+                safe = urllib.parse.quote(topic.replace(" ", "_"))
+                url  = f"https://en.wikipedia.org/api/rest_v1/page/summary/{safe}"
+                req  = urllib.request.Request(url, headers={"User-Agent": "DSAgentTeam/1.0"})
+                with urllib.request.urlopen(req, timeout=8) as resp:
+                    data = _json.loads(resp.read().decode("utf-8"))
+                title   = data.get("title", topic)
+                extract = data.get("extract", "")[:300]
+                page_url = data.get("content_urls", {}).get("desktop", {}).get("page", "")
+                if extract:
+                    wiki_articles.append(
+                        f"[WIKIPEDIA] \"{title}\"\n"
+                        f"  URL: {page_url}\n"
+                        f"  Summary: {extract}..."
+                    )
+            except Exception as exc:
+                print(f"[Architect] Wikipedia '{topic}' failed: {exc}")
+
+        if wiki_articles:
+            print(f"[Architect] Wikipedia: found {len(wiki_articles)} articles")
+            results.append("### Wikipedia Articles\n\n" + "\n\n".join(wiki_articles))
+
+        return "\n\n".join(results)
+
+    # ------------------------------------------------------------------ #
+    # Final report synthesis                                               #
+    # ------------------------------------------------------------------ #
+
+    def _synthesize_final_report(self) -> str:
+        """Compile a structured final report from all agent results (no LLM call)."""
+        AGENT_SECTIONS = [
+            ("explorer",         "## Data Overview"),
+            ("skeptic",          "## Data Quality"),
+            ("statistician",     "## Statistical Analysis"),
+            ("ethicist",         "## Ethical Review"),
+            ("feature_engineer", "## Feature Engineering"),
+            ("pragmatist",       "## Modeling Plan"),
+            ("devil_advocate",   "## Critical Review"),
+            ("optimizer",        "## Optimization Strategy"),
+            ("architect",        "## System Architecture"),
+        ]
+
+        ran = [k for k, _ in AGENT_SECTIONS if k in self.agent_results]
+        header_lines = [
+            f"# Pipeline Analysis Report",
+            f"",
+            f"**Run ID:** `{self.run_id}`  ",
+            f"**Agents completed:** {len(ran)} of {len(AGENT_SECTIONS)}  ",
+        ]
+        if self.task_description:
+            header_lines.append(f"**Goal:** {self.task_description}  ")
+        header_lines.append("\n---\n")
+
+        sections = ["\n".join(header_lines)]
+        for key, heading in AGENT_SECTIONS:
+            if key in self.agent_results:
+                sections.append(f"{heading}\n\n{self.agent_results[key].strip()}")
+
+        return "\n\n---\n\n".join(sections)
 
     # ------------------------------------------------------------------ #
     # Utilities                                                            #

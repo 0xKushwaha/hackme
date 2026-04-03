@@ -146,28 +146,6 @@ export const MOCK_STEPS: MockStep[] = [
       '✅ [AGENT_DONE:architect]',
     ],
   },
-  {
-    agent: 'storyteller',
-    durationMs: 2400,
-    lines: [
-      '⚡ [AGENT:storyteller]',
-      '[Storyteller] Synthesising final narrative...',
-      '[Storyteller] ═══════════════════════════════════════════════════════',
-      '[Storyteller] EXECUTIVE SUMMARY',
-      '[Storyteller] ═══════════════════════════════════════════════════════',
-      '[Storyteller] This telecom dataset reveals a clear churn risk pattern.',
-      '[Storyteller] Customers on month-to-month contracts with high charges',
-      '[Storyteller] and low tenure are 3.6× more likely to churn.',
-      '[Storyteller] Our XGBoost model achieves 0.874 ROC-AUC, identifying',
-      '[Storyteller] 78% of churners before they leave.',
-      '[Storyteller] TOP 3 ACTIONABLE RECOMMENDATIONS:',
-      '[Storyteller] 1. Offer contract upgrades at the 6-month mark.',
-      '[Storyteller] 2. Target fiber optic customers paying >$80/mo.',
-      '[Storyteller] 3. Flag tenure<12 + no add-ons for proactive outreach.',
-      '[Storyteller] Estimated retention uplift: 12–18% of at-risk segment.',
-      '✅ [AGENT_DONE:storyteller]',
-    ],
-  },
 ]
 
 export interface MockEntry {
@@ -426,35 +404,6 @@ The multi-agent pipeline successfully analysed the telecom churn dataset and pro
 
 ### Expected Business Impact
 Retaining 200 additional at-risk customers per quarter = **$240K annual revenue protection** at $1,200 average LTV.`,
-  },
-  {
-    agent: 'storyteller', role: 'narrative', metadata: {},
-    content: `## Executive Summary
-
-### The Story
-This telecom dataset tells a clear story: **customers leave when they feel trapped on expensive plans without seeing the value.**
-
-Month-to-month contract holders churn at **3.6×** the rate of two-year customers. Fiber optic subscribers — paying ~$82/month — churn at **41.9%**, the highest of any segment. Yet customers who've stayed beyond 3 years almost never leave.
-
-### What the Model Found
-Our optimised XGBoost model achieves **0.874 ROC-AUC** on held-out data, correctly identifying **78% of churners** before they cancel — giving the retention team a 30-day window to act.
-
-**Top 5 churn drivers (by feature importance):**
-1. \`contract_risk\` — month-to-month contract
-2. \`tenure\` — early-stage customer (< 12 months)
-3. \`charge_per_tenure\` — high cost relative to relationship length
-4. \`has_no_support\` — internet service without tech support
-5. \`MonthlyCharges\` — absolute monthly spend > $70
-
-### Three Actions to Take Tomorrow
-| Action | Target Segment | Expected Uplift |
-|---|---|---|
-| Offer contract upgrade incentive | Month-to-month, tenure 6–18mo | −18% churn in segment |
-| Bundle TechSupport at no cost for 3mo | Fiber optic, no support | −12% churn in segment |
-| Proactive outreach call | tenure < 6mo, charges > $65 | −9% churn in segment |
-
-**Estimated overall retention uplift: 12–18% of at-risk segment.**
-At an average customer lifetime value of $1,200, retaining 200 additional customers = **$240K annual revenue protection.**`,
   },
 ]
 

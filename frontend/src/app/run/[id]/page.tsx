@@ -14,8 +14,18 @@ function agentKey(raw: string): string {
   return raw?.toLowerCase().replace(/[\s']+/g, '_').replace(/[^a-z_]/g, '') ?? 'unknown'
 }
 
-function buildNodes(entries: { agent: string; role: string; content: string }[]): NodeData[] {
+function buildNodes(
+  entries: { agent: string; role: string; content: string }[],
+  agentResults?: Record<string, string>,
+): NodeData[] {
   const contentMap = new Map<string, string>()
+  // Primary source: agent_results (immune to compaction)
+  if (agentResults) {
+    for (const [key, val] of Object.entries(agentResults)) {
+      if (val) contentMap.set(agentKey(key), val)
+    }
+  }
+  // Fallback: entries (for backwards compat / mock mode)
   entries.forEach(e => {
     const k = agentKey(e.agent)
     if (!contentMap.has(k) && e.content && e.role !== 'task') contentMap.set(k, e.content)
@@ -56,6 +66,23 @@ export default function RunPage() {
   }, [nodes, id])
 
   const isTest = id.startsWith('test-')
+
+  // ── Restore from localStorage on mount ─────────────────────────────────────
+  useEffect(() => {
+    if (isTest) return
+    try {
+      const cached = localStorage.getItem(`run_result_${id}`)
+      if (cached) {
+        const data = JSON.parse(cached)
+        if (data.agent_results || data.entries) {
+          setNodes(buildNodes(data.entries ?? [], data.agent_results))
+          setDoneAgents(Object.keys(data.agent_results ?? {}))
+          doneRef.current = true
+          setDone(true)
+        }
+      }
+    } catch {}
+  }, [id, isTest])
 
   // ── Mock simulator ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -103,7 +130,11 @@ export default function RunPage() {
           try {
             const res  = await fetch(`${API}/api/result/${id}`)
             const data = await res.json()
-            if (data.entries) setNodes(buildNodes(data.entries))
+            if (data.entries || data.agent_results) {
+              setNodes(buildNodes(data.entries ?? [], data.agent_results))
+              // Cache to localStorage so page refresh restores state
+              try { localStorage.setItem(`run_result_${id}`, JSON.stringify(data)) } catch {}
+            }
           } catch {}
         }
       }
@@ -159,7 +190,7 @@ export default function RunPage() {
                   <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.28)', marginTop: 2 }}>{selNode.role}</div>
                 </div>
                 <button
-                  onClick={() => setSelectedNode(null)}
+                  onClick={(e) => { e.stopPropagation(); setSelectedNode(null) }}
                   style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >✕</button>
               </div>
@@ -247,78 +278,142 @@ export default function RunPage() {
 }
 
 // ── Summary view ───────────────────────────────────────────────────────────────
-function extractBullets(content: string, max = 4): string[] {
-  const lines = content.split('\n')
-  const bullets: string[] = []
-  for (const line of lines) {
-    const m = line.match(/^[-*•]\s+(.+)/) ?? line.match(/^\d+\.\s+(.+)/)
-    if (m) { bullets.push(m[1].trim()); if (bullets.length >= max) break }
-  }
-  if (bullets.length === 0) {
-    const plain = content.replace(/#+\s[^\n]*/g, '').trim()
-    const sentence = plain.split(/\.\s+/)[0]
-    if (sentence) bullets.push(sentence.trim())
-  }
-  return bullets
-}
 
-function SummaryCard({ node, bullets }: { node: NodeData; bullets: string[] }) {
+function SummaryCard({ node, expanded, onToggle, cardRef }: {
+  node: NodeData; expanded: boolean; onToggle: () => void
+  cardRef?: (el: HTMLDivElement | null) => void
+}) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+    <div
+      ref={cardRef}
+      onClick={onToggle}
       style={{
-        padding: '18px 20px', borderRadius: 16,
-        background: 'rgba(8,2,2,0.55)', backdropFilter: 'blur(18px)',
-        border: `1px solid ${node.color}18`, position: 'relative', overflow: 'hidden',
+        borderRadius: 16, cursor: 'pointer',
+        background: expanded ? 'rgba(12,4,4,0.88)' : 'rgba(8,2,2,0.55)',
+        backdropFilter: 'blur(18px)',
+        border: `1px solid ${expanded ? node.color + '50' : node.color + '20'}`,
+        position: 'relative', overflow: 'hidden',
+        display: 'flex', flexDirection: 'column',
+        boxShadow: expanded ? `0 0 0 1px ${node.color}20, 0 16px 48px rgba(0,0,0,0.5)` : 'none',
+        transition: 'border-color 0.35s ease, background 0.35s ease, box-shadow 0.35s ease',
+        gridColumn: expanded ? '1 / -1' : 'auto',
       }}
     >
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${node.color}, transparent)` }} />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <div style={{ width: 34, height: 34, borderRadius: 10, background: `${node.color}14`, border: `1px solid ${node.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, color: node.color, flexShrink: 0 }}>{node.icon}</div>
-        <div>
+      <div style={{ height: 2, background: `linear-gradient(90deg, ${node.color}, transparent)`, flexShrink: 0 }} />
+
+      {/* Header */}
+      <div style={{ padding: '14px 18px 12px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: `1px solid ${node.color}15`, flexShrink: 0 }}>
+        <div style={{ width: 32, height: 32, borderRadius: 9, background: `${node.color}14`, border: `1px solid ${node.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: node.color, flexShrink: 0 }}>{node.icon}</div>
+        <div style={{ flex: 1 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: node.color }}>{node.label}</div>
-          <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.25)' }}>{node.role}</div>
+          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)' }}>{node.role}</div>
+        </div>
+        <div style={{ fontSize: 10, color: `${node.color}99`, fontFamily: "'JetBrains Mono',monospace", letterSpacing: '0.04em', flexShrink: 0, transition: 'color 0.2s' }}>
+          {expanded ? '▲ collapse' : '▼ expand'}
         </div>
       </div>
-      <ul style={{ margin: 0, paddingLeft: 16 }}>
-        {bullets.map((b, i) => (
-          <li key={i} style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.65, marginBottom: 4, fontFamily: "'Inter',sans-serif" }}>{b}</li>
-        ))}
-      </ul>
-    </motion.div>
+
+      {/* Content with smooth max-height transition */}
+      <div style={{
+        position: 'relative', overflow: 'hidden',
+        maxHeight: expanded ? '9999px' : '280px',
+        transition: expanded ? 'max-height 0.55s ease' : 'max-height 0.35s ease',
+      }}>
+        <div className="report" style={{ padding: '14px 20px 18px', fontSize: '0.82rem' }}>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{node.content}</ReactMarkdown>
+        </div>
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0, height: 64,
+          background: 'linear-gradient(to bottom, transparent, rgba(8,2,2,0.97))',
+          pointerEvents: 'none',
+          opacity: expanded ? 0 : 1,
+          transition: 'opacity 0.3s ease',
+        }} />
+      </div>
+    </div>
   )
 }
 
-const SUMMARY_ORDER = ['storyteller', 'statistician', 'skeptic', 'ethicist', 'optimizer', 'architect', 'devil_advocate', 'feature_engineer', 'explorer', 'pragmatist']
+const SUMMARY_ORDER = ['final_report', 'statistician', 'skeptic', 'ethicist', 'optimizer', 'architect', 'devil_advocate', 'feature_engineer', 'explorer', 'pragmatist']
 
 function SummaryView({ nodes }: { nodes: NodeData[] }) {
-  const nodeMap = Object.fromEntries(nodes.map(n => [n.key, n]))
-  const hero     = nodeMap['storyteller'] ?? nodes.find(n => n.content)
-  const heroLines = hero ? extractBullets(hero.content, 5) : []
-  const rest     = SUMMARY_ORDER.filter(k => k !== 'storyteller' && nodeMap[k]?.content)
+  const [expanded, setExpanded] = useState<string | null>(null)
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const nodeMap  = Object.fromEntries(nodes.map(n => [n.key, n]))
+  const hero     = nodeMap['final_report'] ?? nodes.find(n => n.content)
+  const rest     = SUMMARY_ORDER.filter(k => k !== 'final_report' && nodeMap[k]?.content)
+
+  const toggle = (key: string) => {
+    const opening = expanded !== key
+    setExpanded(opening ? key : null)
+    if (opening) {
+      // After the grid reflows, scroll the card top into view
+      setTimeout(() => {
+        cardRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 60)
+    }
+  }
+
+  const heroExpanded = expanded === (hero?.key ?? '')
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ padding: '12px 32px 60px' }}>
-      {hero && hero.content && (
-        <div style={{ marginBottom: 24, padding: '24px 28px', borderRadius: 18, background: `${hero.color}08`, border: `1px solid ${hero.color}25`, position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${hero.color}, ${hero.color}33)` }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
-            <div style={{ width: 48, height: 48, borderRadius: 14, background: `${hero.color}18`, border: `1px solid ${hero.color}35`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, color: hero.color }}>{hero.icon}</div>
-            <div>
+
+      {/* Hero — Final Report */}
+      {hero?.content && (
+        <div
+          ref={el => { cardRefs.current[hero.key] = el }}
+          onClick={() => toggle(hero.key)}
+          style={{
+            marginBottom: 20, borderRadius: 18, cursor: 'pointer',
+            background: heroExpanded ? 'rgba(12,4,4,0.88)' : `${hero.color}07`,
+            border: `1px solid ${heroExpanded ? hero.color + '45' : hero.color + '22'}`,
+            position: 'relative', overflow: 'hidden',
+            boxShadow: heroExpanded ? `0 0 0 1px ${hero.color}20, 0 16px 48px rgba(0,0,0,0.5)` : 'none',
+            transition: 'border-color 0.35s ease, background 0.35s ease, box-shadow 0.35s ease',
+          }}
+        >
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${hero.color}, ${hero.color}22)` }} />
+          <div style={{ padding: '20px 28px 14px', display: 'flex', alignItems: 'center', gap: 14, borderBottom: `1px solid ${hero.color}18` }}>
+            <div style={{ width: 48, height: 48, borderRadius: 14, background: `${hero.color}18`, border: `1px solid ${hero.color}35`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, color: hero.color, flexShrink: 0 }}>{hero.icon}</div>
+            <div style={{ flex: 1 }}>
               <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 17, color: hero.color }}>{hero.label}</div>
-              <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>Key Takeaways</div>
+              <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>Full Report</div>
+            </div>
+            <div style={{ fontSize: 11, color: `${hero.color}99`, fontFamily: "'JetBrains Mono',monospace", transition: 'color 0.2s' }}>
+              {heroExpanded ? '▲ collapse' : '▼ expand'}
             </div>
           </div>
-          <ul style={{ margin: 0, paddingLeft: 18 }}>
-            {heroLines.map((b, i) => <li key={i} style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.7)', lineHeight: 1.7, marginBottom: 6 }}>{b}</li>)}
-          </ul>
+          <div style={{
+            position: 'relative', overflow: 'hidden',
+            maxHeight: heroExpanded ? '9999px' : '340px',
+            transition: heroExpanded ? 'max-height 0.55s ease' : 'max-height 0.35s ease',
+          }}>
+            <div className="report" style={{ padding: '20px 28px 24px' }}>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{hero.content}</ReactMarkdown>
+            </div>
+            <div style={{
+              position: 'absolute', bottom: 0, left: 0, right: 0, height: 80,
+              background: 'linear-gradient(to bottom, transparent, rgba(4,1,1,0.97))',
+              pointerEvents: 'none',
+              opacity: heroExpanded ? 0 : 1,
+              transition: 'opacity 0.3s ease',
+            }} />
+          </div>
         </div>
       )}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
+
+      {/* Agent cards grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
         {rest.map((k, i) => (
-          <motion.div key={k} transition={{ delay: i * 0.04 }}>
-            <SummaryCard node={nodeMap[k]!} bullets={extractBullets(nodeMap[k]!.content, 4)} />
-          </motion.div>
+          <div key={k} style={{ gridColumn: expanded === k ? '1 / -1' : 'auto', transition: 'grid-column 0.1s' }}>
+            <SummaryCard
+              node={nodeMap[k]!}
+              expanded={expanded === k}
+              onToggle={() => toggle(k)}
+              cardRef={el => { cardRefs.current[k] = el }}
+            />
+          </div>
         ))}
       </div>
     </motion.div>

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import AgentGraph from '@/components/AgentGraph'
+import { MOCK_STEPS, MOCK_INIT_LINES } from '@/lib/mockPipeline'
 
 const API = 'http://localhost:8000'
 
@@ -212,6 +213,48 @@ export default function RunPage() {
 
   const currentPhaseIdx = phaseIndex(phase)
 
+  const isTest = id.startsWith('test-')
+
+  // ── Mock simulator (test mode — no API calls) ──────────────────────
+  useEffect(() => {
+    if (!isTest) return
+    let cancelled = false
+    const addLines = (lines: string[]) => {
+      linesRef.current = [...linesRef.current, ...lines.filter(l => l.trim())].slice(-600)
+      setLogLines([...linesRef.current])
+    }
+    const delay = (ms: number) => new Promise<void>(r => setTimeout(r, ms))
+
+    const run = async () => {
+      addLines(MOCK_INIT_LINES)
+      await delay(800)
+
+      const doneSoFar: string[] = []
+      for (const step of MOCK_STEPS) {
+        if (cancelled) return
+        setActiveAgent(step.agent)
+        setActiveAgents(prev => prev.includes(step.agent) ? prev : [...prev, step.agent])
+        addLines(step.lines)
+        await delay(step.durationMs)
+        if (cancelled) return
+        doneSoFar.push(step.agent)
+        setDoneAgents([...doneSoFar])
+        setActiveAgent('')
+      }
+
+      if (cancelled) return
+      addLines(['', '✅ Pipeline complete. Generating results…'])
+      setPhase('Complete')
+      doneRef.current = true
+      setDone(true)
+      setTimeout(() => { if (!cancelled) router.push(`/results/${id}`) }, 2500)
+    }
+
+    run()
+    return () => { cancelled = true }
+  }, [isTest, id, router])
+
+  // ── Real poll (non-test mode) ───────────────────────────────────────
   const poll = useCallback(async () => {
     if (doneRef.current) return
     try {
@@ -219,19 +262,23 @@ export default function RunPage() {
       const d = await r.json()
       if (d.lines?.length) { linesRef.current = [...linesRef.current, ...d.lines].slice(-600); setLogLines([...linesRef.current]) }
       cursorRef.current = d.cursor ?? cursorRef.current
-      if (d.phase) setPhase(parsePhaseLabel(d.phase))
-      if (d.agent) setActiveAgent(d.agent.toLowerCase().replace(/['\s]+/g,'_').replace(/[^a-z_]/g,''))
-      if (d.everActive?.length) setActiveAgents((d.everActive as string[]).map((a:string) => a.toLowerCase().replace(/['\s]+/g,'_').replace(/[^a-z_]/g,'')))
+      if (d.agent) setActiveAgent(d.agent)
+      if (d.everActive?.length) setActiveAgents(d.everActive as string[])
+      if (d.doneAgents?.length) setDoneAgents(d.doneAgents as string[])
       if (d.done) {
         doneRef.current = true; setDone(true)
         if (d.error) setError(d.error)
-        else { setPhase('Complete'); setDoneAgents(prev => [...new Set([...prev, ...activeAgents])]); setTimeout(() => router.push(`/results/${id}`), 2500) }
+        else { setPhase('Complete'); setTimeout(() => router.push(`/results/${id}`), 2500) }
       }
     } catch {}
     if (!doneRef.current) timerRef.current = setTimeout(poll, 1500)
   }, [id, router, activeAgents])
 
-  useEffect(() => { poll(); return () => { if (timerRef.current) clearTimeout(timerRef.current) } }, [poll])
+  useEffect(() => {
+    if (isTest) return   // mock handles its own loop
+    poll()
+    return () => { if (timerRef.current) clearTimeout(timerRef.current) }
+  }, [poll, isTest])
   useEffect(() => { if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight }, [logLines])
 
   const progress = doneAgents.length / ALL_AGENTS.length
@@ -248,23 +295,6 @@ export default function RunPage() {
         padding: '11px 20px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        {/* Step workflow indicator */}
-        <div className="step-track">
-          {PHASES.map((p, i) => (
-            <div key={p.id} style={{ display: 'flex', alignItems: 'center' }}>
-              <div
-                className={`step-node ${currentPhaseIdx > i ? 'done' : currentPhaseIdx === i ? 'active' : ''}`}
-                title={p.label}
-              >
-                {currentPhaseIdx > i ? '✓' : p.short}
-              </div>
-              {i < PHASES.length - 1 && (
-                <div className={`step-connector ${currentPhaseIdx > i ? 'done' : currentPhaseIdx === i ? 'active' : ''}`} />
-              )}
-            </div>
-          ))}
-        </div>
-
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {/* View mode toggle */}
           <div className="view-toggle">
@@ -359,9 +389,13 @@ export default function RunPage() {
 
         {/* Graph panel — full-screen force-directed agent graph */}
         {viewMode === 'graph' && (
-          <div style={{ flex: 1, height: 'calc(100vh - 76px)', overflow: 'hidden' }}>
-            <AgentGraph activeAgent={activeAgent} doneAgents={doneAgents} done={done} />
-          </div>
+          <>
+            {/* Suppress constellation, replace with clean dark gradient */}
+            <div style={{ position: 'fixed', inset: 0, zIndex: 0, background: 'radial-gradient(ellipse at 40% 50%, #0c0818 0%, #06020e 55%, #030008 100%)' }} />
+            <div style={{ position: 'fixed', inset: 0, top: 60, zIndex: 1 }}>
+              <AgentGraph activeAgent={activeAgent} doneAgents={doneAgents} done={done} />
+            </div>
+          </>
         )}
 
         {/* Log panel — visible in split & log modes */}

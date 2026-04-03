@@ -4,40 +4,28 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import * as d3 from 'd3'
 
 interface AgentNode {
-  id: string
-  label: string
-  icon: string
-  color: string
-  role: string
-  description: string
-  x?: number
-  y?: number
-  fx?: number | null
-  fy?: number | null
+  id: string; label: string; icon: string; color: string
+  role: string; description: string
+  x?: number; y?: number; fx?: number | null; fy?: number | null
 }
-
-interface AgentLink {
-  source: string | AgentNode
-  target: string | AgentNode
-  label: string
-}
+interface AgentLink { source: string | AgentNode; target: string | AgentNode; label: string }
 
 const NODES: AgentNode[] = [
-  { id: 'explorer',         label: 'Explorer',        icon: '◉', color: '#7c6fcd', role: 'Data Scout',        description: 'Scans structure, finds patterns and key features.' },
-  { id: 'skeptic',          label: 'Skeptic',          icon: '⚠', color: '#d46b8a', role: 'Quality Guard',     description: 'Challenges assumptions, flags anomalies and leakage.' },
-  { id: 'statistician',     label: 'Statistician',     icon: '∑', color: '#4a9fd4', role: 'Numbers Expert',    description: 'Distributions, correlations, hypothesis testing.' },
-  { id: 'ethicist',         label: 'Ethicist',         icon: '⚖', color: '#d4874a', role: 'Bias Detector',     description: 'Evaluates fairness and ethical implications.' },
-  { id: 'feature_engineer', label: 'Feature Eng.',     icon: '⟁', color: '#3db87a', role: 'Signal Extractor',  description: 'New features, encodings, and transformations.' },
-  { id: 'pragmatist',       label: 'Pragmatist',       icon: '◈', color: '#c4a832', role: 'Reality Check',     description: 'Model plan — which models, eval metric, split.' },
-  { id: 'devil_advocate',   label: 'Devil Adv.',       icon: '⛧', color: '#e63030', role: 'Critical Thinker',  description: 'Stress-tests the plan, proposes alternatives.' },
-  { id: 'optimizer',        label: 'Optimizer',        icon: '⚡', color: '#8a7cd4', role: 'Efficiency Expert', description: 'Hyperparameter tuning, CV strategy, ensembles.' },
-  { id: 'architect',        label: 'Architect',        icon: '⬡', color: '#a86cd4', role: 'System Designer',   description: 'Deployment architecture and serving infra.' },
-  { id: 'storyteller',      label: 'Storyteller',      icon: '✦', color: '#d4a8c4', role: 'Insight Narrator',  description: 'Synthesises findings into the final narrative.' },
+  { id: 'explorer',         label: 'Explorer',       icon: '◉', color: '#7c6fcd', role: 'Data Scout',        description: 'Scans structure, finds patterns and key features.' },
+  { id: 'skeptic',          label: 'Skeptic',         icon: '⚠', color: '#d46b8a', role: 'Quality Guard',     description: 'Challenges assumptions, flags anomalies and leakage.' },
+  { id: 'statistician',     label: 'Statistician',    icon: '∑', color: '#4a9fd4', role: 'Numbers Expert',    description: 'Distributions, correlations, hypothesis testing.' },
+  { id: 'ethicist',         label: 'Ethicist',        icon: '⚖', color: '#d4874a', role: 'Bias Detector',     description: 'Evaluates fairness and ethical implications.' },
+  { id: 'feature_engineer', label: 'Feature Eng.',    icon: '⟁', color: '#3db87a', role: 'Signal Extractor',  description: 'New features, encodings, and transformations.' },
+  { id: 'pragmatist',       label: 'Pragmatist',      icon: '◈', color: '#c4a832', role: 'Reality Check',     description: 'Model plan — which models, eval metric, split.' },
+  { id: 'devil_advocate',   label: 'Devil Adv.',      icon: '⛧', color: '#e63030', role: 'Critical Thinker',  description: 'Stress-tests the plan, proposes alternatives.' },
+  { id: 'optimizer',        label: 'Optimizer',       icon: '⚡', color: '#8a7cd4', role: 'Efficiency Expert', description: 'Hyperparameter tuning, CV strategy, ensembles.' },
+  { id: 'architect',        label: 'Architect',       icon: '⬡', color: '#a86cd4', role: 'System Designer',   description: 'Deployment architecture and serving infra.' },
+  { id: 'storyteller',      label: 'Storyteller',     icon: '✦', color: '#d4a8c4', role: 'Insight Narrator',  description: 'Synthesises findings into the final narrative.' },
+  { id: 'final_report',     label: 'Final Report',    icon: '◎', color: '#f0c040', role: 'Pipeline Output',   description: 'Complete analysis: findings, metrics, recommendations.' },
 ]
 
-// Directed edges showing information flow through the pipeline
 const LINKS: AgentLink[] = [
-  { source: 'explorer',         target: 'feature_engineer', label: 'EDA →' },
+  { source: 'explorer',         target: 'feature_engineer', label: 'EDA' },
   { source: 'explorer',         target: 'pragmatist',        label: 'context' },
   { source: 'skeptic',          target: 'pragmatist',        label: 'quality' },
   { source: 'statistician',     target: 'pragmatist',        label: 'stats' },
@@ -50,105 +38,116 @@ const LINKS: AgentLink[] = [
   { source: 'devil_advocate',   target: 'architect',         label: 'critique' },
   { source: 'optimizer',        target: 'architect',         label: 'tuning' },
   { source: 'architect',        target: 'storyteller',       label: 'system' },
+  { source: 'storyteller',      target: 'final_report',      label: 'report' },
 ]
 
-interface Props {
-  activeAgent: string
-  doneAgents: string[]
-  done: boolean
-}
+const R      = 26   // agent node radius
+const R_FINAL = 34  // final report node radius
+
+interface Props { activeAgent: string; doneAgents: string[]; done: boolean }
 
 export default function AgentGraph({ activeAgent, doneAgents, done }: Props) {
-  const svgRef  = useRef<SVGSVGElement>(null)
-  const gRef    = useRef<SVGGElement | null>(null)
-  const simRef  = useRef<d3.Simulation<AgentNode, AgentLink> | null>(null)
+  const svgRef     = useRef<SVGSVGElement>(null)
+  const nodeEls    = useRef<Map<string, SVGGElement>>(new Map())
+  const linkEls    = useRef<SVGPathElement[]>([])
+  const linkData   = useRef<AgentLink[]>([])
+  const simRef     = useRef<d3.Simulation<AgentNode, AgentLink> | null>(null)
   const [selected, setSelected] = useState<AgentNode | null>(null)
 
+  // ── Build scene once ───────────────────────────────────────────────────
   useLayoutEffect(() => {
-    const svg = d3.select(svgRef.current!)
+    const svgEl = svgRef.current!
+    const svg   = d3.select(svgEl)
     svg.selectAll('*').remove()
+    nodeEls.current.clear()
+    linkEls.current = []
 
-    const W = svgRef.current!.clientWidth  || window.innerWidth  || 800
-    const H = svgRef.current!.clientHeight || (window.innerHeight - 76) || 600
+    const W = svgEl.clientWidth  || window.innerWidth  || 900
+    const H = svgEl.clientHeight || window.innerHeight || 700
 
-    // ── Defs: arrow markers per agent color + glow filter ──────────────
+    // ── Defs ──────────────────────────────────────────────────────────────
     const defs = svg.append('defs')
 
+    // Arrow markers
     NODES.forEach(n => {
+      const r = n.id === 'final_report' ? R_FINAL : R
       defs.append('marker')
         .attr('id', `arrow-${n.id}`)
         .attr('viewBox', '0 -5 10 10')
-        .attr('refX', 22)
+        .attr('refX', r + 8)
         .attr('refY', 0)
-        .attr('markerWidth', 6)
-        .attr('markerHeight', 6)
+        .attr('markerWidth', 7)
+        .attr('markerHeight', 7)
         .attr('orient', 'auto')
         .append('path')
         .attr('d', 'M0,-5L10,0L0,5')
         .attr('fill', n.color)
-        .attr('opacity', 0.5)
+        .attr('opacity', 0.6)
     })
 
-    // Glow filter for active node
-    const filter = defs.append('filter').attr('id', 'glow')
-    filter.append('feGaussianBlur').attr('stdDeviation', '4').attr('result', 'coloredBlur')
-    const feMerge = filter.append('feMerge')
-    feMerge.append('feMergeNode').attr('in', 'coloredBlur')
-    feMerge.append('feMergeNode').attr('in', 'SourceGraphic')
+    // Glow filter — strong enough to be clearly visible
+    const filter = defs.append('filter').attr('id', 'glow').attr('x', '-50%').attr('y', '-50%').attr('width', '200%').attr('height', '200%')
+    filter.append('feGaussianBlur').attr('in', 'SourceGraphic').attr('stdDeviation', '8').attr('result', 'blur')
+    const merge = filter.append('feMerge')
+    merge.append('feMergeNode').attr('in', 'blur')
+    merge.append('feMergeNode').attr('in', 'blur')
+    merge.append('feMergeNode').attr('in', 'SourceGraphic')
 
-    // ── Main group (zoom target) ────────────────────────────────────────
+    // Subtle glow for done nodes
+    const filterDone = defs.append('filter').attr('id', 'glow-done').attr('x', '-40%').attr('y', '-40%').attr('width', '180%').attr('height', '180%')
+    filterDone.append('feGaussianBlur').attr('in', 'SourceGraphic').attr('stdDeviation', '4').attr('result', 'blur')
+    const mergeDone = filterDone.append('feMerge')
+    mergeDone.append('feMergeNode').attr('in', 'blur')
+    mergeDone.append('feMergeNode').attr('in', 'SourceGraphic')
+
+    // ── Main group (zoom target) ──────────────────────────────────────────
     const g = svg.append('g')
-    gRef.current = g.node()
 
-    // ── Zoom + pan ──────────────────────────────────────────────────────
     const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.3, 3])
+      .scaleExtent([0.25, 3])
       .on('zoom', e => g.attr('transform', e.transform))
+    svg.call(zoom).call(zoom.transform, d3.zoomIdentity.translate(W * 0.08, H * 0.08).scale(0.85))
 
-    svg.call(zoom)
-      .call(zoom.transform, d3.zoomIdentity.translate(W * 0.05, H * 0.05).scale(0.9))
-
-    // ── Force simulation ────────────────────────────────────────────────
+    // ── Simulation ────────────────────────────────────────────────────────
     const nodes: AgentNode[] = NODES.map(n => ({ ...n }))
     const links: AgentLink[] = LINKS.map(l => ({ ...l }))
+    linkData.current = links
 
     const sim = d3.forceSimulation<AgentNode>(nodes)
-      .force('link', d3.forceLink<AgentNode, AgentLink>(links)
-        .id(d => d.id)
-        .distance(160)
-        .strength(0.4)
-      )
-      .force('charge', d3.forceManyBody().strength(-500))
-      .force('center', d3.forceCenter(W / 2, H / 2))
-      .force('collide', d3.forceCollide(55))
-      .force('x', d3.forceX(W / 2).strength(0.03))
-      .force('y', d3.forceY(H / 2).strength(0.03))
-
+      .force('link',    d3.forceLink<AgentNode, AgentLink>(links).id(d => d.id).distance(180).strength(0.35))
+      .force('charge',  d3.forceManyBody().strength(-700))
+      .force('center',  d3.forceCenter(W / 2, H / 2))
+      .force('collide', d3.forceCollide(70))
+      .force('x',       d3.forceX(W / 2).strength(0.02))
+      .force('y',       d3.forceY(H / 2).strength(0.02))
     simRef.current = sim
 
-    // ── Edge lines ──────────────────────────────────────────────────────
-    const linkGroup = g.append('g').attr('class', 'links')
+    // ── Links ─────────────────────────────────────────────────────────────
+    const linkGroup = g.append('g')
 
-    const linkLines = linkGroup.selectAll<SVGPathElement, AgentLink>('path')
-      .data(links)
-      .join('path')
+    const linkPaths = linkGroup.selectAll<SVGPathElement, AgentLink>('path')
+      .data(links).join('path')
       .attr('fill', 'none')
-      .attr('stroke', 'rgba(255,255,255,0.08)')
-      .attr('stroke-width', 1.5)
+      .attr('stroke', 'rgba(255,255,255,0.07)')
+      .attr('stroke-width', 1.2)
+      .attr('marker-end', (d: AgentLink) => {
+        const t = typeof d.target === 'string' ? d.target : (d.target as AgentNode).id
+        return `url(#arrow-${t})`
+      })
 
-    // ── Edge labels ─────────────────────────────────────────────────────
+    linkPaths.each(function() { linkEls.current.push(this) })
+
     const linkLabels = linkGroup.selectAll<SVGTextElement, AgentLink>('text')
-      .data(links)
-      .join('text')
-      .attr('fill', 'rgba(255,255,255,0.18)')
-      .attr('font-size', 8)
+      .data(links).join('text')
+      .attr('fill', 'rgba(255,255,255,0.14)')
+      .attr('font-size', 9)
       .attr('font-family', "'JetBrains Mono', monospace")
       .attr('text-anchor', 'middle')
-      .attr('dy', -4)
+      .attr('pointer-events', 'none')
       .text(d => d.label)
 
-    // ── Node groups ─────────────────────────────────────────────────────
-    const nodeGroup = g.append('g').attr('class', 'nodes')
+    // ── Nodes ─────────────────────────────────────────────────────────────
+    const nodeGroup = g.append('g')
 
     const nodeG = nodeGroup.selectAll<SVGGElement, AgentNode>('g')
       .data(nodes, d => d.id)
@@ -156,212 +155,166 @@ export default function AgentGraph({ activeAgent, doneAgents, done }: Props) {
       .attr('cursor', 'pointer')
       .call(
         d3.drag<SVGGElement, AgentNode>()
-          .on('start', (event, d) => {
-            if (!event.active) sim.alphaTarget(0.3).restart()
-            d.fx = d.x; d.fy = d.y
-          })
-          .on('drag', (event, d) => { d.fx = event.x; d.fy = event.y })
-          .on('end', (event, d) => {
-            if (!event.active) sim.alphaTarget(0)
-            d.fx = null; d.fy = null
-          })
+          .on('start', (ev, d) => { if (!ev.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y })
+          .on('drag',  (ev, d) => { d.fx = ev.x; d.fy = ev.y })
+          .on('end',   (ev, d) => { if (!ev.active) sim.alphaTarget(0); d.fx = null; d.fy = null })
       )
-      .on('click', (event, d) => {
-        event.stopPropagation()
-        setSelected(prev => prev?.id === d.id ? null : NODES.find(n => n.id === d.id) || null)
-      })
+      .on('click', (ev, d) => { ev.stopPropagation(); setSelected(p => p?.id === d.id ? null : NODES.find(n => n.id === d.id) || null) })
 
-    // Outer glow ring (for active state)
+    nodeG.each(function(d) { nodeEls.current.set(d.id, this) })
+
+    // Outer pulse ring
     nodeG.append('circle')
-      .attr('class', 'glow-ring')
-      .attr('r', 22)
+      .attr('class', 'pulse-ring')
+      .attr('r', d => (d.id === 'final_report' ? R_FINAL : R) + 10)
       .attr('fill', 'none')
+      .attr('stroke', 'none')
       .attr('stroke-width', 0)
 
-    // Main circle
+    // Main circle — initial style set here, updated by updateVisuals
     nodeG.append('circle')
       .attr('class', 'main-circle')
-      .attr('r', 18)
-      .attr('stroke-width', 2)
+      .attr('r', d => d.id === 'final_report' ? R_FINAL : R)
+      .attr('fill', 'rgba(255,255,255,0.03)')
+      .attr('stroke', 'rgba(255,255,255,0.12)')
+      .attr('stroke-width', 1.5)
 
-    // Icon text
+    // Icon
     nodeG.append('text')
       .attr('class', 'icon-text')
       .attr('text-anchor', 'middle')
       .attr('dominant-baseline', 'central')
-      .attr('dy', -1)
-      .attr('font-size', 14)
+      .attr('font-size', d => d.id === 'final_report' ? 20 : 16)
+      .attr('fill', 'rgba(255,255,255,0.35)')
+      .attr('pointer-events', 'none')
       .text(d => d.icon)
 
-    // Label below
+    // Label
     nodeG.append('text')
       .attr('class', 'label-text')
       .attr('text-anchor', 'middle')
-      .attr('dy', 34)
-      .attr('font-size', 10)
+      .attr('dy', d => (d.id === 'final_report' ? R_FINAL : R) + 16)
+      .attr('font-size', 11)
       .attr('font-family', "'JetBrains Mono', monospace")
+      .attr('fill', 'rgba(255,255,255,0.22)')
+      .attr('pointer-events', 'none')
       .text(d => d.label)
 
-    // ── Dismiss detail on svg click ─────────────────────────────────────
     svg.on('click', () => setSelected(null))
 
-    // ── Tick ────────────────────────────────────────────────────────────
+    // ── Tick ──────────────────────────────────────────────────────────────
     sim.on('tick', () => {
-      linkLines.attr('d', (d: AgentLink) => {
-        const s = d.source as AgentNode
-        const t = d.target as AgentNode
-        const dx = (t.x ?? 0) - (s.x ?? 0)
-        const dy = (t.y ?? 0) - (s.y ?? 0)
-        const dr = Math.sqrt(dx * dx + dy * dy) * 1.4
+      linkPaths.attr('d', (d: AgentLink) => {
+        const s = d.source as AgentNode, t = d.target as AgentNode
+        const dr = Math.sqrt(((t.x ?? 0) - (s.x ?? 0)) ** 2 + ((t.y ?? 0) - (s.y ?? 0)) ** 2) * 1.3
         return `M${s.x},${s.y} A${dr},${dr} 0 0,1 ${t.x},${t.y}`
       })
-
-      linkLabels.attr('x', (d: AgentLink) => {
-        const s = d.source as AgentNode; const t = d.target as AgentNode
-        return ((s.x ?? 0) + (t.x ?? 0)) / 2
-      }).attr('y', (d: AgentLink) => {
-        const s = d.source as AgentNode; const t = d.target as AgentNode
-        return ((s.y ?? 0) + (t.y ?? 0)) / 2
-      })
-
+      linkLabels
+        .attr('x', (d: AgentLink) => (((d.source as AgentNode).x ?? 0) + ((d.target as AgentNode).x ?? 0)) / 2)
+        .attr('y', (d: AgentLink) => (((d.source as AgentNode).y ?? 0) + ((d.target as AgentNode).y ?? 0)) / 2)
       nodeG.attr('transform', d => `translate(${d.x ?? 0},${d.y ?? 0})`)
-    })
-
-    // Set arrow markers on links
-    linkLines.attr('marker-end', (d: AgentLink) => {
-      const t = typeof d.target === 'string' ? d.target : (d.target as AgentNode).id
-      return `url(#arrow-${t})`
     })
 
     return () => { sim.stop() }
   }, [])
 
-  // ── Update node visuals when active/done state changes ─────────────
+  // ── Update node visuals whenever state changes ─────────────────────────
   useEffect(() => {
-    if (!gRef.current) return
-    const g = d3.select(gRef.current)
+    nodeEls.current.forEach((el, id) => {
+      const node     = NODES.find(n => n.id === id)!
+      const isFinal  = id === 'final_report'
+      const isActive = !isFinal && id === activeAgent
+      const isDone   = isFinal ? done : doneAgents.includes(id)
 
-    g.selectAll<SVGGElement, AgentNode>('.nodes g').each(function(d) {
-      const el       = d3.select(this)
-      const isActive = activeAgent === d.id
-      const isDone   = doneAgents.includes(d.id)
-      const node     = NODES.find(n => n.id === d.id)!
+      const sel = d3.select(el)
 
-      el.select('.main-circle')
-        .attr('fill', isDone
-          ? 'rgba(52,211,153,0.15)'
-          : isActive
-            ? `${node.color}22`
-            : 'rgba(255,255,255,0.03)')
-        .attr('stroke', isDone
-          ? '#34d399'
-          : isActive
-            ? node.color
-            : 'rgba(255,255,255,0.12)')
-        .attr('stroke-width', isActive ? 2.5 : isDone ? 2 : 1.5)
-        .attr('filter', isActive ? 'url(#glow)' : null)
+      // Main circle
+      sel.select('.main-circle')
+        .attr('fill',         isDone   ? `${node.color}28`
+                            : isActive ? `${node.color}30`
+                            : 'rgba(255,255,255,0.03)')
+        .attr('stroke',       isDone   ? node.color
+                            : isActive ? node.color
+                            : 'rgba(255,255,255,0.1)')
+        .attr('stroke-width', isActive ? 3 : isDone ? 2.5 : 1.5)
+        .attr('filter',       isActive ? 'url(#glow)'
+                            : isDone   ? 'url(#glow-done)'
+                            : null)
 
-      el.select('.icon-text')
-        .attr('fill', isDone ? '#34d399' : isActive ? node.color : 'rgba(255,255,255,0.4)')
-        .attr('font-size', isDone ? 12 : 14)
+      // Pulse ring — visible only when active
+      sel.select('.pulse-ring')
+        .attr('stroke',       isActive ? node.color : 'none')
+        .attr('stroke-width', isActive ? 2          : 0)
+        .attr('opacity',      isActive ? 0.4         : 0)
+
+      // Icon
+      sel.select('.icon-text')
+        .attr('fill',      isDone   ? node.color
+                         : isActive ? node.color
+                         : 'rgba(255,255,255,0.3)')
+        .attr('font-size', isFinal  ? 20
+                         : isActive ? 18 : 16)
         .text(isDone ? '✓' : node.icon)
 
-      el.select('.label-text')
-        .attr('fill', isDone
-          ? 'rgba(52,211,153,0.7)'
-          : isActive
-            ? node.color
-            : 'rgba(255,255,255,0.25)')
+      // Label
+      sel.select('.label-text')
+        .attr('fill', isDone   ? node.color
+                    : isActive ? node.color
+                    : 'rgba(255,255,255,0.22)')
+        .attr('font-weight', isActive || isDone ? '600' : '400')
+    })
 
-      // Glow ring for active node
-      el.select('.glow-ring')
-        .attr('stroke', isActive ? node.color : 'none')
-        .attr('stroke-width', isActive ? 1.5 : 0)
-        .attr('opacity', isActive ? 0.35 : 0)
-
-      // Edges — highlight edges from/to active node
-      if (gRef.current) {
-        d3.select(gRef.current).selectAll<SVGPathElement, AgentLink>('.links path')
-          .attr('stroke', (link: AgentLink) => {
-            const s = typeof link.source === 'string' ? link.source : (link.source as AgentNode).id
-            const t = typeof link.target === 'string' ? link.target : (link.target as AgentNode).id
-            if (activeAgent && (s === activeAgent || t === activeAgent)) {
-              const activeNode = NODES.find(n => n.id === activeAgent)
-              return activeNode ? `${activeNode.color}60` : 'rgba(255,255,255,0.2)'
-            }
-            return 'rgba(255,255,255,0.06)'
-          })
-          .attr('stroke-width', (link: AgentLink) => {
-            const s = typeof link.source === 'string' ? link.source : (link.source as AgentNode).id
-            const t = typeof link.target === 'string' ? link.target : (link.target as AgentNode).id
-            return (activeAgent && (s === activeAgent || t === activeAgent)) ? 2 : 1.2
-          })
-      }
+    // Highlight edges connected to active agent
+    linkEls.current.forEach((el, i) => {
+      const link  = linkData.current[i]
+      if (!link) return
+      const s = typeof link.source === 'string' ? link.source : (link.source as AgentNode).id
+      const t = typeof link.target === 'string' ? link.target : (link.target as AgentNode).id
+      const connected = activeAgent && (s === activeAgent || t === activeAgent)
+      const srcDone   = doneAgents.includes(s)
+      const srcNode   = NODES.find(n => n.id === s)
+      d3.select(el)
+        .attr('stroke', connected  ? `${NODES.find(n => n.id === activeAgent)?.color ?? '#fff'}80`
+                       : srcDone   ? `${srcNode?.color ?? '#fff'}25`
+                       : 'rgba(255,255,255,0.06)')
+        .attr('stroke-width', connected ? 2.2 : srcDone ? 1.5 : 1.0)
     })
   }, [activeAgent, doneAgents, done])
 
   const selectedMeta = selected ? NODES.find(n => n.id === selected.id) : null
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', background: 'transparent' }}>
-      <svg
-        ref={svgRef}
-        width="100%"
-        height="100%"
-        style={{ display: 'block' }}
-      />
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <svg ref={svgRef} width="100%" height="100%" style={{ display: 'block' }} />
 
-      {/* Detail panel — top right, like MiroFish */}
+      {/* Detail panel */}
       {selectedMeta && (
         <div style={{
-          position: 'absolute', top: 16, right: 16,
-          width: 240,
-          background: 'rgba(6,2,2,0.82)',
-          backdropFilter: 'blur(24px)',
-          border: `1px solid ${selectedMeta.color}35`,
-          borderRadius: 14,
-          overflow: 'hidden',
-          boxShadow: `0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px ${selectedMeta.color}10`,
+          position: 'absolute', top: 16, right: 16, width: 250,
+          background: 'rgba(4,1,1,0.92)', backdropFilter: 'blur(24px)',
+          border: `1px solid ${selectedMeta.color}40`, borderRadius: 14, overflow: 'hidden',
+          boxShadow: `0 16px 48px rgba(0,0,0,0.6), 0 0 32px ${selectedMeta.color}18`,
         }}>
-          {/* Top accent bar */}
           <div style={{ height: 2, background: `linear-gradient(90deg, ${selectedMeta.color}, transparent)` }} />
           <div style={{ padding: '14px 16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                background: `${selectedMeta.color}15`,
-                border: `1px solid ${selectedMeta.color}30`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 16, color: selectedMeta.color,
-              }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+              <div style={{ width: 38, height: 38, borderRadius: 10, flexShrink: 0, background: `${selectedMeta.color}18`, border: `1px solid ${selectedMeta.color}35`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, color: selectedMeta.color }}>
                 {doneAgents.includes(selectedMeta.id) ? '✓' : selectedMeta.icon}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: selectedMeta.color, fontFamily: "'Space Grotesk',sans-serif" }}>{selectedMeta.label}</div>
                 <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.28)', marginTop: 1 }}>{selectedMeta.role}</div>
               </div>
-              <button
-                onClick={() => setSelected(null)}
-                style={{ width: 22, height: 22, borderRadius: 6, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >✕</button>
+              <button onClick={() => setSelected(null)} style={{ width: 22, height: 22, borderRadius: 6, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
             </div>
             <div style={{ height: 1, background: `${selectedMeta.color}15`, marginBottom: 10 }} />
-            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', lineHeight: 1.65, margin: 0 }}>
-              {selectedMeta.description}
-            </p>
-            <div style={{ marginTop: 10, display: 'flex', gap: 6 }}>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)', lineHeight: 1.65, margin: 0 }}>{selectedMeta.description}</p>
+            <div style={{ marginTop: 10 }}>
               <span style={{
-                fontSize: 9.5, padding: '3px 8px', borderRadius: 5,
-                background: doneAgents.includes(selectedMeta.id)
-                  ? 'rgba(52,211,153,0.1)' : activeAgent === selectedMeta.id
-                    ? `${selectedMeta.color}15` : 'rgba(255,255,255,0.04)',
-                border: `1px solid ${doneAgents.includes(selectedMeta.id)
-                  ? 'rgba(52,211,153,0.25)' : activeAgent === selectedMeta.id
-                    ? `${selectedMeta.color}30` : 'rgba(255,255,255,0.08)'}`,
-                color: doneAgents.includes(selectedMeta.id)
-                  ? '#34d399' : activeAgent === selectedMeta.id
-                    ? selectedMeta.color : 'rgba(255,255,255,0.25)',
-                fontFamily: "'JetBrains Mono',monospace",
+                fontSize: 9.5, padding: '3px 8px', borderRadius: 5, fontFamily: "'JetBrains Mono',monospace",
+                background: doneAgents.includes(selectedMeta.id) ? `${selectedMeta.color}18` : activeAgent === selectedMeta.id ? `${selectedMeta.color}18` : 'rgba(255,255,255,0.04)',
+                border: `1px solid ${doneAgents.includes(selectedMeta.id) || activeAgent === selectedMeta.id ? `${selectedMeta.color}35` : 'rgba(255,255,255,0.08)'}`,
+                color: doneAgents.includes(selectedMeta.id) ? selectedMeta.color : activeAgent === selectedMeta.id ? selectedMeta.color : 'rgba(255,255,255,0.25)',
               }}>
                 {doneAgents.includes(selectedMeta.id) ? 'DONE' : activeAgent === selectedMeta.id ? 'ACTIVE' : 'PENDING'}
               </span>
@@ -371,20 +324,18 @@ export default function AgentGraph({ activeAgent, doneAgents, done }: Props) {
       )}
 
       {/* Legend */}
-      <div style={{ position: 'absolute', bottom: 16, left: 16, display: 'flex', gap: 16, alignItems: 'center' }}>
+      <div style={{ position: 'absolute', bottom: 20, left: 20, display: 'flex', gap: 18, alignItems: 'center' }}>
         {[
-          { color: 'rgba(255,255,255,0.15)', label: 'Pending' },
-          { color: '#e63030',                label: 'Active' },
-          { color: '#34d399',                label: 'Done' },
+          { color: 'rgba(255,255,255,0.2)', label: 'Pending' },
+          { color: '#7c6fcd',               label: 'Active' },
+          { color: '#34d399',               label: 'Done' },
         ].map(l => (
-          <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: l.color }} />
-            <span style={{ fontSize: 9.5, color: 'rgba(255,255,255,0.25)', fontFamily: "'JetBrains Mono',monospace" }}>{l.label}</span>
+          <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: l.color, boxShadow: l.label === 'Active' ? `0 0 8px ${l.color}` : 'none' }} />
+            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontFamily: "'JetBrains Mono',monospace" }}>{l.label}</span>
           </div>
         ))}
-        <span style={{ fontSize: 9.5, color: 'rgba(255,255,255,0.15)', fontFamily: "'JetBrains Mono',monospace", marginLeft: 4 }}>
-          drag · scroll to zoom · click node
-        </span>
+        <span style={{ fontSize: 9.5, color: 'rgba(255,255,255,0.15)', fontFamily: "'JetBrains Mono',monospace", marginLeft: 8 }}>drag · scroll to zoom · click node</span>
       </div>
     </div>
   )

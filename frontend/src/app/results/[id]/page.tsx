@@ -5,6 +5,7 @@ import { useEffect, useState, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { MOCK_RESULT_ENTRIES } from '@/lib/mockPipeline'
 
 const API = 'http://localhost:8000'
 
@@ -44,6 +45,13 @@ export default function ResultsPage() {
   const [resultView, setResultView] = useState<ResultView>('cards')
 
   useEffect(() => {
+    // Test mode — use mock data instantly, no API call
+    if (id.startsWith('test-')) {
+      setResult({ run_id: id, entries: MOCK_RESULT_ENTRIES })
+      setLoading(false)
+      return
+    }
+
     let attempts = 0
     const poll = async () => {
       try {

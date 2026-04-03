@@ -120,32 +120,29 @@ _AGENT_KEYS = {
     "storyteller":      "Storyteller",
 }
 
+import re as _re
+_AGENT_START_RE = _re.compile(r'\[AGENT:([a-z_]+)\]')
+_AGENT_DONE_RE  = _re.compile(r'\[AGENT_DONE:([a-z_]+)\]')
+
 def _parse_log_line(line: str) -> dict:
+    # Primary: explicit markers emitted by orchestrator
+    m = _AGENT_START_RE.search(line)
+    if m:
+        return {"agent": m.group(1), "agent_done": None}
+
+    m = _AGENT_DONE_RE.search(line)
+    if m:
+        return {"agent": None, "agent_done": m.group(1)}
+
+    # Fallback: heuristic name detection for lines that don't carry markers
     low = line.lower()
-    phase = ""
-    if   "phase 1" in low or "data understanding" in low: phase = "Phase 1 · Data Understanding"
-    elif "phase 2" in low or "model design"       in low: phase = "Phase 2 · Model Design"
-    elif "phase 3" in low or "code generation"    in low: phase = "Phase 3 · Code Generation"
-    elif "phase 4" in low or "validation"         in low: phase = "Phase 4 · Validation"
-    elif "phase 5" in low or "inference"          in low: phase = "Phase 5 · Inference"
-
-    # Also detect phase from graph log lines like "⚡ [DataUnderstanding]"
-    if not phase:
-        if "dataunderstanding" in low or "[dataunders" in low: phase = "Phase 1 · Data Understanding"
-        elif "modeldesign"     in low or "[modeldesig" in low: phase = "Phase 2 · Model Design"
-
-    # Detect scanning/startup phase from common log prefixes
-    if not phase:
-        if "scanning dataset" in low or "files :" in low or "builderagent" in low:
-            phase = "Phase 1 · Data Understanding"
-
     agent = ""
     for key, name in _AGENT_KEYS.items():
         if key in low:
-            agent = name
+            agent = name.lower().replace("'", "").replace(" ", "_").replace(".", "")
             break
 
-    return {"phase": phase, "agent": agent}
+    return {"agent": agent or None, "agent_done": None}
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -153,13 +150,13 @@ def _parse_log_line(line: str) -> dict:
 # ─────────────────────────────────────────────────────────────────────
 class RunState:
     def __init__(self):
-        self.lines:       list[str] = []   # all log lines so far
-        self.phase:       str       = "Initializing…"
-        self.agent:       str       = ""
-        self.ever_active: list[str] = []
-        self.result:      Optional[dict] = None
-        self.error:       Optional[str]  = None
-        self.done:        bool           = False
+        self.lines:        list[str] = []
+        self.agent:        str       = ""
+        self.ever_active:  list[str] = []
+        self.done_agents:  list[str] = []
+        self.result:       Optional[dict] = None
+        self.error:        Optional[str]  = None
+        self.done:         bool           = False
         self._lock = threading.Lock()
 
     def add_text(self, text: str):
@@ -168,24 +165,26 @@ class RunState:
             self.lines.extend(new_lines)
             for line in new_lines:
                 parsed = _parse_log_line(line)
-                if parsed["phase"]:
-                    self.phase = parsed["phase"]
                 if parsed["agent"]:
                     self.agent = parsed["agent"]
                     if parsed["agent"] not in self.ever_active:
                         self.ever_active.append(parsed["agent"])
+                if parsed["agent_done"]:
+                    a = parsed["agent_done"]
+                    if a not in self.done_agents:
+                        self.done_agents.append(a)
 
     def snapshot(self, cursor: int) -> dict:
         with self._lock:
             new_lines = self.lines[cursor:]
             return {
-                "lines":      new_lines,
-                "cursor":     cursor + len(new_lines),
-                "phase":      self.phase,
-                "agent":      self.agent,
-                "everActive": list(self.ever_active),
-                "done":       self.done,
-                "error":      self.error,
+                "lines":       new_lines,
+                "cursor":      cursor + len(new_lines),
+                "agent":       self.agent,
+                "everActive":  list(self.ever_active),
+                "doneAgents":  list(self.done_agents),
+                "done":        self.done,
+                "error":       self.error,
             }
 
 runs: dict[str, RunState] = {}

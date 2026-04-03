@@ -85,6 +85,8 @@ class Orchestrator:
         last_exc: Optional[Exception] = None
         current_task = task
 
+        print(f"\n⚡ [AGENT:{agent_name}]")
+
         for attempt in range(1, max_retries + 1):
             node_id = str(uuid.uuid4())[:12]
             self.registry.register(agent_name, current_task, run_id=node_id)
@@ -144,6 +146,7 @@ class Orchestrator:
             print(f"  {agent_name.upper()}{' (retry succeeded)' if attempt > 1 else ''}")
             print(f"{'='*60}")
             print(response)
+            print(f"\n✅ [AGENT_DONE:{agent_name}]")
             return response
 
         raise RuntimeError(

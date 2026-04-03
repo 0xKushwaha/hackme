@@ -63,6 +63,7 @@ export default function Home() {
   const [datasetName,    setDatasetName]    = useState('')
   const [task,        setTask]        = useState('')
   const [launching,   setLaunching]   = useState(false)
+  const [testMode,    setTestMode]    = useState(false)
   const [errors,      setErrors]      = useState<string[]>([])
   const [showCreds,   setShowCreds]   = useState(false)
   const [ovKey,       setOvKey]       = useState('')
@@ -116,6 +117,13 @@ export default function Home() {
   }
 
   const launch = async () => {
+    // Test mode — skip API entirely, navigate to mock run
+    if (testMode) {
+      const mockId = `test-${Math.random().toString(36).slice(2, 8)}`
+      router.push(`/run/${mockId}`)
+      return
+    }
+
     const errs: string[] = []
     if (!datasetPath)                               errs.push('Select a dataset first.')
     if (provider !== 'local' && !apiKey && !hasKey) errs.push('API key is required.')
@@ -141,81 +149,6 @@ export default function Home() {
 
       {/* Main content — 3-column layout */}
       <div style={{ flex: 1, display: 'flex', paddingTop: 90, paddingBottom: 40, gap: 24, maxWidth: 1200, margin: '0 auto', width: '100%', padding: '40px 32px' }}>
-
-        {/* LEFT COLUMN — System status + workflow */}
-        <motion.div
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-          style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}
-        >
-          {/* System status panel */}
-          <div style={{ background: 'rgba(8,2,2,0.55)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 18px' }}>
-            <div className="label" style={{ marginBottom: 14 }}>System Status</div>
-            {[
-              { key: 'Agents',   val: '10 ready', color: '#34d399' },
-              { key: 'Pipeline', val: '3 phases', color: '#4a9fd4' },
-              { key: 'Formats',  val: '15+ supported', color: '#c4a832' },
-              { key: 'Memory',   val: 'ChromaDB + Graph', color: '#a86cd4' },
-            ].map((s, i) => (
-              <motion.div key={s.key}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 + i * 0.08 }}
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontFamily: "'JetBrains Mono',monospace" }}>{s.key}</span>
-                <span style={{ fontSize: 11, color: s.color, fontFamily: "'JetBrains Mono',monospace", fontWeight: 500 }}>{s.val}</span>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Workflow sequence */}
-          <div style={{ background: 'rgba(8,2,2,0.55)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 18px' }}>
-            <div className="label" style={{ marginBottom: 14 }}>Pipeline Workflow</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {WORKFLOW_STEPS.map((step, i) => (
-                <motion.div key={step.num}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 + i * 0.1 }}
-                  className="workflow-step"
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <span className="step-num">{step.num}</span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.6)' }}>{step.title}</span>
-                  </div>
-                  <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.2)', lineHeight: 1.5 }}>{step.desc}</div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          {/* Agent roster mini */}
-          <div style={{ background: 'rgba(8,2,2,0.55)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 18px' }}>
-            <div className="label" style={{ marginBottom: 12 }}>Agent Roster</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {AGENTS.map((a, i) => (
-                <motion.div key={a.label}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.8 + i * 0.04 }}
-                  title={`${a.label} — ${a.role}`}
-                  style={{
-                    width: 30, height: 30, borderRadius: 8,
-                    background: `${a.color}12`,
-                    border: `1px solid ${a.color}25`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 13, color: a.color,
-                    cursor: 'default',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  {a.icon}
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
 
         {/* CENTER — Hero + tagline */}
         <motion.div
@@ -261,8 +194,20 @@ export default function Home() {
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
           style={{ width: 360, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}
         >
-          {/* Credentials toggle */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          {/* Top controls */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <button
+              onClick={() => setTestMode(v => !v)}
+              style={{
+                fontSize: 11, padding: '5px 12px', borderRadius: 8, cursor: 'pointer', fontFamily: "'JetBrains Mono',monospace",
+                background: testMode ? 'rgba(52,211,153,0.12)' : 'rgba(255,255,255,0.04)',
+                border: `1px solid ${testMode ? 'rgba(52,211,153,0.35)' : 'rgba(255,255,255,0.1)'}`,
+                color: testMode ? '#34d399' : 'rgba(255,255,255,0.35)',
+                transition: 'all 0.18s',
+              }}
+            >
+              {testMode ? '✓ test mode' : '⊘ test mode'}
+            </button>
             <button className="btn-ghost" onClick={() => setShowCreds(v => !v)} style={{ fontSize: 11, padding: '5px 12px' }}>⚙ Credentials</button>
           </div>
 

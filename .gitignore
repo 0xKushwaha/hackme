@@ -2,6 +2,8 @@
 .env
 .env.local
 .env.*.local
+~/.ds_agent_team.json
+.ds_agent_team.json
 
 # ── Python ──────────────────────────────────────────────────────
 __pycache__/

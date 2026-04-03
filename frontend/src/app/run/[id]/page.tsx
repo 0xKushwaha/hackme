@@ -152,7 +152,7 @@ export default function RunPage() {
     <div style={{ minHeight: '100vh', position: 'relative', zIndex: 1 }}>
 
       {/* Background */}
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0, background: 'radial-gradient(ellipse at 40% 50%, #0c0818 0%, #06020e 55%, #030008 100%)' }} />
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0, background: 'radial-gradient(ellipse at 40% 50%, #020c18 0%, #010a16 55%, #010810 100%)' }} />
 
       {/* Graph — always full screen */}
       {view === 'graph' && (
@@ -175,7 +175,7 @@ export default function RunPage() {
             <div style={{
               position: 'fixed', right: 0, top: 0, bottom: 0, zIndex: 501,
               width: 'min(580px, 100vw)',
-              background: '#0c0c0c',
+              background: '#030c1a',
               borderLeft: `1px solid ${selNode.color}35`,
               display: 'flex', flexDirection: 'column',
               boxShadow: `-24px 0 60px rgba(0,0,0,0.6)`,

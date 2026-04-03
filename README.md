@@ -48,22 +48,17 @@ npm run dev
 
 ## Web UI
 
-The frontend is a Next.js app with three views:
+The frontend is a Next.js app with a dark blue/black theme.
 
 **Home** — Select your LLM provider (Claude, OpenAI, or local vLLM), enter your API key, pick a dataset file or folder, and optionally describe your goal. Click **Launch Analysis**.
 
-**Run** — Watch all 10 agents work in real time. Toggle between:
-- **Grid** — agent status cards with live indicators
-- **Split** — agents + live log side by side
-- **Log** — full-width terminal output
+**Run** — Watch all 10 agents work in real time on a D3 force-directed graph. Each node is color-coded and lights up as its agent becomes active, then shows a checkmark when done. Click any node to see:
+- A description card while the agent is running
+- The full markdown output in a side drawer once it completes
 
-A step indicator in the nav bar tracks your position through the 5-phase pipeline.
+Toggle to **Summary** view when the pipeline finishes to browse every agent's output as expandable cards. Click a card to expand it inline full-width with smooth animation. Export the complete analysis as a `.md` file.
 
-**Results** — Browse each agent's full output. Switch between:
-- **Agents** — clickable cards per agent with a side drawer
-- **Report** — expandable full report with one section per agent
-
-Export the complete analysis as a `.md` file.
+Run results are persisted to disk and cached in `localStorage` — refreshing the page restores the full state instantly.
 
 ---
 
@@ -149,10 +144,11 @@ Dataset + Task Description
 └─────────────────────────────────────────────────────────────────┘
         │
         ▼
-┌── Phase 5: Inference ───────────────────────────────────────────┐
-│  CodeWriter → inference script                                   │
-│  Architect  → deployment strategy                                │
-│  Storyteller→ final narrative and report                         │
+┌── Phase 5: Architecture + Final Report ─────────────────────────┐
+│  Architect  → research-backed architecture (arxiv + Wikipedia)   │
+│               with mandatory citations [Author, Year]            │
+│  Final Report → synthesised markdown: all agent outputs compiled │
+│                 into one structured report with per-agent sections│
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -160,22 +156,22 @@ Dataset + Task Description
 
 ## Agent Team
 
-| Agent | Role | Personality |
-|---|---|---|
-| **Explorer** | EDA — patterns, correlations, key features | Curious, optimistic |
-| **Skeptic** | Data quality — outliers, leakage, missing values | Aggressively critical |
-| **Statistician** | Distributions, hypothesis tests, multicollinearity | Rigorous, neutral |
-| **Feature Engineer** | New features, encodings, transformations | Inventive |
-| **Ethicist** | Bias, fairness, responsible AI | Cautious observer |
-| **Pragmatist** | Model plan — which models, eval metric | Results-driven |
-| **Devil's Advocate** | Challenges the plan, proposes alternatives | Maximally contrarian |
-| **Optimizer** | Hyperparameter tuning, CV strategy, ensembles | Performance-obsessed |
-| **Architect** | Deployment design, serving infra | Systems-thinker |
-| **Storyteller** | Final narrative and report | Compelling, audience-aware |
-| **BuilderAgent** | Creates tools + specialist agents for non-tabular data | Architectural planner |
-| **LibraryInstallerAgent** | Detects and auto-installs missing packages | Autonomous ops |
-| **DiagnosticAgent** | Root cause analysis before every code retry | Structured, precise |
-| **CodeWriter** | Generates executable Python training + inference scripts | Precise, code-only |
+| Agent | Color | Role | Personality |
+|---|---|---|---|
+| **Explorer** | sky blue | EDA — patterns, correlations, key features | Curious, optimistic |
+| **Skeptic** | rose | Data quality — outliers, leakage, missing values | Aggressively critical |
+| **Statistician** | blue | Distributions, hypothesis tests, multicollinearity | Rigorous, neutral |
+| **Feature Engineer** | indigo | New features, encodings, transformations | Inventive |
+| **Ethicist** | emerald | Bias, fairness, responsible AI | Cautious observer |
+| **Pragmatist** | amber | Model plan — which models, eval metric | Results-driven |
+| **Devil's Advocate** | orange | Challenges the plan, proposes alternatives | Maximally contrarian |
+| **Optimizer** | teal | Hyperparameter tuning, CV strategy, ensembles | Performance-obsessed |
+| **Architect** | purple | Research-backed architecture with arxiv + Wikipedia citations | Systems-thinker |
+| **Final Report** | gold | Synthesised insights and actionable recommendations | — |
+| **BuilderAgent** | — | Creates tools + specialist agents for non-tabular data | Architectural planner |
+| **LibraryInstallerAgent** | — | Detects and auto-installs missing packages | Autonomous ops |
+| **DiagnosticAgent** | — | Root cause analysis before every code retry | Structured, precise |
+| **CodeWriter** | — | Generates executable Python training + inference scripts | Precise, code-only |
 
 Agent personalities adapt at runtime — if data quality is low or training keeps failing, agents automatically shift to more aggressive / redesign-focused modes.
 
@@ -230,22 +226,27 @@ hackathon/
 ├── main.py                    ← CLI entry point
 ├── requirements.txt
 │
-├── frontend/                  ← Next.js web UI
-│   └── src/app/
-│       ├── page.tsx           # Home — provider + dataset + launch
-│       ├── run/[id]/          # Live run view
-│       └── results/[id]/      # Results + report
+├── frontend/                  ← Next.js web UI (blue/black theme)
+│   └── src/
+│       ├── app/
+│       │   ├── page.tsx           # Home — provider + dataset + launch
+│       │   └── run/[id]/          # Live run + summary view
+│       ├── components/
+│       │   ├── PipelineGraph.tsx  # D3 force-directed agent graph
+│       │   └── Background.tsx     # Animated canvas particle background
+│       └── lib/
+│           └── mockPipeline.ts    # Test mode mock data
 │
 ├── agents/
 │   ├── base.py                # BaseAgent — memory recall + storage
 │   ├── agent_config.py        # Behavioral profiles (adapt on failure)
-│   ├── builder_agent.py       # Creates tools + specialist agents
-│   ├── installer_agent.py     # Auto pip-install
-│   ├── diagnostic_agent.py    # Root cause before retry
 │   ├── analyst_agents.py      # Explorer, Skeptic, Statistician, Ethicist
 │   ├── planner_agents.py      # Pragmatist, DevilAdvocate, Architect, Optimizer
-│   ├── coder_agent.py         # CodeWriter
-│   └── storyteller_agent.py
+│   ├── installer_agent.py     # Auto pip-install
+│   └── unknown_format_agent.py
+│
+├── orchestration/
+│   └── orchestrator.py        # Run phases, _research_search, _synthesize_final_report
 │
 ├── phases/
 │   ├── discovery.py           # Scan any file/directory
@@ -269,6 +270,7 @@ hackathon/
 │   └── context_guard.py       # 30% output cap + head/tail truncation
 │
 └── experiments/               # Auto-created on first run
+    ├── results/               # Persisted run results (JSON, survives restart)
     ├── chroma_db/             # Per-agent vector store
     ├── graph.db               # Knowledge graph
     ├── tool_registry/         # Tools written by agents mid-run

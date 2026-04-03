@@ -57,17 +57,15 @@ export default function Background() {
     // ── Draw ───────────────────────────────────────────────────────────
     const CONNECT_DIST  = 130
     const MOUSE_DIST    = 160
-    const RED_BRIGHT    = [230, 48, 48]
-    const RED_DIM       = [120, 20, 20]
 
     const draw = () => {
       ctx.clearRect(0, 0, W, H)
 
-      // Deep radial background
+      // Deep radial background — dark navy
       const bg = ctx.createRadialGradient(W * 0.5, H * 0.3, 0, W * 0.5, H * 0.3, Math.max(W, H) * 0.85)
-      bg.addColorStop(0,   'rgba(22,6,6,1)')
-      bg.addColorStop(0.5, 'rgba(12,3,3,1)')
-      bg.addColorStop(1,   'rgba(8,2,2,1)')
+      bg.addColorStop(0,   'rgba(6,18,40,1)')
+      bg.addColorStop(0.5, 'rgba(3,10,26,1)')
+      bg.addColorStop(1,   'rgba(2,8,18,1)')
       ctx.fillStyle = bg
       ctx.fillRect(0, 0, W, H)
 
@@ -81,7 +79,7 @@ export default function Background() {
 
       // ── Moving grid ──────────────────────────────────────────────────
       const gridShift = (t * 18) % 60
-      ctx.strokeStyle = 'rgba(160,20,20,0.045)'
+      ctx.strokeStyle = 'rgba(20,60,160,0.05)'
       ctx.lineWidth = 0.5
       for (let x = -60 + (gridShift % 60); x < W + 60; x += 60) {
         ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke()
@@ -93,9 +91,9 @@ export default function Background() {
       // ── Scan line ────────────────────────────────────────────────────
       const scanY = ((t * 60) % (H + 80)) - 40
       const scanGrad = ctx.createLinearGradient(0, scanY - 40, 0, scanY + 40)
-      scanGrad.addColorStop(0,   'rgba(230,48,48,0)')
-      scanGrad.addColorStop(0.5, 'rgba(230,48,48,0.04)')
-      scanGrad.addColorStop(1,   'rgba(230,48,48,0)')
+      scanGrad.addColorStop(0,   'rgba(59,130,246,0)')
+      scanGrad.addColorStop(0.5, 'rgba(59,130,246,0.04)')
+      scanGrad.addColorStop(1,   'rgba(59,130,246,0)')
       ctx.fillStyle = scanGrad
       ctx.fillRect(0, scanY - 40, W, 80)
 
@@ -131,17 +129,18 @@ export default function Background() {
         // Draw particle glow (grows on hover)
         const glowR = p.radius * (3 + B * 4)
         const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR)
-        grad.addColorStop(0, `rgba(255,100,100,${finalOpacity})`)
-        grad.addColorStop(1, `rgba(230,48,48,0)`)
+        grad.addColorStop(0, `rgba(100,160,255,${finalOpacity})`)
+        grad.addColorStop(1, `rgba(59,130,246,0)`)
         ctx.beginPath()
         ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2)
         ctx.fillStyle = grad
         ctx.fill()
 
         // Bright core
+        const coreR = (140 + B * 80) | 0
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.radius * (1 + B * 0.6), 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(255,${140 + B * 80 | 0},${140 + B * 80 | 0},${finalOpacity})`
+        ctx.fillStyle = `rgba(${coreR},${coreR + 40},255,${finalOpacity})`
         ctx.fill()
       }
 
@@ -156,10 +155,11 @@ export default function Background() {
           if (d > CONNECT_DIST) continue
 
           const alpha = (1 - d / CONNECT_DIST) * (0.22 + B * 0.4)
+          const g = (130 + B * 40) | 0
           ctx.beginPath()
           ctx.moveTo(a.x, a.y)
           ctx.lineTo(b.x, b.y)
-          ctx.strokeStyle = `rgba(230,${60 + B * 40 | 0},${60 + B * 40 | 0},${alpha})`
+          ctx.strokeStyle = `rgba(59,${g},246,${alpha})`
           ctx.lineWidth = 0.7 + B * 0.6
           ctx.stroke()
         }
@@ -174,7 +174,7 @@ export default function Background() {
             ctx.beginPath()
             ctx.moveTo(a.x, a.y)
             ctx.lineTo(mouse.x, mouse.y)
-            ctx.strokeStyle = `rgba(255,80,80,${alpha})`
+            ctx.strokeStyle = `rgba(80,150,255,${alpha})`
             ctx.lineWidth   = 0.9 + B * 0.8
             ctx.stroke()
           }
@@ -185,9 +185,9 @@ export default function Background() {
       if (B > 0.01) {
         const r1 = MOUSE_DIST * (1 + B * 0.5)
         const mg = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, r1)
-        mg.addColorStop(0,   `rgba(255,60,60,${0.10 * B})`)
-        mg.addColorStop(0.4, `rgba(230,48,48,${0.06 * B})`)
-        mg.addColorStop(1,   'rgba(230,48,48,0)')
+        mg.addColorStop(0,   `rgba(60,120,255,${0.10 * B})`)
+        mg.addColorStop(0.4, `rgba(59,130,246,${0.06 * B})`)
+        mg.addColorStop(1,   'rgba(59,130,246,0)')
         ctx.beginPath()
         ctx.arc(mouse.x, mouse.y, r1, 0, Math.PI * 2)
         ctx.fillStyle = mg

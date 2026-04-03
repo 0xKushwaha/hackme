@@ -20,16 +20,16 @@ const WORKFLOW_STEPS = [
 ]
 
 const AGENTS = [
-  { label: 'Explorer',       icon: '◉', color: '#7c6fcd', role: 'Data Scout' },
-  { label: 'Skeptic',        icon: '⚠', color: '#d46b8a', role: 'Quality Guard' },
-  { label: 'Statistician',   icon: '∑', color: '#4a9fd4', role: 'Numbers Expert' },
-  { label: 'Feature Eng.',   icon: '⟁', color: '#3db87a', role: 'Signal Extractor' },
-  { label: 'Ethicist',       icon: '⚖', color: '#d4874a', role: 'Bias Detector' },
-  { label: 'Pragmatist',     icon: '◈', color: '#c4a832', role: 'Reality Check' },
-  { label: 'Devil Adv.',     icon: '⛧', color: '#e63030', role: 'Critical Thinker' },
-  { label: 'Optimizer',      icon: '⚡', color: '#8a7cd4', role: 'Efficiency Expert' },
-  { label: 'Architect',      icon: '⬡', color: '#a86cd4', role: 'System Designer' },
-  { label: 'Storyteller',    icon: '✦', color: '#d4a8c4', role: 'Insight Narrator' },
+  { label: 'Explorer',       icon: '◉', color: '#38bdf8', role: 'Data Scout' },
+  { label: 'Skeptic',        icon: '⚠', color: '#fb7185', role: 'Quality Guard' },
+  { label: 'Statistician',   icon: '∑', color: '#3b82f6', role: 'Numbers Expert' },
+  { label: 'Feature Eng.',   icon: '⟁', color: '#818cf8', role: 'Signal Extractor' },
+  { label: 'Ethicist',       icon: '⚖', color: '#34d399', role: 'Bias Detector' },
+  { label: 'Pragmatist',     icon: '◈', color: '#fbbf24', role: 'Reality Check' },
+  { label: 'Devil Adv.',     icon: '⛧', color: '#f97316', role: 'Critical Thinker' },
+  { label: 'Optimizer',      icon: '⚡', color: '#2dd4bf', role: 'Efficiency Expert' },
+  { label: 'Architect',      icon: '⬡', color: '#c084fc', role: 'System Designer' },
+  { label: 'Final Report',   icon: '◎', color: '#f0c040', role: 'Pipeline Output' },
 ]
 
 // Typewriter hook
@@ -170,7 +170,7 @@ export default function Home() {
             letterSpacing: '-0.04em', marginBottom: 20,
           }}>
             <span className="gradient-text">Analyse any</span><br />
-            <span style={{ color: '#e63030' }}>dataset.</span>
+            <span style={{ color: '#3b82f6' }}>dataset.</span>
           </h1>
 
           <p style={{ color: 'rgba(255,255,255,0.28)', fontSize: 14.5, lineHeight: 1.75, maxWidth: 420, marginBottom: 40 }}>
@@ -215,7 +215,7 @@ export default function Home() {
           <AnimatePresence>
             {showCreds && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden' }}>
-                <div style={{ background: 'rgba(8,2,2,0.7)', backdropFilter: 'blur(20px)', border: '1px solid rgba(230,48,48,0.2)', borderRadius: 14, padding: 16, display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 4 }}>
+                <div style={{ background: 'rgba(2,8,20,0.7)', backdropFilter: 'blur(20px)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: 16, display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 4 }}>
                   <div className="label">Override API Key</div>
                   <input className="field" type="password" placeholder="Paste new key…" value={ovKey} onChange={e => setOvKey(e.target.value)} />
                   <button className="btn" style={{ padding: '9px 16px', fontSize: 12.5 }} onClick={saveCreds}>Save</button>
@@ -225,15 +225,15 @@ export default function Home() {
           </AnimatePresence>
 
           {/* Provider */}
-          <div style={{ background: 'rgba(8,2,2,0.55)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 18px' }}>
+          <div style={{ background: 'rgba(2,8,20,0.55)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 18px' }}>
             <div className="label" style={{ marginBottom: 10 }}>Provider</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
               {PROVIDERS.map(p => (
                 <button key={p.id} onClick={() => setProvider(p.id)} style={{
                   padding: '10px 6px', borderRadius: 10, cursor: 'pointer', textAlign: 'center',
-                  background: provider === p.id ? 'rgba(230,48,48,0.12)' : 'rgba(255,255,255,0.02)',
-                  border: `1px solid ${provider === p.id ? 'rgba(230,48,48,0.4)' : 'rgba(255,255,255,0.06)'}`,
-                  color: provider === p.id ? '#e63030' : 'rgba(255,255,255,0.28)',
+                  background: provider === p.id ? 'rgba(59,130,246,0.12)' : 'rgba(255,255,255,0.02)',
+                  border: `1px solid ${provider === p.id ? 'rgba(59,130,246,0.4)' : 'rgba(255,255,255,0.06)'}`,
+                  color: provider === p.id ? '#3b82f6' : 'rgba(255,255,255,0.28)',
                   transition: 'all 0.18s',
                   backdropFilter: 'blur(8px)',
                 }}>
@@ -246,7 +246,7 @@ export default function Home() {
           </div>
 
           {/* Auth */}
-          <div style={{ background: 'rgba(8,2,2,0.55)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 18px' }}>
+          <div style={{ background: 'rgba(2,8,20,0.55)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 18px' }}>
             {provider === 'local' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div className="label" style={{ marginBottom: 2 }}>Server Config</div>
@@ -308,7 +308,7 @@ export default function Home() {
           </div>
 
           {/* Goal */}
-          <div style={{ background: 'rgba(8,2,2,0.55)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 18px' }}>
+          <div style={{ background: 'rgba(2,8,20,0.55)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 18px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.15)', fontFamily: "'JetBrains Mono',monospace" }}>&gt;</span>
               <div className="label">Task Description <span style={{ textTransform: 'none', fontSize: 10, color: 'rgba(255,255,255,0.15)', letterSpacing: 0 }}>— optional</span></div>
@@ -320,7 +320,7 @@ export default function Home() {
           <AnimatePresence>
             {errors.length > 0 && (
               <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(230,48,48,0.07)', border: '1px solid rgba(230,48,48,0.22)', backdropFilter: 'blur(8px)' }}>
+                style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(59,130,246,0.07)', border: '1px solid rgba(59,130,246,0.22)', backdropFilter: 'blur(8px)' }}>
                 {errors.map((e, i) => <p key={i} style={{ fontSize: 12.5, color: '#f87171' }}>✕ {e}</p>)}
               </motion.div>
             )}

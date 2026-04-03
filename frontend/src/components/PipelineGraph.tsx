@@ -9,15 +9,15 @@ export interface NodeData {
 }
 
 export const PIPELINE_NODES: Omit<NodeData, 'content'>[] = [
-  { key: 'explorer',         label: 'Explorer',        icon: '◉', color: '#7c6fcd', role: 'Data Scout',        description: 'Scans structure, finds patterns and key features.' },
-  { key: 'skeptic',          label: 'Skeptic',          icon: '⚠', color: '#d46b8a', role: 'Quality Guard',     description: 'Challenges assumptions, flags anomalies and leakage.' },
-  { key: 'statistician',     label: 'Statistician',     icon: '∑', color: '#4a9fd4', role: 'Numbers Expert',    description: 'Distributions, correlations, hypothesis testing.' },
-  { key: 'ethicist',         label: 'Ethicist',         icon: '⚖', color: '#d4874a', role: 'Bias Detector',     description: 'Evaluates fairness and ethical implications.' },
-  { key: 'feature_engineer', label: 'Feature Eng.',     icon: '⟁', color: '#3db87a', role: 'Signal Extractor',  description: 'New features, encodings, and transformations.' },
-  { key: 'pragmatist',       label: 'Pragmatist',       icon: '◈', color: '#c4a832', role: 'Reality Check',     description: 'Model plan — which models, eval metric, split.' },
-  { key: 'devil_advocate',   label: 'Devil Adv.',       icon: '⛧', color: '#e63030', role: 'Critical Thinker',  description: 'Stress-tests the plan, proposes alternatives.' },
-  { key: 'optimizer',        label: 'Optimizer',        icon: '⚡', color: '#8a7cd4', role: 'Efficiency Expert', description: 'Hyperparameter tuning, CV strategy, ensembles.' },
-  { key: 'architect',        label: 'Architect',        icon: '⬡', color: '#a86cd4', role: 'System Designer',   description: 'Research-backed architecture with arxiv references.' },
+  { key: 'explorer',         label: 'Explorer',        icon: '◉', color: '#38bdf8', role: 'Data Scout',        description: 'Scans structure, finds patterns and key features.' },
+  { key: 'skeptic',          label: 'Skeptic',          icon: '⚠', color: '#fb7185', role: 'Quality Guard',     description: 'Challenges assumptions, flags anomalies and leakage.' },
+  { key: 'statistician',     label: 'Statistician',     icon: '∑', color: '#3b82f6', role: 'Numbers Expert',    description: 'Distributions, correlations, hypothesis testing.' },
+  { key: 'ethicist',         label: 'Ethicist',         icon: '⚖', color: '#34d399', role: 'Bias Detector',     description: 'Evaluates fairness and ethical implications.' },
+  { key: 'feature_engineer', label: 'Feature Eng.',     icon: '⟁', color: '#818cf8', role: 'Signal Extractor',  description: 'New features, encodings, and transformations.' },
+  { key: 'pragmatist',       label: 'Pragmatist',       icon: '◈', color: '#fbbf24', role: 'Reality Check',     description: 'Model plan — which models, eval metric, split.' },
+  { key: 'devil_advocate',   label: 'Devil Adv.',       icon: '⛧', color: '#f97316', role: 'Critical Thinker',  description: 'Stress-tests the plan, proposes alternatives.' },
+  { key: 'optimizer',        label: 'Optimizer',        icon: '⚡', color: '#2dd4bf', role: 'Efficiency Expert', description: 'Hyperparameter tuning, CV strategy, ensembles.' },
+  { key: 'architect',        label: 'Architect',        icon: '⬡', color: '#c084fc', role: 'System Designer',   description: 'Research-backed architecture with arxiv references.' },
   { key: 'final_report',     label: 'Final Report',     icon: '◎', color: '#f0c040', role: 'Pipeline Output',   description: 'Complete analysis: findings, metrics, recommendations.' },
 ]
 
@@ -254,7 +254,7 @@ export default function PipelineGraph({ activeAgent, doneAgents, done, nodes, se
       {selMeta && !hasContent && (
         <div onClick={e => e.stopPropagation()} style={{
           position: 'absolute', top: 16, right: 16, width: 250, zIndex: 20,
-          background: 'rgba(4,1,1,0.92)', backdropFilter: 'blur(24px)',
+          background: 'rgba(2,6,18,0.92)', backdropFilter: 'blur(24px)',
           border: `1px solid ${selMeta.color}40`, borderRadius: 14, overflow: 'hidden',
           boxShadow: `0 16px 48px rgba(0,0,0,0.6), 0 0 32px ${selMeta.color}18`,
         }}>
@@ -290,7 +290,7 @@ export default function PipelineGraph({ activeAgent, doneAgents, done, nodes, se
       <div style={{ position: 'absolute', bottom: 20, left: 20, display: 'flex', gap: 18, alignItems: 'center' }}>
         {[
           { color: 'rgba(255,255,255,0.2)', label: 'Pending' },
-          { color: '#7c6fcd',               label: 'Active'  },
+          { color: '#3b82f6',               label: 'Active'  },
           { color: '#34d399',               label: 'Done'    },
         ].map(l => (
           <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

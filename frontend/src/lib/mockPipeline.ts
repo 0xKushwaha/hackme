@@ -405,6 +405,29 @@ experiments/
 - **Retraining cadence:** monthly or on drift alert`,
   },
   {
+    agent: 'final_report', role: 'final', metadata: {},
+    content: `## Final Analysis Report
+
+### Pipeline Summary
+The multi-agent pipeline successfully analysed the telecom churn dataset and produced a production-ready ML solution.
+
+### Key Findings
+- **Best model:** XGBoost (ROC-AUC 0.874, F2-score 0.71)
+- **Primary churn driver:** Month-to-month contracts (3.6× higher churn than 2-year)
+- **Data quality:** 7.4/10 — TotalCharges nulls safely imputed; leakage risk mitigated via feature engineering
+- **Top engineered feature:** \`charge_per_tenure\` — outperforms raw MonthlyCharges by 11% importance
+- **Ethical concerns addressed:** No protected attributes used; model audited for disparate impact
+
+### Action Plan
+1. Deploy FastAPI \`/predict\` endpoint with sklearn Pipeline artifact
+2. Trigger retention outreach for customers scoring > 0.5 churn probability
+3. Prioritise segment: month-to-month + tenure < 12mo + charges > $65
+4. Monitor with PSI drift detection; retrain monthly or on PSI > 0.2
+
+### Expected Business Impact
+Retaining 200 additional at-risk customers per quarter = **$240K annual revenue protection** at $1,200 average LTV.`,
+  },
+  {
     agent: 'storyteller', role: 'narrative', metadata: {},
     content: `## Executive Summary
 

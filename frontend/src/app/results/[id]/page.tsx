@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { MOCK_RESULT_ENTRIES } from '@/lib/mockPipeline'
+import ResultsGraph from '@/components/ResultsGraph'
 
 const API = 'http://localhost:8000'
 
@@ -22,6 +23,7 @@ const AGENT_META: Record<string, { label: string; icon: string; color: string; r
   optimizer:        { label: 'Optimizer',        icon: '⚡', color: '#8a7cd4', role: 'Efficiency Expert'},
   architect:        { label: 'Architect',        icon: '⬡', color: '#a86cd4', role: 'System Designer'  },
   storyteller:      { label: 'Storyteller',      icon: '✦', color: '#d4a8c4', role: 'Insight Narrator' },
+  final_report:     { label: 'Final Report',     icon: '★', color: '#f0c040', role: 'Pipeline Output'   },
   compactor:        { label: 'Compactor',        icon: '◎', color: '#888',    role: 'Context Manager'  },
   system:           { label: 'System',           icon: '◌', color: '#666',    role: 'Context'          },
   data_profiler:    { label: 'Data Profiler',    icon: '⊙', color: '#22d3ee', role: 'Auto Profiler'    },
@@ -33,7 +35,7 @@ function agentKey(raw: string): string {
 
 interface NodeData { key: string; label: string; icon: string; color: string; role: string; content: string }
 
-type ResultView = 'cards' | 'report'
+type ResultView = 'cards' | 'report' | 'graph' | 'summary'
 
 export default function ResultsPage() {
   const { id }  = useParams<{ id: string }>()
@@ -42,7 +44,7 @@ export default function ResultsPage() {
   const [result,     setResult]     = useState<{ run_id: string; entries: Entry[]; error?: string } | null>(null)
   const [loading,    setLoading]    = useState(true)
   const [selected,   setSelected]   = useState<NodeData | null>(null)
-  const [resultView, setResultView] = useState<ResultView>('cards')
+  const [resultView, setResultView] = useState<ResultView>('graph')
 
   useEffect(() => {
     // Test mode — use mock data instantly, no API call
@@ -147,16 +149,28 @@ export default function ResultsPage() {
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {/* View toggle */}
           <div className="view-toggle">
-            <button className={resultView === 'cards' ? 'active' : ''} onClick={() => setResultView('cards')}>Agents</button>
-            <button className={resultView === 'report' ? 'active' : ''} onClick={() => setResultView('report')}>Report</button>
+            <button className={resultView === 'graph'   ? 'active' : ''} onClick={() => setResultView('graph')}>Graph</button>
+            <button className={resultView === 'summary' ? 'active' : ''} onClick={() => setResultView('summary')}>Summary</button>
+            <button className={resultView === 'cards'   ? 'active' : ''} onClick={() => setResultView('cards')}>Agents</button>
+            <button className={resultView === 'report'  ? 'active' : ''} onClick={() => setResultView('report')}>Report</button>
           </div>
           <button className="btn-outline" onClick={downloadReport} style={{ fontSize: 11.5, padding: '6px 14px' }}>↓ Export .md</button>
           <button className="btn-ghost" onClick={() => router.push('/')} style={{ fontSize: 11.5, padding: '6px 12px' }}>← Home</button>
         </div>
       </nav>
 
+      {/* Graph view — full screen */}
+      {resultView === 'graph' && (
+        <>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 0, background: 'radial-gradient(ellipse at 40% 50%, #0c0818 0%, #06020e 55%, #030008 100%)' }} />
+          <div style={{ position: 'fixed', inset: 0, top: 60, zIndex: 1 }}>
+            <ResultsGraph nodes={nodes} />
+          </div>
+        </>
+      )}
+
       {/* Main content */}
-      <div style={{ flex: 1, paddingTop: 80, maxWidth: 1200, margin: '0 auto', width: '100%', position: 'relative', zIndex: 10 }}>
+      <div style={{ flex: 1, paddingTop: 80, maxWidth: 1200, margin: '0 auto', width: '100%', position: 'relative', zIndex: 10, display: resultView === 'graph' ? 'none' : 'flex', flexDirection: 'column' }}>
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ padding: '28px 32px 0' }}>
@@ -297,6 +311,11 @@ export default function ResultsPage() {
             </div>
           </motion.div>
         )}
+        {/* Summary view */}
+        {resultView === 'summary' && (
+          <SummaryView nodes={nodes} />
+        )}
+
       </div>
 
       {/* Selected agent drawer */}
@@ -352,6 +371,122 @@ export default function ResultsPage() {
         )}
       </AnimatePresence>
     </div>
+  )
+}
+
+// ── Summary view ─────────────────────────────────────────────────────────────
+function extractBullets(content: string, max = 4): string[] {
+  const lines = content.split('\n')
+  const bullets: string[] = []
+  for (const line of lines) {
+    const m = line.match(/^[-*•]\s+(.+)/) ?? line.match(/^\d+\.\s+(.+)/)
+    if (m) { bullets.push(m[1].trim()); if (bullets.length >= max) break }
+  }
+  if (bullets.length === 0) {
+    // Fallback: first non-heading sentence
+    const plain = content.replace(/#+\s[^\n]*/g, '').trim()
+    const sentence = plain.split(/\.\s+/)[0]
+    if (sentence) bullets.push(sentence.trim())
+  }
+  return bullets
+}
+
+function SummaryCard({ node, bullets }: { node: NodeData; bullets: string[] }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      style={{
+        padding: '18px 20px',
+        borderRadius: 16,
+        background: 'rgba(8,2,2,0.55)',
+        backdropFilter: 'blur(18px)',
+        border: `1px solid ${node.color}18`,
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${node.color}, transparent)` }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+        <div style={{
+          width: 34, height: 34, borderRadius: 10,
+          background: `${node.color}14`, border: `1px solid ${node.color}30`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 15, color: node.color, flexShrink: 0,
+        }}>{node.icon}</div>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: node.color }}>{node.label}</div>
+          <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.25)' }}>{node.role}</div>
+        </div>
+      </div>
+      <ul style={{ margin: 0, paddingLeft: 16 }}>
+        {bullets.map((b, i) => (
+          <li key={i} style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.65, marginBottom: 4, fontFamily: "'Inter',sans-serif" }}>
+            {b}
+          </li>
+        ))}
+      </ul>
+    </motion.div>
+  )
+}
+
+const SUMMARY_AGENTS = ['storyteller', 'statistician', 'skeptic', 'ethicist', 'optimizer', 'architect', 'devil_advocate', 'feature_engineer', 'explorer', 'pragmatist']
+
+function SummaryView({ nodes }: { nodes: NodeData[] }) {
+  const nodeMap = Object.fromEntries(nodes.map(n => [n.key, n]))
+
+  // Hero: storyteller first
+  const hero = nodeMap['storyteller'] ?? nodes[0]
+  const heroLines = hero ? extractBullets(hero.content, 5) : []
+
+  const rest = SUMMARY_AGENTS.filter(k => k !== 'storyteller' && nodeMap[k])
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ padding: '0 32px 60px' }}>
+      {/* Hero card */}
+      {hero && (
+        <div style={{
+          marginBottom: 24,
+          padding: '24px 28px',
+          borderRadius: 18,
+          background: `${hero.color}08`,
+          border: `1px solid ${hero.color}25`,
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${hero.color}, ${hero.color}33)` }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+            <div style={{
+              width: 48, height: 48, borderRadius: 14,
+              background: `${hero.color}18`, border: `1px solid ${hero.color}35`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 22, color: hero.color,
+            }}>{hero.icon}</div>
+            <div>
+              <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 17, color: hero.color }}>{hero.label}</div>
+              <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>Key Takeaways</div>
+            </div>
+          </div>
+          <ul style={{ margin: 0, paddingLeft: 18 }}>
+            {heroLines.map((b, i) => (
+              <li key={i} style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.7)', lineHeight: 1.7, marginBottom: 6 }}>{b}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Grid of remaining agents */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
+        {rest.map((k, i) => {
+          const n = nodeMap[k]!
+          return (
+            <motion.div key={k} transition={{ delay: i * 0.04 }}>
+              <SummaryCard node={n} bullets={extractBullets(n.content, 4)} />
+            </motion.div>
+          )
+        })}
+      </div>
+    </motion.div>
   )
 }
 

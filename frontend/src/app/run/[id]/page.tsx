@@ -2,423 +2,325 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
-import AgentGraph from '@/components/AgentGraph'
-import { MOCK_STEPS, MOCK_INIT_LINES } from '@/lib/mockPipeline'
+import { motion } from 'framer-motion'
+import PipelineGraph, { PIPELINE_NODES, NodeData } from '@/components/PipelineGraph'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import { MOCK_STEPS, MOCK_RESULT_ENTRIES } from '@/lib/mockPipeline'
 
 const API = 'http://localhost:8000'
 
-const AGENTS: Record<string, { label: string; role: string; description: string; icon: string; color: string }> = {
-  explorer:         { label: 'Explorer',        role: 'Data Scout',        description: 'Scans dataset structure, file formats, and surface-level patterns to build a complete picture.',          icon: '◉', color: '#7c6fcd' },
-  skeptic:          { label: 'Skeptic',          role: 'Quality Guard',     description: 'Challenges every assumption and flags data anomalies, inconsistencies, and quality issues.',             icon: '⚠', color: '#d46b8a' },
-  statistician:     { label: 'Statistician',     role: 'Numbers Expert',    description: 'Computes distributions, correlations, significance tests and full statistical summaries.',              icon: '∑', color: '#4a9fd4' },
-  feature_engineer: { label: 'Feature Engineer', role: 'Signal Extractor',  description: 'Identifies predictive features, transformations, and encoding strategies for maximum performance.',    icon: '⟁', color: '#3db87a' },
-  ethicist:         { label: 'Ethicist',         role: 'Bias Detector',     description: 'Evaluates fairness, bias risks, and ethical implications across the dataset and model.',               icon: '⚖', color: '#d4874a' },
-  pragmatist:       { label: 'Pragmatist',       role: 'Reality Check',     description: 'Balances complexity vs. feasibility and ensures the plan is actionable in the real world.',            icon: '◈', color: '#c4a832' },
-  devil_advocate:   { label: 'Devil Advocate',   role: 'Critical Thinker',  description: 'Argues against prevailing conclusions to stress-test ideas and surface hidden failure modes.',         icon: '⛧', color: '#e63030' },
-  optimizer:        { label: 'Optimizer',        role: 'Efficiency Expert', description: 'Identifies hyperparameter strategies, ensemble methods, and performance optimization paths.',          icon: '⚡', color: '#8a7cd4' },
-  architect:        { label: 'Architect',        role: 'System Designer',   description: 'Designs overall model architecture and end-to-end pipeline structure.',                                icon: '⬡', color: '#a86cd4' },
-  storyteller:      { label: 'Storyteller',      role: 'Insight Narrator',  description: 'Synthesises all findings into coherent narratives and final actionable reports.',                      icon: '✦', color: '#d4a8c4' },
+function agentKey(raw: string): string {
+  return raw?.toLowerCase().replace(/[\s']+/g, '_').replace(/[^a-z_]/g, '') ?? 'unknown'
 }
 
-const ALL_AGENTS = Object.keys(AGENTS)
-
-const PHASES = [
-  { id: 'discovery',      label: 'Discovery',          short: 'DSC' },
-  { id: 'understanding',  label: 'Data Understanding', short: 'P1' },
-  { id: 'design',         label: 'Model Design',       short: 'P2' },
-  { id: 'generation',     label: 'Code Generation',    short: 'P3' },
-  { id: 'complete',       label: 'Complete',            short: '✓' },
-]
-
-function phaseIndex(phase: string): number {
-  const l = phase.toLowerCase()
-  if (l.includes('complete'))                              return 4
-  if (l.includes('code') || l.includes('generation') || l.includes('phase 3')) return 3
-  if (l.includes('design') || l.includes('phase 2'))       return 2
-  if (l.includes('understand') || l.includes('phase 1'))   return 1
-  if (l.includes('discovery'))                              return 0
-  if (l.includes('initializ'))                              return -1
-  return -1
+function buildNodes(entries: { agent: string; role: string; content: string }[]): NodeData[] {
+  const contentMap = new Map<string, string>()
+  entries.forEach(e => {
+    const k = agentKey(e.agent)
+    if (!contentMap.has(k) && e.content && e.role !== 'task') contentMap.set(k, e.content)
+  })
+  return PIPELINE_NODES.map(n => ({ ...n, content: contentMap.get(n.key) ?? '' }))
 }
 
-function parsePhaseLabel(phase: string): string {
-  const l = phase.toLowerCase()
-  if (l.includes('understand') || l.includes('phase 1')) return 'Data Understanding'
-  if (l.includes('design')     || l.includes('phase 2')) return 'Model Design'
-  if (l.includes('code') || l.includes('generation') || l.includes('phase 3')) return 'Code Generation'
-  if (l.includes('discovery'))                            return 'Discovery'
-  if (l.includes('initializ'))                            return 'Initialising'
-  return phase.charAt(0).toUpperCase() + phase.slice(1).toLowerCase()
-}
-
-function logColor(line: string): string {
-  if (line.includes('✅') || line.includes('SUCCESS')) return '#34d399'
-  if (line.includes('❌') || line.includes('ERROR'))   return '#f87171'
-  if (line.includes('⚠') || line.includes('WARNING')) return '#f59e0b'
-  if (line.includes('Phase'))                           return 'rgba(255,255,255,0.65)'
-  if (line.includes('[') && line.includes(']'))         return 'rgba(255,255,255,0.4)'
-  return 'rgba(255,255,255,0.25)'
-}
-
-type ViewMode = 'grid' | 'split' | 'log' | 'graph'
-
-// Agent card
-function AgentCard({ name, isCurrent, isDone }: { name: string; isCurrent: boolean; isDone: boolean }) {
-  const a = AGENTS[name]
-  if (!a) return null
-  return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      style={{
-        padding: '13px 15px', borderRadius: 13, position: 'relative', overflow: 'hidden',
-        background: isDone   ? 'rgba(52,211,153,0.06)'
-                  : isCurrent ? `${a.color}0f`
-                  : 'rgba(255,255,255,0.02)',
-        backdropFilter: 'blur(12px)',
-        border: `1px solid ${isDone ? 'rgba(52,211,153,0.22)' : isCurrent ? `${a.color}35` : 'rgba(255,255,255,0.05)'}`,
-        boxShadow: isCurrent ? `0 0 20px ${a.color}15` : 'none',
-        transition: 'all 0.4s ease',
-      }}
-    >
-      {isCurrent && (
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, overflow: 'hidden' }}>
-          <motion.div
-            style={{ height: '100%', width: '40%', background: `linear-gradient(90deg, transparent, ${a.color}, transparent)` }}
-            animate={{ x: ['-100%', '350%'] }}
-            transition={{ repeat: Infinity, duration: 1.8, ease: 'linear' }}
-          />
-        </div>
-      )}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{
-          width: 32, height: 32, borderRadius: 9, flexShrink: 0,
-          background: isDone ? 'rgba(52,211,153,0.1)' : `${a.color}15`,
-          border: `1px solid ${isDone ? 'rgba(52,211,153,0.25)' : `${a.color}28`}`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 14, color: isDone ? '#34d399' : a.color,
-        }}>
-          {isDone ? '✓' : a.icon}
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 12.5, fontWeight: 600, color: isDone ? '#34d399' : isCurrent ? a.color : 'rgba(255,255,255,0.35)', transition: 'color 0.3s' }}>
-              {a.label}
-            </span>
-            {isCurrent && (
-              <span style={{ display: 'flex', gap: 2.5 }}>
-                {[0,1,2].map(i => <span key={i} style={{ width: 3.5, height: 3.5, borderRadius: '50%', background: a.color, display: 'inline-block', animation: `pulse-dot 1.2s ${i*0.2}s ease infinite` }} />)}
-              </span>
-            )}
-          </div>
-          <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.2)', marginTop: 1 }}>{a.role}</div>
-        </div>
-      </div>
-    </motion.div>
-  )
-}
-
-// Agent popup
-function AgentPopup({ name }: { name: string }) {
-  const a = AGENTS[name]
-  if (!a) return null
-  return (
-    <motion.div
-      key={name}
-      initial={{ opacity: 0, y: 24, scale: 0.94 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 12, scale: 0.96 }}
-      transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
-      style={{
-        position: 'fixed', bottom: 28, right: 28, zIndex: 60,
-        width: 300,
-        background: 'rgba(6,2,2,0.72)',
-        backdropFilter: 'blur(28px)',
-        border: `1px solid ${a.color}38`,
-        borderRadius: 18, overflow: 'hidden',
-        boxShadow: `0 24px 64px rgba(0,0,0,0.55), 0 0 0 1px ${a.color}12, 0 8px 32px ${a.color}14`,
-      }}
-    >
-      <div style={{ height: 2, background: `linear-gradient(90deg, ${a.color}, ${a.color}30)` }} />
-      <div style={{ padding: '16px 18px 18px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-          <div style={{
-            width: 42, height: 42, borderRadius: 11, flexShrink: 0,
-            background: `${a.color}12`, border: `1px solid ${a.color}35`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 19, color: a.color, boxShadow: `0 0 18px ${a.color}25`,
-          }}>
-            {a.icon}
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 15, color: a.color }}>{a.label}</div>
-            <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.28)', marginTop: 1 }}>{a.role}</div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: a.color, display: 'inline-block', animation: 'pulse-dot 1.4s ease infinite', boxShadow: `0 0 7px ${a.color}` }} />
-            <span style={{ fontSize: 9.5, color: a.color, fontFamily: "'JetBrains Mono',monospace", letterSpacing: '0.08em' }}>LIVE</span>
-          </div>
-        </div>
-        <div style={{ height: 1, background: `${a.color}15`, marginBottom: 12 }} />
-        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.38)', lineHeight: 1.65 }}>{a.description}</p>
-        <div style={{ marginTop: 14, height: 2, borderRadius: 2, background: 'rgba(255,255,255,0.05)', overflow: 'hidden' }}>
-          <motion.div
-            style={{ height: '100%', width: '35%', background: `linear-gradient(90deg, transparent, ${a.color}, transparent)` }}
-            animate={{ x: ['-100%', '400%'] }}
-            transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
-          />
-        </div>
-      </div>
-    </motion.div>
-  )
-}
-
-// Log panel component
-function LogPanel({ logLines, logRef }: { logLines: string[]; logRef: React.RefObject<HTMLDivElement> }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.15)', fontFamily: "'JetBrains Mono',monospace" }}>$</span>
-          <span style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.25)', fontFamily: "'JetBrains Mono',monospace", letterSpacing: '0.1em' }}>LIVE LOG</span>
-        </div>
-        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.15)', fontFamily: "'JetBrains Mono',monospace" }}>{logLines.length} lines</span>
-      </div>
-      <div ref={logRef} style={{ flex: 1, overflow: 'auto', padding: '10px 18px', display: 'flex', flexDirection: 'column', gap: 1 }}>
-        {logLines.map((line, i) => (
-          <div key={i} style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10.5, color: logColor(line), lineHeight: 1.75, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{line}</div>
-        ))}
-      </div>
-    </div>
-  )
-}
+type View = 'graph' | 'summary'
 
 export default function RunPage() {
-  const { id }   = useParams<{ id: string }>()
-  const router   = useRouter()
-  const [phase,        setPhase]        = useState('Initialising')
+  const { id }  = useParams<{ id: string }>()
+  const router  = useRouter()
+
   const [activeAgent,  setActiveAgent]  = useState('')
-  const [activeAgents, setActiveAgents] = useState<string[]>([])
   const [doneAgents,   setDoneAgents]   = useState<string[]>([])
   const [done,         setDone]         = useState(false)
   const [error,        setError]        = useState('')
-  const [logLines,     setLogLines]     = useState<string[]>([])
-  const [viewMode,     setViewMode]     = useState<ViewMode>('graph')
-  const cursorRef = useRef(0); const doneRef = useRef(false)
-  const timerRef  = useRef<NodeJS.Timeout | null>(null)
-  const linesRef  = useRef<string[]>([])
-  const logRef    = useRef<HTMLDivElement>(null)
+  const [nodes,        setNodes]        = useState<NodeData[]>([])
+  const [view,         setView]         = useState<View>('graph')
+  const [selectedNode, setSelectedNode] = useState<string | null>(null)
 
-  const currentPhaseIdx = phaseIndex(phase)
+  const doneRef  = useRef(false)
+  const cursorRef = useRef(0)
+  const timerRef  = useRef<NodeJS.Timeout | null>(null)
+
+  const downloadReport = useCallback(() => {
+    const lines: string[] = []
+    for (const n of nodes) {
+      if (!n.content) continue
+      lines.push(`# ${n.label}\n\n${n.content}\n\n---\n`)
+    }
+    if (!lines.length) return
+    const blob = new Blob([lines.join('\n')], { type: 'text/markdown' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href = url; a.download = `analysis_${id}.md`; a.click()
+    URL.revokeObjectURL(url)
+  }, [nodes, id])
 
   const isTest = id.startsWith('test-')
 
-  // ── Mock simulator (test mode — no API calls) ──────────────────────
+  // ── Mock simulator ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!isTest) return
     let cancelled = false
-    const addLines = (lines: string[]) => {
-      linesRef.current = [...linesRef.current, ...lines.filter(l => l.trim())].slice(-600)
-      setLogLines([...linesRef.current])
-    }
     const delay = (ms: number) => new Promise<void>(r => setTimeout(r, ms))
 
     const run = async () => {
-      addLines(MOCK_INIT_LINES)
-      await delay(800)
-
+      await delay(600)
       const doneSoFar: string[] = []
       for (const step of MOCK_STEPS) {
         if (cancelled) return
         setActiveAgent(step.agent)
-        setActiveAgents(prev => prev.includes(step.agent) ? prev : [...prev, step.agent])
-        addLines(step.lines)
         await delay(step.durationMs)
         if (cancelled) return
         doneSoFar.push(step.agent)
         setDoneAgents([...doneSoFar])
         setActiveAgent('')
       }
-
       if (cancelled) return
-      addLines(['', '✅ Pipeline complete. Generating results…'])
-      setPhase('Complete')
       doneRef.current = true
       setDone(true)
-      setTimeout(() => { if (!cancelled) router.push(`/results/${id}`) }, 2500)
+      setNodes(buildNodes(MOCK_RESULT_ENTRIES))
     }
 
     run()
     return () => { cancelled = true }
-  }, [isTest, id, router])
+  }, [isTest, id])
 
-  // ── Real poll (non-test mode) ───────────────────────────────────────
+  // ── Real poll ───────────────────────────────────────────────────────────────
   const poll = useCallback(async () => {
     if (doneRef.current) return
     try {
       const r = await fetch(`${API}/api/poll/${id}?cursor=${cursorRef.current}`)
       const d = await r.json()
-      if (d.lines?.length) { linesRef.current = [...linesRef.current, ...d.lines].slice(-600); setLogLines([...linesRef.current]) }
       cursorRef.current = d.cursor ?? cursorRef.current
       if (d.agent) setActiveAgent(d.agent)
-      if (d.everActive?.length) setActiveAgents(d.everActive as string[])
       if (d.doneAgents?.length) setDoneAgents(d.doneAgents as string[])
       if (d.done) {
         doneRef.current = true; setDone(true)
-        if (d.error) setError(d.error)
-        else { setPhase('Complete'); setTimeout(() => router.push(`/results/${id}`), 2500) }
+        if (d.error) {
+          setError(d.error)
+        } else {
+          // Fetch full results to populate node content
+          try {
+            const res  = await fetch(`${API}/api/result/${id}`)
+            const data = await res.json()
+            if (data.entries) setNodes(buildNodes(data.entries))
+          } catch {}
+        }
       }
     } catch {}
     if (!doneRef.current) timerRef.current = setTimeout(poll, 1500)
-  }, [id, router, activeAgents])
+  }, [id])
 
   useEffect(() => {
-    if (isTest) return   // mock handles its own loop
+    if (isTest) return
     poll()
     return () => { if (timerRef.current) clearTimeout(timerRef.current) }
   }, [poll, isTest])
-  useEffect(() => { if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight }, [logLines])
-
-  const progress = doneAgents.length / ALL_AGENTS.length
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
+    <div style={{ minHeight: '100vh', position: 'relative', zIndex: 1 }}>
 
-      {/* Floating nav */}
-      <div style={{
-        position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)',
-        zIndex: 50, width: 'calc(100% - 48px)', maxWidth: 1200,
-        background: 'rgba(6,2,2,0.65)', backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255,255,255,0.07)', borderRadius: 13,
-        padding: '11px 20px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          {/* View mode toggle */}
-          <div className="view-toggle">
-            <button className={viewMode === 'grid' ? 'active' : ''} onClick={() => setViewMode('grid')}>Grid</button>
-            <button className={viewMode === 'split' ? 'active' : ''} onClick={() => setViewMode('split')}>Split</button>
-            <button className={viewMode === 'log' ? 'active' : ''} onClick={() => setViewMode('log')}>Log</button>
-            <button className={viewMode === 'graph' ? 'active' : ''} onClick={() => setViewMode('graph')}>Graph</button>
-          </div>
-          <button className="btn-ghost" onClick={() => router.push('/')} style={{ fontSize: 11, padding: '5px 12px' }}>← Home</button>
+      {/* Background */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0, background: 'radial-gradient(ellipse at 40% 50%, #0c0818 0%, #06020e 55%, #030008 100%)' }} />
+
+      {/* Graph — always full screen */}
+      {view === 'graph' && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1 }}>
+          <PipelineGraph
+            activeAgent={activeAgent} doneAgents={doneAgents} done={done} nodes={nodes}
+            selectedKey={selectedNode} onSelect={setSelectedNode}
+          />
         </div>
-      </div>
+      )}
 
-      {/* Body */}
-      <div style={{ flex: 1, display: 'flex', paddingTop: 76 }}>
-
-        {/* Agent grid area — visible in grid & split modes */}
-        {(viewMode === 'grid' || viewMode === 'split') && (
-          <div style={{ flex: 1, padding: '28px 32px', overflowY: 'auto' }}>
-
-            {/* Stats row */}
-            <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
-              {[
-                { label: 'Run', value: id },
-                { label: 'Phase', value: phase },
-                { label: 'Active', value: `${activeAgents.length} agents` },
-                { label: 'Done', value: `${doneAgents.length} / ${ALL_AGENTS.length}` },
-              ].map(s => (
-                <div key={s.label} style={{
-                  padding: '8px 14px', borderRadius: 10,
-                  background: 'rgba(255,255,255,0.02)',
-                  backdropFilter: 'blur(12px)',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                }}>
-                  <div className="label" style={{ marginBottom: 3 }}>{s.label}</div>
-                  <div style={{ fontSize: 12.5, fontFamily: "'JetBrains Mono',monospace", color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.value}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Progress bar */}
-            <div style={{ marginBottom: 24 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span className="label">Progress</span>
-                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', fontFamily: "'JetBrains Mono',monospace" }}>
-                  {done ? 'COMPLETE' : `${Math.round(progress * 100)}%`}
-                </span>
-              </div>
-              <div style={{ height: 4, borderRadius: 4, background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
-                <motion.div
-                  style={{ height: '100%', borderRadius: 4, background: done ? '#34d399' : 'linear-gradient(90deg, #e63030, #ff5555)' }}
-                  animate={{ width: `${done ? 100 : Math.max(2, progress * 100)}%` }}
-                  transition={{ duration: 0.6 }}
-                />
-              </div>
-            </div>
-
-            {/* Agent cards */}
-            <div className="label" style={{ marginBottom: 12 }}>Agents</div>
-            <motion.div layout style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 9 }}>
-              {ALL_AGENTS.map(name => (
-                <AgentCard key={name} name={name} isCurrent={activeAgent === name} isDone={doneAgents.includes(name)} />
-              ))}
-            </motion.div>
-
-            {/* Done */}
-            <AnimatePresence>
-              {done && !error && (
-                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-                  style={{ marginTop: 28, padding: '20px 24px', borderRadius: 14, background: 'rgba(52,211,153,0.06)', backdropFilter: 'blur(16px)', border: '1px solid rgba(52,211,153,0.18)', display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <span style={{ fontSize: 26, color: '#34d399' }}>✦</span>
-                  <div>
-                    <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 16, color: '#34d399' }}>Analysis Complete</div>
-                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>Loading results…</div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Error */}
-            <AnimatePresence>
-              {error && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  style={{ marginTop: 24, padding: '18px 22px', borderRadius: 14, background: 'rgba(230,48,48,0.06)', backdropFilter: 'blur(16px)', border: '1px solid rgba(230,48,48,0.22)' }}>
-                  <div style={{ fontSize: 13, color: '#f87171', fontWeight: 600, marginBottom: 10 }}>Pipeline Failed</div>
-                  <pre style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: 180, overflow: 'auto', fontFamily: "'JetBrains Mono',monospace" }}>{error}</pre>
-                  <button className="btn-ghost" onClick={() => router.push('/')} style={{ marginTop: 12, fontSize: 12 }}>← Return Home</button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
-
-        {/* Graph panel — full-screen force-directed agent graph */}
-        {viewMode === 'graph' && (
+      {/* Output drawer — rendered at root level to escape graph's stacking context */}
+      {(() => {
+        const selNode = selectedNode ? nodes.find(n => n.key === selectedNode) : null
+        if (!selNode?.content) return null
+        return (
           <>
-            {/* Suppress constellation, replace with clean dark gradient */}
-            <div style={{ position: 'fixed', inset: 0, zIndex: 0, background: 'radial-gradient(ellipse at 40% 50%, #0c0818 0%, #06020e 55%, #030008 100%)' }} />
-            <div style={{ position: 'fixed', inset: 0, top: 60, zIndex: 1 }}>
-              <AgentGraph activeAgent={activeAgent} doneAgents={doneAgents} done={done} />
+            <div onClick={() => setSelectedNode(null)}
+              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 500, backdropFilter: 'blur(4px)' }} />
+            <div style={{
+              position: 'fixed', right: 0, top: 0, bottom: 0, zIndex: 501,
+              width: 'min(580px, 100vw)',
+              background: '#0c0c0c',
+              borderLeft: `1px solid ${selNode.color}35`,
+              display: 'flex', flexDirection: 'column',
+              boxShadow: `-24px 0 60px rgba(0,0,0,0.6)`,
+            }}>
+              <div style={{ height: 2, background: `linear-gradient(90deg, ${selNode.color}, ${selNode.color}22)` }} />
+              <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, background: `${selNode.color}15`, border: `1px solid ${selNode.color}35`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: selNode.color }}>
+                  {selNode.icon}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 16, color: selNode.color }}>{selNode.label}</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.28)', marginTop: 2 }}>{selNode.role}</div>
+                </div>
+                <button
+                  onClick={() => setSelectedNode(null)}
+                  style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >✕</button>
+              </div>
+              <div style={{ flex: 1, overflow: 'auto', padding: '18px 24px' }}>
+                <div className="report">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{selNode.content}</ReactMarkdown>
+                </div>
+              </div>
             </div>
           </>
-        )}
+        )
+      })()}
 
-        {/* Log panel — visible in split & log modes */}
-        {(viewMode === 'split' || viewMode === 'log') && (
-          <motion.div
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: viewMode === 'log' ? '100%' : 400, opacity: 1 }}
-            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-            style={{
-              borderLeft: viewMode === 'split' ? '1px solid rgba(255,255,255,0.05)' : 'none',
-              background: 'rgba(4,1,1,0.7)', backdropFilter: 'blur(16px)',
-              display: 'flex', flexDirection: 'column', overflow: 'hidden',
-            }}
-          >
-            <LogPanel logLines={logLines} logRef={logRef} />
+      {/* Summary — scrollable content area */}
+      {view === 'summary' && done && (
+        <div style={{ position: 'relative', zIndex: 10, paddingTop: 72, maxWidth: 1200, margin: '0 auto', width: '100%' }}>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ padding: '28px 32px 8px' }}>
+            <h1 style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 22, letterSpacing: '-0.02em' }}>
+              Analysis Complete
+            </h1>
+            <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12.5, marginTop: 4 }}>
+              {nodes.filter(n => n.content).length} agents — run <span style={{ fontFamily: "'JetBrains Mono',monospace", color: 'rgba(255,255,255,0.4)' }}>{id}</span>
+            </p>
           </motion.div>
-        )}
-      </div>
+          <SummaryView nodes={nodes} />
+        </div>
+      )}
 
-      {/* Agent popup */}
-      <AnimatePresence mode="wait">
-        {activeAgent && !done && viewMode !== 'log' && viewMode !== 'graph' && <AgentPopup key={activeAgent} name={activeAgent} />}
-      </AnimatePresence>
+      {/* Nav — appears once done */}
+      {done && !error && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          style={{ position: 'fixed', top: 16, left: 24, right: 24, zIndex: 100 }}
+        >
+          <div style={{
+            maxWidth: 1200, margin: '0 auto',
+            padding: '11px 24px',
+            background: 'rgba(6,2,2,0.75)', backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.09)', borderRadius: 13,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#f0c040', boxShadow: '0 0 8px #f0c04099', flexShrink: 0 }} />
+              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontFamily: "'JetBrains Mono',monospace" }}>complete</span>
+            </div>
+            <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+              {(['graph', 'summary'] as View[]).map(v => (
+                <button key={v} onClick={() => setView(v)} style={{
+                  background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0',
+                  fontSize: 12, fontFamily: "'JetBrains Mono',monospace",
+                  color: view === v ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.35)',
+                  borderBottom: view === v ? '1px solid rgba(255,255,255,0.5)' : '1px solid transparent',
+                  transition: 'all 0.15s', letterSpacing: '0.06em', textTransform: 'uppercase',
+                }}>{v}</button>
+              ))}
+              <div style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.08)' }} />
+              <button className="btn-outline" onClick={downloadReport} style={{ fontSize: 11.5, padding: '6px 14px' }}>↓ Report</button>
+              <button className="btn-ghost" onClick={() => router.push('/')} style={{ fontSize: 11.5, padding: '6px 12px' }}>← Home</button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Error overlay */}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 200,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)',
+          }}
+        >
+          <div style={{ maxWidth: 480, width: '100%', margin: '0 24px', background: 'rgba(8,2,2,0.9)', border: '1px solid rgba(230,48,48,0.25)', borderRadius: 18, padding: '28px' }}>
+            <div style={{ fontSize: 13, color: '#f87171', fontWeight: 600, marginBottom: 12 }}>Pipeline Failed</div>
+            <pre style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: 200, overflow: 'auto', fontFamily: "'JetBrains Mono',monospace" }}>{error}</pre>
+            <button className="btn-ghost" onClick={() => router.push('/')} style={{ marginTop: 16, width: '100%' }}>← Return Home</button>
+          </div>
+        </motion.div>
+      )}
     </div>
+  )
+}
+
+// ── Summary view ───────────────────────────────────────────────────────────────
+function extractBullets(content: string, max = 4): string[] {
+  const lines = content.split('\n')
+  const bullets: string[] = []
+  for (const line of lines) {
+    const m = line.match(/^[-*•]\s+(.+)/) ?? line.match(/^\d+\.\s+(.+)/)
+    if (m) { bullets.push(m[1].trim()); if (bullets.length >= max) break }
+  }
+  if (bullets.length === 0) {
+    const plain = content.replace(/#+\s[^\n]*/g, '').trim()
+    const sentence = plain.split(/\.\s+/)[0]
+    if (sentence) bullets.push(sentence.trim())
+  }
+  return bullets
+}
+
+function SummaryCard({ node, bullets }: { node: NodeData; bullets: string[] }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+      style={{
+        padding: '18px 20px', borderRadius: 16,
+        background: 'rgba(8,2,2,0.55)', backdropFilter: 'blur(18px)',
+        border: `1px solid ${node.color}18`, position: 'relative', overflow: 'hidden',
+      }}
+    >
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${node.color}, transparent)` }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+        <div style={{ width: 34, height: 34, borderRadius: 10, background: `${node.color}14`, border: `1px solid ${node.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, color: node.color, flexShrink: 0 }}>{node.icon}</div>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: node.color }}>{node.label}</div>
+          <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.25)' }}>{node.role}</div>
+        </div>
+      </div>
+      <ul style={{ margin: 0, paddingLeft: 16 }}>
+        {bullets.map((b, i) => (
+          <li key={i} style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.65, marginBottom: 4, fontFamily: "'Inter',sans-serif" }}>{b}</li>
+        ))}
+      </ul>
+    </motion.div>
+  )
+}
+
+const SUMMARY_ORDER = ['storyteller', 'statistician', 'skeptic', 'ethicist', 'optimizer', 'architect', 'devil_advocate', 'feature_engineer', 'explorer', 'pragmatist']
+
+function SummaryView({ nodes }: { nodes: NodeData[] }) {
+  const nodeMap = Object.fromEntries(nodes.map(n => [n.key, n]))
+  const hero     = nodeMap['storyteller'] ?? nodes.find(n => n.content)
+  const heroLines = hero ? extractBullets(hero.content, 5) : []
+  const rest     = SUMMARY_ORDER.filter(k => k !== 'storyteller' && nodeMap[k]?.content)
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ padding: '12px 32px 60px' }}>
+      {hero && hero.content && (
+        <div style={{ marginBottom: 24, padding: '24px 28px', borderRadius: 18, background: `${hero.color}08`, border: `1px solid ${hero.color}25`, position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${hero.color}, ${hero.color}33)` }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+            <div style={{ width: 48, height: 48, borderRadius: 14, background: `${hero.color}18`, border: `1px solid ${hero.color}35`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, color: hero.color }}>{hero.icon}</div>
+            <div>
+              <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 17, color: hero.color }}>{hero.label}</div>
+              <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>Key Takeaways</div>
+            </div>
+          </div>
+          <ul style={{ margin: 0, paddingLeft: 18 }}>
+            {heroLines.map((b, i) => <li key={i} style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.7)', lineHeight: 1.7, marginBottom: 6 }}>{b}</li>)}
+          </ul>
+        </div>
+      )}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
+        {rest.map((k, i) => (
+          <motion.div key={k} transition={{ delay: i * 0.04 }}>
+            <SummaryCard node={nodeMap[k]!} bullets={extractBullets(nodeMap[k]!.content, 4)} />
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
   )
 }

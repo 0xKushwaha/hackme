@@ -1,20 +1,25 @@
 """
-Rounds — Red Mode (Async, Optimised)
-=====================================
-Uses asyncio + LangChain's ainvoke() for true I/O concurrency.
-A single shared asyncio.Semaphore gates all 3 rounds, preventing
-rate-limit spikes at round boundaries.
+Rounds — Red Mode Tournament Architecture
+============================================
+Hierarchical 2-stage debate replacing the flat 3-round structure.
+
+Stage A: Panel Debates (1 LLM call per group, all groups parallel)
+  - Each group of ~5 personas debates in a single prompt.
+  - The LLM role-plays all members and identifies the strongest position.
+  - Champion is elected from the output.
+
+Stage B: Champion Cross-Debate (1 LLM call per champion, all parallel)
+  - Each champion responds to the other groups' panel summaries.
+
+Stage C: Synthesis (1 LLM call — unchanged)
+  - Moderator synthesises the champion debate.
+
+Total: ~9 LLM calls (down from 41).
 
 Execution model:
-  asyncio.run() called from the worker thread (safe — creates its own event loop)
-  asyncio.gather(N coroutines) — all fire simultaneously, semaphore controls concurrency
-  Retry: exponential backoff + jitter on rate-limit errors
-
-Token budget:
-  Round 1: 20 × ~800  tokens in  = ~16k
-  Round 2: 20 × ~7500 tokens in  = ~150k  (R1 truncated to 500 chars each)
-  Round 3:  1 × ~14k  tokens in  = ~14k
-  Total: ~180k tokens / full run
+  asyncio.run() from worker thread — creates its own event loop.
+  asyncio.gather() — groups fire simultaneously, semaphore gates concurrency.
+  Retry: exponential backoff + jitter on rate-limit errors.
 """
 from __future__ import annotations
 
@@ -22,11 +27,12 @@ import asyncio
 import random
 from langchain_core.messages import HumanMessage, SystemMessage
 
+
 # ── Config ────────────────────────────────────────────────────────────
 MAX_CONCURRENT = 8    # semaphore: max concurrent API calls at any moment
 MAX_RETRIES    = 4    # per-call retry limit
-R1_TRUNC       = 500  # chars — each peer's R1 output truncated in R2 prompt
-R2_TRUNC       = 400  # chars — each R1+R2 truncated in R3 synthesis prompt
+PANEL_TRUNC    = 600  # chars — each panel output truncated for champion context
+CHAMP_TRUNC    = 500  # chars — each champion response truncated for synthesis
 
 
 # ── Core async call with retry + jitter ──────────────────────────────
@@ -58,7 +64,6 @@ async def _acall(
             msg = str(e).lower()
             is_rate_err = any(x in msg for x in ("rate", "429", "too many", "overloaded", "capacity"))
             if is_rate_err and attempt < MAX_RETRIES - 1:
-                # Exponential backoff: 1s, 2s, 4s + random jitter up to 1.5s
                 wait = (2 ** attempt) + random.uniform(0.2, 1.5)
                 await asyncio.sleep(wait)
             else:
@@ -67,167 +72,289 @@ async def _acall(
     raise RuntimeError(f"Max retries ({MAX_RETRIES}) exceeded: {last_err}")
 
 
-# ── Round prompts ─────────────────────────────────────────────────────
+# ── Prompts ───────────────────────────────────────────────────────────
 
-_R1_USER = """\
+_PANEL_SYSTEM = """\
+You are moderating a panel debate between {n} AI/ML experts.
+Your job is to role-play EACH expert authentically based on their profiles below.
+
+For each panelist, produce their response under a clearly labeled header.
+Stay true to each expert's thinking style, priorities, and communication patterns.
+
+After all panelists respond, add a final section identifying which panelist
+made the strongest, most substantive case.
+
+PANELIST PROFILES:
+{profiles_block}
+
+OUTPUT FORMAT (follow exactly):
+
+## [{NAME_1}]
+(their authentic response — direct, opinionated, in their voice)
+
+## [{NAME_2}]
+(their authentic response)
+
+...
+
+## STRONGEST POSITION: [{name_of_winner}]
+(1-2 sentences explaining why this position was strongest)\
+"""
+
+_PANEL_USER = """\
 ANALYSIS BRIEF:
 {brief}
 
 ---
-Respond as yourself. Be direct and authentic to your established views.
+Each panelist should address:
+**What stands out to me:** (immediate instinctive reaction)
+**What everyone is probably missing:** (contrarian angle)
+**The assumption I'd challenge:** (pick ONE claim from the brief and push back)
+**What I'd actually do:** (concrete recommendation)
 
-**What stands out to me:** (your immediate instinctive reaction)
-**What everyone is probably missing:** (your contrarian angle — what nobody else will say)
-**The assumption I'd challenge:** (pick ONE specific claim from the brief and push back hard)
-**What I'd actually do:** (concrete recommendation in your own voice and style)
-
-Be specific. Reference actual details from the brief. Don't hedge. Don't be diplomatic.\
+Be specific. Reference actual details from the brief. Don't hedge.\
 """
 
-_R2_USER = """\
+_CHAMPION_SYSTEM = """\
+{persona_prompt}
+
+You were selected as the strongest voice from your panel group ({group_label}).
+Now you're debating against champions from other expert groups.
+Stay in character. Be direct and opinionated.\
+"""
+
+_CHAMPION_USER = """\
 ORIGINAL ANALYSIS BRIEF:
 {brief}
 
-YOUR ROUND 1 TAKE:
-{my_take}
+YOUR GROUP'S FULL PANEL DEBATE:
+{my_panel}
 
-YOUR COLLEAGUES' TAKES (summarised):
+OTHER GROUPS' PANEL SUMMARIES:
 {others_block}
 
 ---
-Now engage with the debate. Be yourself — opinionated, direct, in your own voice.
-
-**I disagree with [name] because:** (pick ONE specific person you genuinely disagree with, say exactly why they're wrong)
-**[Name] got something right — here's what they missed:** (extend one person's point further)
-**What nobody said that should have been said:** (the angle the entire group collectively missed)
-
-Don't be diplomatic. This is where real intellectual conflict should surface.\
+Now engage with the other groups' positions:
+**I disagree with [group/person] because:** (pick ONE specific position from another group)
+**[Group/person] got something right — here's what they missed:** (extend one point further)
+**What ALL groups collectively missed:** (the angle the entire debate missed)
+**My final recommendation:** (concrete, actionable, in your voice)\
 """
 
-_R3_SYSTEM = """\
-You are a neutral debate moderator synthesizing a multi-expert debate.
+_SYNTHESIS_SYSTEM = """\
+You are a neutral debate moderator synthesizing a multi-group tournament debate.
+Four expert groups debated independently, then their champions cross-debated.
 Your job is NOT to declare a winner — it is to extract signal from noise.
 
 Output EXACTLY this structure (no deviation):
 
 ## Consensus Points
-(Things 4+ experts implicitly or explicitly agree on — even if phrased differently)
-- [point] — supported by [names]
+(Things 3+ groups implicitly or explicitly agree on — even if phrased differently)
+- [point] — supported by [group names]
 
 ## Live Disagreements
-(Unresolved genuine conflicts — preserve them, don't paper them over)
-- [Expert A] vs [Expert B]: [what they disagree about and why both positions have merit]
+(Unresolved genuine conflicts between groups or champions)
+- [Group A champion] vs [Group B champion]: [what they disagree about and why both have merit]
 
 ## Action Items (ranked by confidence)
-1. [Highest agreement action] — endorsed by [N] experts
+1. [Highest agreement action] — endorsed by [N] groups
 2. ...
 
 ## The Minority Report
-(1-2 takes that nobody agreed with but might be right — preserve the dissent)
-- [Expert name]: [their contrarian position and why it shouldn't be dismissed]
+(Takes from the panel debates that nobody else agreed with but might be right)
+- [Expert name] from [Group]: [their contrarian position and why it shouldn't be dismissed]
 
 ## Bottom Line
 (2-3 sentences. What should the practitioner do FIRST, based on this debate?)\
 """
 
 
-# ── Round 1: Independent takes — all parallel ─────────────────────────
+# ── Stage A: Panel Debates — one call per group, all parallel ────────
 
-async def _round_1_async(
-    personas:  dict[str, str],
-    brief:     str,
+async def _panel_debate_async(
+    group_key:    str,
+    group_label:  str,
+    member_names: list[str],
+    personas:     dict[str, str],   # handle → system prompt text
+    brief:        str,
     llm,
-    semaphore: asyncio.Semaphore,
-    on_done:   callable | None = None,
-) -> dict[str, str]:
+    semaphore:    asyncio.Semaphore,
+    on_group_start: callable | None = None,
+    on_group_done:  callable | None = None,
+) -> dict:
     """
-    All N personas respond independently in parallel.
-    Results are emitted via on_done(name, result) as each call completes.
-    asyncio.gather preserves all results even if individual calls are slow.
+    Run one panel debate for a single group.
+    All members debate in a single LLM call — the LLM role-plays each.
+    Returns: { "output": str, "champion": str, "members": list[str] }
     """
-    user_msg = _R1_USER.format(brief=brief)
+    from red_mode.grouping import elect_champion
 
-    async def call_one(name: str, system: str) -> tuple[str, str]:
-        result = await _acall(system, user_msg, llm, semaphore)
-        if on_done:
-            on_done(name, result)          # called immediately as it arrives
-        return name, result
+    # Notify frontend that this group is starting
+    if on_group_start:
+        on_group_start(group_key, member_names)
 
-    pairs = await asyncio.gather(
-        *[call_one(name, system) for name, system in personas.items()],
-        return_exceptions=False,
-    )
-    return dict(pairs)
-
-
-# ── Round 2: Cross-debate — all parallel ─────────────────────────────
-
-def _build_others_block(my_name: str, round1: dict[str, str]) -> str:
-    """
-    Each peer's R1 output truncated to R1_TRUNC chars.
-    This keeps R2 prompt under ~8k tokens regardless of N.
-    """
-    return "\n\n".join(
-        f"[{n.upper().replace('_', ' ')}]:\n"
-        f"{take[:R1_TRUNC]}{'…' if len(take) > R1_TRUNC else ''}"
-        for n, take in round1.items()
-        if n != my_name
-    )
-
-
-async def _round_2_async(
-    personas:  dict[str, str],
-    round1:    dict[str, str],
-    brief:     str,
-    llm,
-    semaphore: asyncio.Semaphore,
-    on_done:   callable | None = None,
-) -> dict[str, str]:
-    """
-    Each persona reads truncated R1 from all others and responds.
-    Uses fast_llm — debate responses don't need max quality, just voice fidelity.
-    Same semaphore prevents rate spike at round boundary.
-    """
-    async def call_one(name: str, system: str) -> tuple[str, str]:
-        user_msg = _R2_USER.format(
-            brief        = brief,
-            my_take      = round1.get(name, "")[:R1_TRUNC],
-            others_block = _build_others_block(name, round1),
-        )
-        result = await _acall(system, user_msg, llm, semaphore)
-        if on_done:
-            on_done(name, result)
-        return name, result
-
-    pairs = await asyncio.gather(
-        *[call_one(name, system) for name, system in personas.items()],
-        return_exceptions=False,
-    )
-    return dict(pairs)
-
-
-# ── Round 3: Synthesis — single call ────────────────────────────────
-
-async def _round_3_async(
-    round1:    dict[str, str],
-    round2:    dict[str, str],
-    llm,
-    semaphore: asyncio.Semaphore,
-) -> str:
-    """
-    Single synthesis call — no parallelism needed.
-    R1+R2 each truncated to R2_TRUNC chars to fit full debate in one prompt.
-    """
-    debate_block = ""
-    for name in round1:
+    # Build merged profiles block from persona .md content
+    profiles = []
+    for name in member_names:
         display = name.replace("_", " ").title()
-        r1 = round1[name][:R2_TRUNC]
-        r2 = round2.get(name, "")[:R2_TRUNC]
-        debate_block += f"\n## {display}\n**R1:** {r1}…\n**R2:** {r2}…\n---\n"
+        prompt = personas.get(name, "")
+        # Take first ~1500 chars of the persona prompt for the panel
+        truncated = prompt[:1500] + ("…" if len(prompt) > 1500 else "")
+        profiles.append(f"### {display}\n{truncated}")
+
+    profiles_block = "\n\n---\n\n".join(profiles)
+    system = _PANEL_SYSTEM.format(n=len(member_names), profiles_block=profiles_block)
+    user   = _PANEL_USER.format(brief=brief)
+
+    output = await _acall(system, user, llm, semaphore)
+
+    # Elect champion from the output
+    champion = elect_champion(output, member_names)
+
+    if on_group_done:
+        on_group_done(group_key, champion, output)
+
+    return {
+        "output":   output,
+        "champion": champion,
+        "members":  member_names,
+    }
+
+
+async def _all_panels_async(
+    groups:    dict[str, list[str]],
+    personas:  dict[str, str],
+    brief:     str,
+    llm,
+    semaphore: asyncio.Semaphore,
+    on_group_start: callable | None = None,
+    on_group_done:  callable | None = None,
+) -> dict[str, dict]:
+    """
+    Run all group panels in parallel.
+    Returns: { group_key: { "output", "champion", "members" } }
+    """
+    from red_mode.grouping import group_label as get_label
+
+    async def run_one(gk: str, members: list[str]):
+        result = await _panel_debate_async(
+            group_key    = gk,
+            group_label  = get_label(gk),
+            member_names = members,
+            personas     = personas,
+            brief        = brief,
+            llm          = llm,
+            semaphore    = semaphore,
+            on_group_start = on_group_start,
+            on_group_done  = on_group_done,
+        )
+        return gk, result
+
+    pairs = await asyncio.gather(
+        *[run_one(gk, members) for gk, members in groups.items()],
+        return_exceptions=False,
+    )
+    return dict(pairs)
+
+
+# ── Stage B: Champion Cross-Debate — one call per champion ───────────
+
+def _build_others_panels(
+    my_group: str,
+    panel_results: dict[str, dict],
+) -> str:
+    """Build truncated summaries of other groups' panel outputs."""
+    from red_mode.grouping import group_label as get_label
+
+    blocks = []
+    for gk, result in panel_results.items():
+        if gk == my_group:
+            continue
+        label = get_label(gk)
+        champion = result["champion"].replace("_", " ").title()
+        output = result["output"][:PANEL_TRUNC]
+        if len(result["output"]) > PANEL_TRUNC:
+            output += "…"
+        blocks.append(f"### {label} (Champion: {champion})\n{output}")
+
+    return "\n\n---\n\n".join(blocks)
+
+
+async def _champion_debate_async(
+    panel_results: dict[str, dict],
+    personas:      dict[str, str],
+    brief:         str,
+    llm,
+    semaphore:     asyncio.Semaphore,
+    on_champ_start: callable | None = None,
+    on_champ_done:  callable | None = None,
+) -> dict[str, str]:
+    """
+    Each champion responds to all other groups' positions.
+    Returns: { champion_handle: response_text }
+    """
+    from red_mode.grouping import group_label as get_label
+
+    async def call_one(gk: str, result: dict) -> tuple[str, str]:
+        champion = result["champion"]
+        persona_prompt = personas.get(champion, "")
+
+        if on_champ_start:
+            on_champ_start(champion, gk)
+
+        system = _CHAMPION_SYSTEM.format(
+            persona_prompt = persona_prompt,
+            group_label    = get_label(gk),
+        )
+        user = _CHAMPION_USER.format(
+            brief        = brief,
+            my_panel     = result["output"][:PANEL_TRUNC * 2],
+            others_block = _build_others_panels(gk, panel_results),
+        )
+
+        response = await _acall(system, user, llm, semaphore)
+
+        if on_champ_done:
+            on_champ_done(champion, gk, response)
+
+        return champion, response
+
+    pairs = await asyncio.gather(
+        *[call_one(gk, result) for gk, result in panel_results.items()],
+        return_exceptions=False,
+    )
+    return dict(pairs)
+
+
+# ── Stage C: Final Synthesis — single call ───────────────────────────
+
+async def _synthesis_async(
+    panel_results:   dict[str, dict],
+    champion_debate: dict[str, str],
+    llm,
+    semaphore:       asyncio.Semaphore,
+) -> str:
+    """Single synthesis call over all panel + champion outputs."""
+    from red_mode.grouping import group_label as get_label
+
+    debate_block = ""
+    for gk, result in panel_results.items():
+        label    = get_label(gk)
+        champion = result["champion"]
+        display  = champion.replace("_", " ").title()
+        panel    = result["output"][:CHAMP_TRUNC]
+        champ_r  = champion_debate.get(champion, "")[:CHAMP_TRUNC]
+
+        debate_block += (
+            f"\n## {label}\n"
+            f"**Panel debate (5 experts):** {panel}…\n"
+            f"**Champion ({display}) cross-debate:** {champ_r}…\n"
+            f"---\n"
+        )
 
     return await _acall(
-        _R3_SYSTEM,
-        f"FULL DEBATE:\n{debate_block}",
+        _SYNTHESIS_SYSTEM,
+        f"FULL TOURNAMENT DEBATE:\n{debate_block}",
         llm,
         semaphore,
     )
@@ -235,44 +362,65 @@ async def _round_3_async(
 
 # ── Main entry point ─────────────────────────────────────────────────
 
-async def run_all_rounds_async(
+async def run_tournament_async(
+    groups:          dict[str, list[str]],
     personas:        dict[str, str],
     brief:           str,
     llm,
     fast_llm,
-    on_round_start:  callable | None = None,   # on_round_start(round_num: int)
-    on_r1_done:      callable | None = None,   # on_r1_done(name, result)
-    on_r2_done:      callable | None = None,   # on_r2_done(name, result)
-    on_synth_start:  callable | None = None,   # on_synth_start()
+    on_stage_start:  callable | None = None,  # on_stage_start("groups" | "champions" | "synthesis")
+    on_group_start:  callable | None = None,  # on_group_start(group_key, member_names)
+    on_group_done:   callable | None = None,  # on_group_done(group_key, champion, output)
+    on_champ_start:  callable | None = None,  # on_champ_start(champion_handle, group_key)
+    on_champ_done:   callable | None = None,  # on_champ_done(champion_handle, group_key, response)
+    on_synth_start:  callable | None = None,  # on_synth_start()
 ) -> dict:
     """
-    Runs all 3 rounds with a SINGLE shared semaphore across all rounds.
-    This prevents burst spikes at round transitions — the API sees a steady
-    stream of MAX_CONCURRENT requests throughout the entire run.
-
-    Round 1: full llm    — best quality for initial takes
-    Round 2: fast_llm   — cheaper, faster for debate responses
-    Round 3: full llm    — synthesis needs quality
+    Run the full tournament debate:
+      Stage A: Group panels (parallel, 1 call each)  — full LLM
+      Stage B: Champion cross-debate (parallel, 1 call each) — full LLM
+      Stage C: Synthesis (1 call) — full LLM
     """
     semaphore = asyncio.Semaphore(MAX_CONCURRENT)
 
-    # ── Round 1 ───────────────────────────────────────────────────────
-    if on_round_start:
-        on_round_start(1)
-    round1 = await _round_1_async(personas, brief, llm, semaphore, on_done=on_r1_done)
+    # ── Stage A: Group Panels ─────────────────────────────────────────
+    if on_stage_start:
+        on_stage_start("groups")
 
-    # ── Round 2 ───────────────────────────────────────────────────────
-    if on_round_start:
-        on_round_start(2)
-    round2 = await _round_2_async(personas, round1, brief, fast_llm, semaphore, on_done=on_r2_done)
+    panel_results = await _all_panels_async(
+        groups         = groups,
+        personas       = personas,
+        brief          = brief,
+        llm            = llm,
+        semaphore      = semaphore,
+        on_group_start = on_group_start,
+        on_group_done  = on_group_done,
+    )
 
-    # ── Round 3 ───────────────────────────────────────────────────────
+    # ── Stage B: Champion Cross-Debate ────────────────────────────────
+    if on_stage_start:
+        on_stage_start("champions")
+
+    champion_debate = await _champion_debate_async(
+        panel_results  = panel_results,
+        personas       = personas,
+        brief          = brief,
+        llm            = llm,
+        semaphore      = semaphore,
+        on_champ_start = on_champ_start,
+        on_champ_done  = on_champ_done,
+    )
+
+    # ── Stage C: Synthesis ────────────────────────────────────────────
     if on_synth_start:
         on_synth_start()
-    synthesis = await _round_3_async(round1, round2, llm, semaphore)
+
+    synthesis = await _synthesis_async(
+        panel_results, champion_debate, llm, semaphore,
+    )
 
     return {
-        "round1":    round1,
-        "round2":    round2,
-        "synthesis": synthesis,
+        "panels":          panel_results,
+        "champion_debate": champion_debate,
+        "synthesis":       synthesis,
     }

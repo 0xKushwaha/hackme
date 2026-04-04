@@ -190,21 +190,26 @@ runs: dict[str, RunState] = {}
 
 
 # ─────────────────────────────────────────────────────────────────────
-# Red Mode run state  (extends RunState with per-round persona tracking)
+# Red Mode run state  (extends RunState with tournament stage tracking)
 # ─────────────────────────────────────────────────────────────────────
-_RED_ROUND_RE    = _re.compile(r'\[RED_ROUND:(\d+)\]')
-_PERSONA_RE      = _re.compile(r'\[PERSONA:([a-z_]+)\]')
-_PERSONA_DONE_RE = _re.compile(r'\[PERSONA_DONE:([a-z_]+)\]')
+_RED_STAGE_RE      = _re.compile(r'\[RED_STAGE:([a-z_]+)\]')
+_RED_GROUP_RE      = _re.compile(r'\[RED_GROUP:([a-z_]+)\]')
+_RED_GROUP_DONE_RE = _re.compile(r'\[RED_GROUP_DONE:([a-z_]+)\]')
+_RED_CHAMPION_RE   = _re.compile(r'\[RED_CHAMPION:([a-z_]+)\]')
+_PERSONA_RE        = _re.compile(r'\[PERSONA:([a-z_]+)\]')
+_PERSONA_DONE_RE   = _re.compile(r'\[PERSONA_DONE:([a-z_]+)\]')
 
 
 class RedRunState(RunState):
     def __init__(self):
         super().__init__()
-        self.phase:          str               = "phase1"   # "phase1" | "debate"
-        self.phase1_agents:  list[str]         = []         # Phase 1 agents completed
-        self.current_round:  int               = 0
-        self.round_personas: dict[str, list[str]] = {"1": [], "2": [], "3": []}
-        self.synthesis_done: bool              = False
+        self.phase:           str               = "phase1"     # "phase1" | "groups" | "champions" | "synthesis"
+        self.phase1_agents:   list[str]         = []           # Phase 1 agents completed
+        self.stage:           str               = ""           # current tournament stage
+        self.active_group:    str               = ""           # currently running group key
+        self.done_groups:     list[str]         = []           # completed group panels
+        self.group_champions: dict[str, str]    = {}           # group_key → champion handle
+        self.synthesis_done:  bool              = False
 
     def add_text(self, text: str):
         new_lines = [l for l in text.splitlines() if l.strip()]
@@ -212,12 +217,12 @@ class RedRunState(RunState):
             self.lines.extend(new_lines)
             for line in new_lines:
 
-                # Phase transition marker
+                # Phase 1 → debate transition
                 if "[RED_PHASE1_DONE]" in line:
-                    self.phase = "debate"
+                    self.phase = "groups"
 
                 if self.phase == "phase1":
-                    # Track Phase 1 agent progress separately from personas
+                    # Track Phase 1 agent progress
                     m = _AGENT_START_RE.search(line)
                     if m:
                         self.agent = m.group(1)
@@ -228,10 +233,27 @@ class RedRunState(RunState):
                             self.phase1_agents.append(name)
 
                 else:
-                    # Debate phase: track personas
-                    m = _RED_ROUND_RE.search(line)
+                    # Tournament debate stages
+                    m = _RED_STAGE_RE.search(line)
                     if m:
-                        self.current_round = int(m.group(1))
+                        self.stage = m.group(1)
+                        self.phase = m.group(1)  # "groups" | "champions" | "synthesis"
+
+                    m = _RED_GROUP_RE.search(line)
+                    if m:
+                        self.active_group = m.group(1)
+
+                    m = _RED_GROUP_DONE_RE.search(line)
+                    if m:
+                        gk = m.group(1)
+                        if gk not in self.done_groups:
+                            self.done_groups.append(gk)
+
+                    m = _RED_CHAMPION_RE.search(line)
+                    if m:
+                        champion = m.group(1)
+                        if self.active_group:
+                            self.group_champions[self.active_group] = champion
 
                     m = _PERSONA_RE.search(line)
                     if m:
@@ -245,20 +267,19 @@ class RedRunState(RunState):
                         name = m.group(1)
                         if name not in self.done_agents:
                             self.done_agents.append(name)
-                        rk = str(self.current_round)
-                        if rk in self.round_personas and name not in self.round_personas[rk]:
-                            self.round_personas[rk].append(name)
 
                     if "[RED_SYNTHESIS_DONE]" in line:
                         self.synthesis_done = True
 
     def snapshot(self, cursor: int) -> dict:
         snap = super().snapshot(cursor)
-        snap["phase"]         = self.phase
-        snap["phase1Agents"]  = list(self.phase1_agents)
-        snap["currentRound"]  = self.current_round
-        snap["roundPersonas"] = dict(self.round_personas)
-        snap["synthesisDone"] = self.synthesis_done
+        snap["phase"]           = self.phase
+        snap["phase1Agents"]    = list(self.phase1_agents)
+        snap["stage"]           = self.stage
+        snap["activeGroup"]     = self.active_group
+        snap["doneGroups"]      = list(self.done_groups)
+        snap["groupChampions"]  = dict(self.group_champions)
+        snap["synthesisDone"]   = self.synthesis_done
         return snap
 
 
@@ -602,11 +623,12 @@ def _run_red_mode(cfg: dict) -> dict:
     debate = orch.run(persona_names=cfg["persona_names"], brief=brief)
 
     return {
-        "phase1":    phase1_result,
-        "personas":  debate["personas"],
-        "round1":    debate["round1"],
-        "round2":    debate["round2"],
-        "synthesis": debate["synthesis"],
+        "phase1":          phase1_result,
+        "personas":        debate["personas"],
+        "groups":          debate["groups"],
+        "champions":       debate["champions"],
+        "champion_debate": debate["champion_debate"],
+        "synthesis":       debate["synthesis"],
     }
 
 

@@ -1,7 +1,7 @@
 /**
  * Mock Red Mode data for frontend test mode.
- * Simulates a 3-round persona debate without calling any LLM API.
- * All 20 personas are included to match real Red Mode behaviour.
+ * Simulates a tournament-style persona debate without calling any LLM API.
+ * 20 personas grouped into 4 trait clusters → panel debates → champion cross-debate → synthesis.
  */
 
 export const MOCK_PERSONAS = [
@@ -13,322 +13,286 @@ export const MOCK_PERSONAS = [
   'shreya_rajpal', 'tim_dettmers', 'vicki_boykis',
 ]
 
-export const MOCK_ROUND1: Record<string, string> = {
-  andrej_karpathy: `**What stands out to me:** The feature engineering is solid but the architecture choices feel overengineered for a 7K-row dataset.
+export const MOCK_GROUPS: Record<string, { label: string; members: string[]; champion: string }> = {
+  theory: {
+    label: 'Deep Learning Theory',
+    members: ['andrej_karpathy', 'geoffrey_hinton', 'yann_lecun', 'francois_chollet', 'sebastian_raschka'],
+    champion: 'andrej_karpathy',
+  },
+  systems: {
+    label: 'ML Systems & Infrastructure',
+    members: ['chip_huyen', 'edward_yang', 'matei_zaharia', 'vicki_boykis', 'tim_dettmers'],
+    champion: 'chip_huyen',
+  },
+  applied: {
+    label: 'Applied ML & Education',
+    members: ['andrew_ng', 'jeremy_howard', 'santiago_valdarrama', 'jonas_mueller', 'jay_alammar'],
+    champion: 'andrew_ng',
+  },
+  strategy: {
+    label: 'Strategy, Safety & Reliability',
+    members: ['sam_altman', 'ethan_mollick', 'chris_olah', 'lilian_weng', 'shreya_rajpal'],
+    champion: 'sam_altman',
+  },
+}
 
-**What everyone is probably missing:** You don't need XGBoost here. A well-regularized logistic regression with the engineered features will get you 90% of the AUC with 10% of the complexity. Ship interpretable models to stakeholders.
+export const MOCK_GROUP_ORDER = ['theory', 'systems', 'applied', 'strategy']
 
-**The assumption I'd challenge:** "ROC-AUC is the right metric" — in deployment you pick a threshold. Track calibration and business cost, not abstract curves.
+export const MOCK_PANEL_OUTPUTS: Record<string, string> = {
+  theory: `## [ANDREJ KARPATHY]
+**What stands out to me:** The feature engineering is solid but the architecture choices feel overengineered for a 7K-row dataset. You don't need XGBoost here — a well-regularized logistic regression with the engineered features will get you 90% of the AUC with 10% of the complexity.
 
-**What I'd actually do:** Run logistic regression first. If it doesn't hit 0.84 AUC, then bring in gradient boosting. Don't start with the heavy gun.`,
+**What everyone is probably missing:** Ship interpretable models to stakeholders. Track calibration and business cost, not abstract curves.
 
-  yann_lecun: `**What stands out to me:** The statistical analysis is rigorous. The chi-square results on contract type are the most actionable finding here.
+**The assumption I'd challenge:** "ROC-AUC is the right metric" — in deployment you pick a threshold.
 
-**What everyone is probably missing:** Nobody is thinking about the temporal structure. Churn is a survival problem, not a binary classification problem. Cox proportional hazards would dominate on this data.
+**What I'd actually do:** Run logistic regression first. If it doesn't hit 0.84 AUC, then bring in gradient boosting.
 
-**The assumption I'd challenge:** The 80/20 train-test split assumption. With only 7K rows, you're leaving performance on the table. Use full cross-validation with a proper held-out test set.
-
-**What I'd actually do:** Frame this as survival analysis. tenure IS your time variable. Use it properly.`,
-
-  sam_altman: `**What stands out to me:** The ROI calculation at the end — $240K revenue protection — is underselling this. Churn models compound.
-
-**What everyone is probably missing:** This analysis is focused on prediction, not intervention. The real question is: which customers respond to retention offers? Build an uplift model, not a churn model.
-
-**The assumption I'd challenge:** "Month-to-month = high churn risk" — this is correlation masking a causal story. These customers aren't high risk because of their contract; they're high risk because of their underlying satisfaction.
-
-**What I'd actually do:** Pair the churn model with a survey or NPS signal to identify the actionable segment.`,
-
-  geoffrey_hinton: `**What stands out to me:** The ethical review is perfunctory. Disparate impact on seniors (41.7% vs 23.6%) is a serious concern that deserves more than a "monitor it" recommendation.
+## [GEOFFREY HINTON]
+**What stands out to me:** The ethical review is perfunctory. Disparate impact on seniors (41.7% vs 23.6%) is a serious concern that deserves more than a "monitor it" recommendation.
 
 **What everyone is probably missing:** The model will perpetuate the disparity it finds. If senior customers receive fewer retention offers because they're flagged as churners, you create a feedback loop.
 
-**The assumption I'd challenge:** "No ethical blockers to proceed." — the SeniorCitizen disparity IS an ethical blocker unless you actively correct for it.
+**The assumption I'd challenge:** "No ethical blockers to proceed." — the SeniorCitizen disparity IS an ethical blocker.
 
-**What I'd actually do:** Run the model with SeniorCitizen removed. If AUC drops by more than 2%, there's an ethical problem baked into the data itself.`,
+**What I'd actually do:** Run the model with SeniorCitizen removed. If AUC drops by more than 2%, there's an ethical problem baked into the data itself.
 
-  francois_chollet: `**What stands out to me:** The feature engineering is mechanical. charge_per_tenure is a good ratio but it's the obvious one.
+## [YANN LECUN]
+**What stands out to me:** The statistical analysis is rigorous. The chi-square results on contract type are the most actionable finding.
 
-**What everyone is probably missing:** Interaction effects. The high-risk customer is specifically: fiber optic + no tech support + month-to-month + tenure < 12. That interaction term will be worth 5-8% AUC alone.
+**What everyone is probably missing:** Nobody is thinking about the temporal structure. Churn is a survival problem, not a binary classification problem.
 
-**The assumption I'd challenge:** XGBoost will find the interactions automatically. It won't — not with 7K rows. You need to encode the domain knowledge explicitly.
+**The assumption I'd challenge:** The 80/20 train-test split assumption. With only 7K rows, you're leaving performance on the table.
 
-**What I'd actually do:** Create a \`high_risk_combo\` binary flag for the triple interaction. It'll be the top feature by importance.`,
+**What I'd actually do:** Frame this as survival analysis. tenure IS your time variable. Use it properly.
 
-  andrew_ng: `**What stands out to me:** The pipeline is well-structured and the analysis is sound. This is a good textbook churn model.
+## [FRANÇOIS CHOLLET]
+**What stands out to me:** The feature engineering is mechanical. charge_per_tenure is good but obvious.
 
-**What everyone is probably missing:** Error analysis. After training, look at which customers the model gets wrong. Those false negatives are telling you something the features can't capture.
+**What everyone is probably missing:** Interaction effects. The high-risk customer is specifically: fiber optic + no tech support + month-to-month + tenure < 12.
 
-**The assumption I'd challenge:** That 0.874 AUC is good enough. For a production churn model, I'd want to understand what the Lift curve looks like at the top 20% of scored customers.
+**The assumption I'd challenge:** XGBoost will find the interactions automatically. It won't — not with 7K rows.
 
-**What I'd actually do:** Build the model, then spend equal time on error analysis and lift curve evaluation before declaring it production-ready.`,
+**What I'd actually do:** Create a high_risk_combo binary flag for the triple interaction.
 
-  chip_huyen: `**What stands out to me:** Nobody talked about data freshness. When was this dataset collected? Churn patterns shift quarterly with pricing changes and competition.
+## [SEBASTIAN RASCHKA]
+**What stands out to me:** The validation methodology is the most critical piece and it's the weakest part.
 
-**What everyone is probably missing:** The retraining cadence is wrong. "Monthly or on PSI > 0.2" — PSI is a lagging indicator. You want to retrain when business context changes.
+**What everyone is probably missing:** Nested cross-validation. The reported 0.874 AUC is likely 3-5% inflated.
 
-**The assumption I'd challenge:** That sklearn Pipeline is a good serving artifact. It's fine for a demo but in production you want your preprocessing and model separately versioned.
+**The assumption I'd challenge:** "80 Optuna trials is sufficient."
 
-**What I'd actually do:** Separate the feature pipeline from the model. Version them independently. Add schema validation at the prediction endpoint.`,
+**What I'd actually do:** Nested 5×10 CV (outer 5-fold, inner 10-fold for tuning).
 
-  jeremy_howard: `**What stands out to me:** The team jumped to XGBoost without baseline. Always start simpler.
+## STRONGEST POSITION: [Andrej Karpathy]
+Karpathy's position was strongest because it combines practical simplicity (start with logistic regression) with a clear decision framework (escalate only if needed). His focus on calibration over AUC and stakeholder-facing interpretability addresses the most common failure mode of churn models: they work technically but don't get used.`,
 
-**What everyone is probably missing:** fastai's tabular model would outperform XGBoost here with less tuning effort. Entity embeddings for categorical variables capture non-linear structure that ordinal encoding destroys.
+  systems: `## [CHIP HUYEN]
+**What stands out to me:** Nobody talked about data freshness. Churn patterns shift quarterly with pricing changes and competition.
 
-**The assumption I'd challenge:** "OrdinalEncoder for categoricals" — this encodes Contract as {month-to-month: 0, one year: 1, two year: 2} which implies an ordering that affects the model. Use embeddings.
+**What everyone is probably missing:** The retraining cadence is wrong. PSI is a lagging indicator.
 
-**What I'd actually do:** Run a fastai tabular model for 5 epochs. It'll beat XGBoost baseline by 3-4% AUC and give you better categorical representations.`,
+**The assumption I'd challenge:** That sklearn Pipeline is a good serving artifact.
 
-  chris_olah: `**What stands out to me:** The model is a black box. Nobody asked what representations it's learning internally. We're flying blind on interpretability.
+**What I'd actually do:** Separate the feature pipeline from the model. Version them independently.
 
-**What everyone is probably missing:** Circuits-style analysis: trace which features activate together to produce a high churn score. The model learns concepts — understand them before deploying.
+## [EDWARD YANG]
+**What stands out to me:** The whole pipeline is procedural. Nobody talked about composability or reuse.
 
-**The assumption I'd challenge:** SHAP gives you feature importance, not mechanistic understanding. SHAP tells you what, not why. That distinction matters for debugging failures in production.
+**What everyone is probably missing:** Software engineering. Feature stores, reproducible pipelines, typed schemas.
 
-**What I'd actually do:** Build the model, then spend a week on probing classifiers and activation analysis. The insights will improve the feature engineering for v2.`,
+**The assumption I'd challenge:** That Jupyter notebooks are acceptable for this workload.
 
-  edward_yang: `**What stands out to me:** The whole pipeline is procedural. Nobody talked about composability or reuse. This analysis will be thrown away after the meeting.
+**What I'd actually do:** Treat this like software. Type annotations, unit tests, integration tests.
 
-**What everyone is probably missing:** Software engineering. Feature stores, reproducible pipelines, typed schemas. Without these, this is a one-time analysis, not a production system.
+## [MATEI ZAHARIA]
+**What stands out to me:** The inference pipeline isn't designed for scale.
 
-**The assumption I'd challenge:** That Jupyter notebooks are acceptable for this workload. They're not. You need a proper pipeline framework — Metaflow, Prefect, or at minimum a well-structured Python package.
+**What everyone is probably missing:** The operational requirements haven't been defined. Batch vs real-time changes everything.
 
-**What I'd actually do:** Treat this like software. Type annotations, unit tests for each transformation, integration tests on the full pipeline. The feature engineering alone should be a tested library.`,
+**The assumption I'd challenge:** That FastAPI + pkl is the right serving stack.
 
-  ethan_mollick: `**What stands out to me:** The human side of this is missing entirely. Who will use the model? What's the workflow integration? A model nobody uses has zero ROI.
+**What I'd actually do:** Define the SLA first.
 
-**What everyone is probably missing:** Change management. The retention team needs to trust the model. Trust is built through transparency, not accuracy. Show them the top 5 reasons for each prediction, not just a score.
+## [VICKI BOYKIS]
+**What stands out to me:** This analysis assumes the data is correct. It isn't.
 
-**The assumption I'd challenge:** That the retention team will act on a churn probability score. They won't — not without a clear workflow and decision support interface.
+**What everyone is probably missing:** Data provenance. Where did this CSV come from?
 
-**What I'd actually do:** Build the model AND design the decision interface simultaneously. Talk to the retention team before writing a line of code.`,
+**The assumption I'd challenge:** That a CSV file is a reliable data source.
 
-  jay_alammar: `**What stands out to me:** This dataset is crying out for a clear visual story. The statistical findings are buried in numbers that most stakeholders won't read.
+**What I'd actually do:** Document the data lineage before touching a model.
 
-**What everyone is probably missing:** Visualisation as a validation tool, not just presentation. Plot the distribution of churn probability scores — is it well-calibrated? Is it bimodal? The shape tells you if the model is learning signal or noise.
+## [TIM DETTMERS]
+**What stands out to me:** Nobody talked about the compute budget.
 
-**The assumption I'd challenge:** That the final report format (text + tables) is sufficient. A single calibration curve and a lift chart would communicate more than 10 paragraphs.
+**What everyone is probably missing:** Memory bandwidth is the bottleneck in tabular inference.
 
-**What I'd actually do:** Build three visualisations: calibration curve, lift chart, and SHAP beeswarm plot. These three images tell the entire story of whether the model is production-ready.`,
+**The assumption I'd challenge:** That GPU acceleration isn't relevant for tabular ML.
 
-  jonas_mueller: `**What stands out to me:** The data quality score of 7.4/10 is treated as a minor concern. It's not. Dirty data is the primary cause of production model failures.
+**What I'd actually do:** Profile the tuning pipeline first.
 
-**What everyone is probably missing:** Automated data validation. Every feature should have a schema test — expected range, cardinality, null rate. Without this, a single upstream data change silently corrupts predictions.
+## STRONGEST POSITION: [Chip Huyen]
+Chip Huyen's position was strongest because she identified the most operationally dangerous gap: the entire team is building for a snapshot, not for a system that evolves. Her focus on data freshness, pipeline versioning, and calibrated retraining triggers addresses the failure mode that kills most production ML systems.`,
 
-**The assumption I'd challenge:** That the 11 TotalCharges nulls are the only data issue. In my experience, 7.4/10 datasets have systematic issues that only surface 3 months post-deployment.
+  applied: `## [ANDREW NG]
+**What stands out to me:** The pipeline is well-structured and the analysis is sound.
 
-**What I'd actually do:** Spend 20% of the project time on data validation infrastructure. It's not glamorous but it's what separates a demo from a reliable system.`,
+**What everyone is probably missing:** Error analysis. Look at which customers the model gets wrong.
 
-  lilian_weng: `**What stands out to me:** The feature importance analysis is missing. We have 27 features but no ranking. Which ones actually matter?
+**The assumption I'd challenge:** That 0.874 AUC is good enough. Understand the Lift curve at the top 20%.
 
-**What everyone is probably missing:** SHAP values for individual prediction explanation. Not just for interpretability — for the business team to understand which lever to pull for each specific customer.
+**What I'd actually do:** Build the model, then spend equal time on error analysis.
 
-**The assumption I'd challenge:** "Top engineered feature: charge_per_tenure" — this is stated without evidence. Show the SHAP summary plot.
+## [JEREMY HOWARD]
+**What stands out to me:** The team jumped to XGBoost without baseline.
 
-**What I'd actually do:** SHAP analysis first, then prune features to the top 12. Simpler models generalize better with 7K rows.`,
+**What everyone is probably missing:** fastai's tabular model would outperform XGBoost here with less tuning.
 
-  matei_zaharia: `**What stands out to me:** The inference pipeline isn't designed for scale. Scoring one customer at a time in a FastAPI endpoint won't work if you need real-time scoring at millions of requests per day.
+**The assumption I'd challenge:** OrdinalEncoder for categoricals implies an ordering that affects the model.
 
-**What everyone is probably missing:** The operational requirements haven't been defined. Batch scoring nightly is a completely different architecture from real-time scoring at checkout. The team is designing for neither specifically.
+**What I'd actually do:** Run a fastai tabular model for 5 epochs.
 
-**The assumption I'd challenge:** That FastAPI + pkl is the right serving stack. For batch jobs at scale, Spark MLlib or a feature store with online serving would be more appropriate.
+## [SANTIAGO VALDARRAMA]
+**What stands out to me:** This reads like it was built by someone who knows ML well and businesses less well.
 
-**What I'd actually do:** Define the SLA first. Latency < 50ms per request? Or nightly batch of 100K customers? The answer changes the entire serving architecture.`,
+**What everyone is probably missing:** The business framing. "$240K annual revenue protection" needs a confidence interval.
 
-  santiago_valdarrama: `**What stands out to me:** This is a well-executed analysis but it reads like it was built by someone who knows ML well and businesses less well.
+**The assumption I'd challenge:** That a churn model delivers value automatically.
 
-**What everyone is probably missing:** The business framing. "$240K annual revenue protection" needs a confidence interval. What's the uncertainty on that estimate? Stakeholders will push back without it.
+**What I'd actually do:** Build a simple decision tree for stakeholder communication.
 
-**The assumption I'd challenge:** That a churn model delivers value automatically. The value comes from the intervention, not the prediction. What's the actual retention offer? What's its success rate? Without those numbers, the ROI calculation is a fiction.
+## [JONAS MUELLER]
+**What stands out to me:** The data quality score of 7.4/10 is treated as a minor concern. It's not.
 
-**What I'd actually do:** Build a simple decision tree first — not for production, but for stakeholder communication. Executives trust things they can draw on a whiteboard.`,
+**What everyone is probably missing:** Automated data validation for every feature.
 
-  sebastian_raschka: `**What stands out to me:** The validation methodology is the most critical piece and it's the weakest part of this analysis.
+**The assumption I'd challenge:** That the 11 TotalCharges nulls are the only data issue.
 
-**What everyone is probably missing:** Nested cross-validation. If you tune hyperparameters on the CV folds and report CV performance, you're optimistically biased. The reported 0.874 AUC is likely 3-5% inflated.
+**What I'd actually do:** Spend 20% of project time on data validation infrastructure.
 
-**The assumption I'd challenge:** "80 Optuna trials is sufficient." With this search space size and only 5-fold CV, the variance in each trial's estimate is too high for reliable selection.
+## [JAY ALAMMAR]
+**What stands out to me:** This dataset is crying out for a clear visual story.
 
-**What I'd actually do:** Nested 5×10 CV (outer 5-fold, inner 10-fold for tuning). It takes longer but the reported performance will actually be reproducible.`,
+**What everyone is probably missing:** Visualisation as a validation tool.
 
-  shreya_rajpal: `**What stands out to me:** There are no guardrails on this model. Once it's deployed, what stops it from making confidently wrong predictions on out-of-distribution inputs?
+**The assumption I'd challenge:** That text + tables is sufficient as a report format.
 
-**What everyone is probably missing:** Model reliability engineering. Input validation, output confidence thresholds, fallback logic. A churn model that scores a customer who's been with the company for 200 months (impossible) should flag that, not silently score it.
+**What I'd actually do:** Build three visualisations: calibration curve, lift chart, SHAP beeswarm.
 
-**The assumption I'd challenge:** That the model will see inputs similar to its training data. It won't — not after 6 months of product changes, pricing updates, or customer segment shifts.
+## STRONGEST POSITION: [Andrew Ng]
+Andrew Ng's position was strongest because he correctly identified error analysis as the missing step everyone skipped. His pragmatic "build then study failures" approach directly addresses the gap between a working model and a reliable production system.`,
 
-**What I'd actually do:** Add a reliability layer: input schema validation, out-of-distribution detection, and a "low confidence" flag on predictions below a threshold. These aren't optional in production.`,
+  strategy: `## [SAM ALTMAN]
+**What stands out to me:** The ROI calculation at the end is underselling this. Churn models compound.
 
-  tim_dettmers: `**What stands out to me:** Nobody talked about the compute budget. How long does training + tuning actually take? 80 Optuna trials × 5-fold CV is potentially hours of compute.
+**What everyone is probably missing:** This analysis is focused on prediction, not intervention. Build an uplift model, not a churn model.
 
-**What everyone is probably missing:** Quantization-aware training and efficient inference. Even for tabular models, model compression matters at scale. A quantized model can be 4× faster at inference with minimal accuracy loss.
+**The assumption I'd challenge:** "Month-to-month = high churn risk" — this is correlation masking a causal story.
 
-**The assumption I'd challenge:** That GPU acceleration isn't relevant for tabular ML. XGBoost-GPU can be 10× faster on large hyperparameter search spaces. Use it.
+**What I'd actually do:** Pair the churn model with a survey or NPS signal.
 
-**What I'd actually do:** Profile the tuning pipeline first. If it takes more than 30 minutes, switch to GPU-accelerated XGBoost and use early stopping aggressively to prune bad trials in the first few rounds.`,
+## [ETHAN MOLLICK]
+**What stands out to me:** The human side is missing entirely. Who will use the model?
 
-  vicki_boykis: `**What stands out to me:** This analysis assumes the data is correct. It isn't — it never is. Someone in engineering changed a column name and nobody noticed.
+**What everyone is probably missing:** Change management. The retention team needs to trust the model.
 
-**What everyone is probably missing:** Data provenance. Where did this CSV come from? Who owns it? When was it last updated? Is this a training snapshot or a live export? These questions determine whether the model is valid or completely wrong.
+**The assumption I'd challenge:** That the retention team will act on a churn probability score.
 
-**The assumption I'd challenge:** That a CSV file is a reliable data source for a production ML system. It's not. You need a data contract with the upstream team and automated tests that run on every new data delivery.
+**What I'd actually do:** Build the model AND design the decision interface simultaneously.
 
-**What I'd actually do:** Before touching a model, I'd spend a day documenting the data lineage. Who produces it, what schema it should have, and what monitoring exists to catch upstream changes. Everything else is secondary.`,
+## [CHRIS OLAH]
+**What stands out to me:** The model is a black box. Nobody asked what representations it's learning.
+
+**What everyone is probably missing:** Circuits-style analysis of what features activate together.
+
+**The assumption I'd challenge:** SHAP gives you feature importance, not mechanistic understanding.
+
+**What I'd actually do:** Build probing classifiers and activation analysis.
+
+## [LILIAN WENG]
+**What stands out to me:** The feature importance analysis is missing. We have 27 features but no ranking.
+
+**What everyone is probably missing:** SHAP values for individual prediction explanation.
+
+**The assumption I'd challenge:** "Top engineered feature: charge_per_tenure" — stated without evidence.
+
+**What I'd actually do:** SHAP analysis first, then prune features to the top 12.
+
+## [SHREYA RAJPAL]
+**What stands out to me:** There are no guardrails on this model. What stops confidently wrong predictions on OOD inputs?
+
+**What everyone is probably missing:** Model reliability engineering. Input validation, confidence thresholds, fallback logic.
+
+**The assumption I'd challenge:** That the model will see inputs similar to its training data.
+
+**What I'd actually do:** Add a reliability layer: input schema validation, OOD detection, low-confidence flags.
+
+## STRONGEST POSITION: [Sam Altman]
+Sam Altman's position was strongest because he reframed the entire problem: prediction without causal intervention design is incomplete. His uplift modeling direction, while requiring additional data infrastructure, addresses the fundamental limitation that a churn score alone doesn't tell you which customers will respond to retention efforts.`,
 }
 
-export const MOCK_ROUND2: Record<string, string> = {
-  andrej_karpathy: `**I disagree with Yann because:** Survival analysis is theoretically beautiful but practically wrong here. Cox PH assumes proportional hazards — you'd need to verify that before using it. Gradient boosting with tenure as a feature IS using the temporal information, just not explicitly.
+export const MOCK_CHAMPION_DEBATE: Record<string, string> = {
+  andrej_karpathy: `**I disagree with Chip Huyen because:** Pipeline versioning and data freshness monitoring are important at scale, but for a 7K-row first model, you're gold-plating infrastructure before you know if the model is even useful. Ship the simple version, get feedback, then invest in MLOps.
 
-**Geoffrey got something right — here's what they missed:** The ethical concern about SeniorCitizen is valid, but the solution isn't removing the feature — it's applying fairness constraints during optimization. Equalized odds post-hoc correction is better than throwing away signal.
+**Sam Altman got something right — here's what he missed:** Uplift modeling is the correct long-term direction. But you can't build an uplift model without randomized intervention data. The pragmatic path is: ship churn model → run A/B test on retention offers → collect causal data → build uplift model v2.
 
-**What nobody said that should have been said:** The business hasn't defined their retention offer budget. Without a cost matrix, every metric choice is arbitrary. Get the cost-benefit numbers before picking AUC vs F2 vs anything else.`,
+**What ALL groups collectively missed:** Nobody discussed the cold start problem. New customers have no history — tenure=0, TotalCharges=0. The model will have zero signal for the customers who are actually most at risk of early churn.
 
-  yann_lecun: `**I disagree with Sam because:** Uplift modeling requires randomized intervention data. You can't do uplift from observational churn data without strong assumptions. Sam's recommendation presupposes infrastructure this team doesn't have.
+**My final recommendation:** Logistic regression baseline in week 1. XGBoost with the interaction features in week 2. Deploy with a simple "call these 50 customers" workflow, not a probability API.`,
 
-**Andrej got something right — here's what they missed:** Interpretability is real, but for 7K rows logistic regression won't find the interaction effects that François identified. You need at least a shallow tree ensemble to capture them without manual encoding.
+  chip_huyen: `**I disagree with Andrew Ng because:** Error analysis is important but it's a one-time exercise unless you build it into the pipeline. Systematic error analysis requires infrastructure — confusion matrix slices, automated regression testing on new data batches.
 
-**What nobody said that should have been said:** Temporal leakage. If the training data includes customers who churned BECAUSE of a price change that happened after the feature snapshot, your model is learning noise.`,
+**Andrej Karpathy got something right — here's what he missed:** Starting with logistic regression is correct, but don't throw it away when you move to XGBoost. Keep it as your production fallback and interpretability baseline. Two models is better than one.
 
-  sam_altman: `**I disagree with Geoffrey because:** Removing SeniorCitizen because it shows disparity is the wrong intervention. You're hiding a real signal from the model AND potentially making worse decisions about seniors as a result.
+**What ALL groups collectively missed:** The monitoring gap. Everyone talked about building the model but nobody designed what happens when it starts silently degrading in production. PSI? Calibration drift? Prediction volume anomalies? These need to be dashboarded from day one.
 
-**Chip got something right — here's what they missed:** Data freshness matters, but the more urgent problem is selection bias in the training set. Which customers were OFFERED retention deals before they churned? If retention was applied non-randomly, the training labels are contaminated.
+**My final recommendation:** Build the model AND the monitoring dashboard simultaneously. Define three alerts: calibration drift > 5%, PSI > 0.15, and prediction volume change > 20%. Without these, you're flying blind after deployment.`,
 
-**What nobody said that should have been said:** This model should be the starting point of a conversation with product, not the end. The features that drive churn tell you what to fix in the product.`,
+  andrew_ng: `**I disagree with Sam Altman because:** Uplift modeling requires randomized controlled trial data that this team doesn't have. It's a 6-month project, not a quick win. The right sequence is: ship basic churn model → design A/B test for retention offers → collect data → build uplift model. Don't skip steps.
 
-  geoffrey_hinton: `**I disagree with Andrej because:** "Well-regularized logistic regression" won't capture the interaction effects François correctly identified. The high-risk combination (fiber + no support + month-to-month) is multiplicative, not additive.
+**Chip Huyen got something right — here's what she missed:** Pipeline versioning is critical, but the first version doesn't need Metaflow or MLflow. A Git-versioned Python package with a Makefile is production-grade enough for launch.
 
-**Sebastian got something right — here's what they missed:** Nested CV is critical, but it understates the problem. The bigger bias is that hyperparameter tuning changes the model — reporting the tuned model's CV score is optimistically biased regardless of nesting.
+**What ALL groups collectively missed:** The feedback loop with the business team. Nobody proposed a regular model review with the retention team. Monthly reviews where the team shows "here's who we flagged, here's who actually churned, here's what we learned" is what builds trust and improves the model.
 
-**What nobody said that should have been said:** The model assumes the future looks like the past. If the company changes its pricing strategy in response to these predictions, the predictions become invalid. This is Goodhart's Law applied to churn models.`,
+**My final recommendation:** Ship in 2 weeks. Logistic regression + XGBoost comparison, Lift@20% as the primary metric, SHAP explanations for the top-50 flagged customers. Then establish monthly model reviews with the retention team.`,
 
-  francois_chollet: `**I disagree with Jeremy because:** fastai tabular with entity embeddings needs more data than 7K rows to learn meaningful embeddings for low-cardinality categorical variables. You'll overfit.
+  sam_altman: `**I disagree with Andrej Karpathy because:** "Ship the simple version" is only good advice if you've defined what success looks like. A churn model that flags customers but doesn't lead to successful retention is a vanity metric. You need to design the intervention simultaneously.
 
-**Lilian got something right — here's what they missed:** SHAP analysis is good but the real value is SHAP interaction values, not just main effects. The interaction between contract type and tenure is the story this dataset is telling.
+**Andrew Ng got something right — here's what he missed:** Monthly model reviews are necessary but not sufficient. The review should include the retention team's intervention success rate, not just model accuracy. If the model correctly flags 80% of churners but the retention offer only works on 10%, the ROI is still near zero.
 
-**What nobody said that should have been said:** All of us are assuming the goal is AUC maximization. The business question might be "retain the top 200 at-risk customers" — in which case Precision@200 is the only metric that matters.`,
+**What ALL groups collectively missed:** Cost-benefit framing. The churn model costs $X to build and maintain. The retention offers cost $Y per customer contacted. The expected save rate is Z%. Unless X + (Y × contacts) < Z × revenue_saved, the model is a net negative. Nobody did this math.
 
-  andrew_ng: `**I disagree with Sam because:** Uplift modeling is the right long-term direction but it requires data you don't have yet. Build the churn model now, run an A/B test on retention offers, then build the uplift model. Don't skip steps.
-
-**François got something right — here's what they missed:** The interaction feature idea is good, but domain expertise should drive feature creation, not trial-and-error. Talk to the customer success team before encoding assumptions.
-
-**What nobody said that should have been said:** Model interpretability for the business team is not optional. If the retention team can't understand why a customer was flagged, they won't trust the model and won't use it.`,
-
-  chip_huyen: `**I disagree with Jeremy because:** The serving infrastructure question is more important than the model choice. A fastai tabular model with entity embeddings is harder to serve and explain than XGBoost with SHAP.
-
-**Andrew got something right — here's what they missed:** Error analysis needs to be systematic, not anecdotal. Build a confusion matrix slice analysis: where does the model fail? New customers? High-paying customers? Specific contract types?
-
-**What nobody said that should have been said:** Monitoring in production is where most churn models die. The PSI threshold of 0.2 is arbitrary. You need to calibrate the retraining trigger against your specific data distribution.`,
-
-  jeremy_howard: `**I disagree with Sebastian because:** A holdout set with 1,400 rows (20% of 7K) will have high variance in AUC estimates. Nested CV gives you more reliable estimates of generalization. The computational cost is worth it.
-
-**Chip got something right — here's what they missed:** Schema validation at the prediction endpoint is essential, but you also need to handle covariate shift gracefully — log anomalous inputs, don't silently score them.
-
-**What nobody said that should have been said:** The whole team focused on AUC. Nobody asked: what's the model latency requirement? If this needs to score 100K customers overnight in batch, all the serving advice changes.`,
-
-  chris_olah: `**I disagree with Lilian because:** SHAP is a post-hoc attribution method. It tells you the model's reasoning on average, not the actual computational mechanism. For debugging production failures, you need mechanistic understanding, not attribution scores.
-
-**Edward got something right — here's what they missed:** Software engineering discipline is important, but before you build a typed schema, you need to understand what the model is actually computing. I've seen well-engineered systems ship confidently wrong models because nobody looked inside.
-
-**What nobody said that should have been said:** Test the model's reasoning on synthetic edge cases. Create customers with known churn risk and verify the model's predictions match intuition. If they don't, the model learned something spurious.`,
-
-  edward_yang: `**I disagree with Ethan because:** Change management and human factors matter, but they're downstream of having a reliable system. A buggy model with great UX is worse than a good model with a clunky interface. Get the engineering right first.
-
-**Chip got something right — here's what they missed:** Separate versioning of feature pipeline and model is correct but incomplete. You also need to version the data schema. If the upstream team adds a column, your pipeline should validate it, not silently consume it.
-
-**What nobody said that should have been said:** Reproducibility. Can you re-run this experiment from scratch and get the same result? If not, this isn't a production-ready analysis — it's a one-time experiment. Set random seeds, pin library versions, log everything.`,
-
-  ethan_mollick: `**I disagree with Sam because:** Uplift models require A/B test data and significant infrastructure. For most teams, starting with a simple churn score and building the feedback loop manually is more practical and faster to value.
-
-**Jay got something right — here's what they missed:** Visualisations aren't just for stakeholders. The calibration curve is diagnostic — if it's badly miscalibrated, the model's probability scores are meaningless for threshold selection. Build it before any business presentation.
-
-**What nobody said that should have been said:** Pilot programs. Don't roll out to all customers at once. Run a 30-day pilot with 10% of high-risk customers, measure actual retention rate improvement, then scale. The ROI estimate becomes real data.`,
-
-  jay_alammar: `**I disagree with Chris because:** Mechanistic interpretability at the circuits level is appropriate for deep learning models with billions of parameters. For XGBoost on 27 features, SHAP is sufficient and far more actionable.
-
-**Jonas got something right — here's what they missed:** Data validation infrastructure is critical, but it needs to be visual too. A data quality dashboard that shows schema drift and value distribution changes over time is worth 10× more than automated tests alone.
-
-**What nobody said that should have been said:** The model card. Document who the model was built for, what data it was trained on, known failure modes, and ethical considerations. This should be mandatory before any production deployment.`,
-
-  jonas_mueller: `**I disagree with Edward because:** Typed schemas and software engineering are important, but they're cargo-culting if the underlying data quality issues aren't addressed. You can have perfectly typed code reading garbage data.
-
-**Shreya got something right — here's what they missed:** Out-of-distribution detection is necessary, but the threshold for "OOD" needs to be calibrated against historical data distribution. What counts as an anomalous tenure value if the product changes its pricing and attracts a new customer segment?
-
-**What nobody said that should have been said:** Data contracts with the upstream engineering team. Not as a document but as an automated test that runs on every data delivery and pages someone when it fails. That's the only data quality mechanism that actually works.`,
-
-  lilian_weng: `**I disagree with Andrej because:** Starting with logistic regression is sensible as a sanity check, but with charge_per_tenure and contract_risk as engineered features, you already have nonlinearity baked in. XGBoost won't hurt.
-
-**Geoffrey got something right — here's what they missed:** The feedback loop concern is valid and underappreciated. If the model scores seniors poorly and they receive fewer retention offers, you collect less data on retained seniors, which makes future models worse.
-
-**What nobody said that should have been said:** Feature importance from tree models is unreliable for correlated features. MonthlyCharges and TotalCharges are highly correlated — their importances will be split arbitrarily between them.`,
-
-  matei_zaharia: `**I disagree with Edward because:** Metaflow and Prefect are great for ML pipelines, but for a 7K-row tabular dataset, they're serious overkill. The simplest tool that works is the right tool. Over-engineering the pipeline is as bad as under-engineering it.
-
-**Chip got something right — here's what they missed:** Define the SLA before the architecture. Once you know whether this is batch or real-time, the right infrastructure choice is obvious. Don't design for both simultaneously — you'll get something that does neither well.
-
-**What nobody said that should have been said:** Graceful degradation. What does the system do when the model service is down? Fall back to a rule-based system (high tenure + month-to-month = high risk). The rule-based fallback is often 80% as accurate as the model and 100% more reliable.`,
-
-  santiago_valdarrama: `**I disagree with Vicki because:** Data provenance documentation is important but it can't be the blocker. In most organisations, you'll never get a perfect data contract. Build the model with what you have, document the assumptions, and iterate.
-
-**Ethan got something right — here's what they missed:** The decision interface design is critical, but frame it differently. The retention team doesn't need a probability score — they need a ranked list of "call these 50 customers today." That's a product decision masquerading as a modelling decision.
-
-**What nobody said that should have been said:** Sensitivity analysis. What happens to model performance if the churn rate changes from 26% to 35% next quarter? If the model breaks under realistic distribution shifts, it's not production-ready.`,
-
-  sebastian_raschka: `**I disagree with Jeremy because:** A holdout set with 1,400 rows (20% of 7K) will have high variance in AUC estimates. Nested CV gives you more reliable estimates of generalization. The computational cost is worth it.
-
-**Andrew got something right — here's what they missed:** Lift curve analysis is the correct frame for business impact. But go further: calibrate the model and report reliability diagrams. If a customer scores 0.7 churn probability, does 70% of that segment actually churn?
-
-**What nobody said that should have been said:** Statistical significance of the AUC difference between models. If XGBoost beats logistic regression by 0.03 AUC, is that difference real or sampling noise? Run McNemar's test on the predictions.`,
-
-  shreya_rajpal: `**I disagree with Jonas because:** Data contracts are important, but reliability engineering at the model boundary is more urgent. A bad upstream data change will cause loud failures that someone will notice. A model that silently produces wrong outputs for OOD inputs is far more dangerous.
-
-**Tim got something right — here's what they missed:** Compute efficiency matters, but so does inference reliability. A quantized model that's 4× faster but has a 2% accuracy drop needs to be validated against the original before deployment, not assumed equivalent.
-
-**What nobody said that should have been said:** Rollback strategy. What's the plan when the model performs worse in production than in validation? You need a versioned model registry and the ability to instantly revert to the previous version. Nobody builds this until they need it — then it's too late.`,
-
-  tim_dettmers: `**I disagree with Santiago because:** You can't do sensitivity analysis in the abstract. You need to simulate it. Generate synthetic data with shifted distributions and measure model degradation. "What if churn rate changes to 35%" needs to be a concrete experiment, not a question.
-
-**Matei got something right — here's what they missed:** Graceful degradation to a rule-based fallback is the right engineering instinct. But the fallback rule should be trained from data too — a simple decision tree with depth 3 gives you an interpretable, deployable backup that's not just a guess.
-
-**What nobody said that should have been said:** Memory bandwidth is the bottleneck in tabular inference, not compute. A model that fits in L2 cache will score 10× faster than one that doesn't. For 100K customer batch scoring, model size matters.`,
-
-  vicki_boykis: `**I disagree with Edward because:** Perfect reproducibility is the enemy of shipping. Random seeds and pinned library versions are good practice but in a business context you need to balance engineering rigour with velocity. Build the reproducibility infrastructure incrementally.
-
-**Jonas got something right — here's what they missed:** Data contracts as automated tests are exactly right, but they need to cover semantic correctness, not just schema. A contract that checks "TotalCharges is a float" won't catch the case where upstream silently starts filling nulls with -1 instead of NaN.
-
-**What nobody said that should have been said:** The most dangerous part of this whole pipeline isn't the model — it's the feature engineering code. It runs in production on every prediction. One off-by-one error in charge_per_tenure silently degrades every prediction forever. That code needs more tests than the model.`,
+**My final recommendation:** Before shipping: define the retention offer, estimate its success rate from historical data, and compute the break-even point. If the math works, ship fast. If not, redesign the intervention before investing more in the model.`,
 }
 
 export const MOCK_SYNTHESIS = `## Consensus Points
 
-- **Feature engineering beats raw features** — supported by Karpathy, LeCun, Ng, Weng, Chollet, Alammar. The engineered features (charge_per_tenure, contract_risk, is_new_customer) capture domain knowledge that raw columns miss.
-- **Interpretability is non-negotiable for adoption** — supported by Karpathy, Ng, Huyen, Howard, Mollick. The model must be explainable to the retention team or it won't be used.
-- **AUC alone is insufficient** — supported by Chollet, Raschka, Howard, Alammar. Lift curve, calibration, and business cost must be evaluated before declaring the model production-ready.
-- **Production reliability requires explicit engineering** — supported by Huyen, Yang, Rajpal, Mueller, Boykis. Schema validation, data contracts, OOD detection, and rollback strategy are non-optional.
-- **Monitoring and retraining cadence must be calibrated, not assumed** — supported by Huyen, Hinton, Ng, Zaharia. PSI > 0.2 is an arbitrary threshold; calibrate against your specific data distribution.
+- **Start simple, escalate only if needed** — supported by Theory (Karpathy), Applied (Ng), Systems (Huyen). Logistic regression baseline validates the signal; XGBoost adds complexity only when justified by measurable lift.
+- **Interpretability is a prerequisite for adoption** — supported by all 4 groups. The retention team won't use a model they can't understand. SHAP explanations for individual predictions are non-negotiable.
+- **Monitoring from day one, not as an afterthought** — supported by Systems (Huyen), Strategy (Rajpal), Applied (Mueller). Calibration drift, PSI, and prediction volume alerts must be built alongside the model.
+- **Lift@20% over AUC** — supported by Theory (Karpathy, Raschka), Applied (Ng, Alammar). The business question is "are we calling the right 50 customers?" not "what's the overall curve shape?"
 
 ## Live Disagreements
 
-- **LeCun vs Karpathy**: Survival analysis (Cox PH) vs standard binary classification. LeCun argues tenure is a time variable that should be modeled explicitly; Karpathy argues gradient boosting with tenure as a feature captures this without the Cox PH assumptions.
-- **Hinton vs Altman**: Whether to remove SeniorCitizen. Hinton argues the 41.7% vs 23.6% disparity is an ethical blocker; Altman argues removing it hides signal and leads to worse decisions for seniors.
-- **Raschka vs Howard**: Nested CV vs holdout set. Raschka argues 1,400-row holdout has too much variance; Howard argues nested CV overhead isn't worth it at this scale.
-- **Olah vs Weng**: SHAP attribution vs mechanistic understanding. Olah argues SHAP doesn't reveal what the model actually computes; Weng argues SHAP is sufficient and far more actionable for tabular models.
-- **Zaharia vs Yang**: Pipeline infrastructure scope. Zaharia argues Metaflow/Prefect is overkill for 7K rows; Yang argues software discipline is non-negotiable regardless of data size.
+- **Karpathy vs Altman**: Ship-fast vs design-the-intervention-first. Karpathy argues for a minimal viable model in 2 weeks; Altman argues that without a validated retention offer, the model creates no value regardless of accuracy. Both positions have merit — the resolution is to ship the model AND design the A/B test simultaneously.
+- **Huyen vs Karpathy**: Monitoring infrastructure. Huyen argues dashboards and alerts from day one; Karpathy argues this is gold-plating before product-market fit. The practical middle ground: log everything, build the dashboard in sprint 2.
+- **Ng vs Altman**: Uplift modeling timeline. Ng says it's a 6-month project requiring A/B data; Altman argues it's the only approach that addresses the actual business question. Both agree the first step is collecting randomized intervention data.
 
 ## Action Items (ranked by confidence)
 
-1. **Ship logistic regression baseline first** — endorsed by 9 experts. Provides interpretable benchmark, reveals whether complexity is actually needed.
-2. **SHAP analysis on the final model** — endorsed by 8 experts. Required for feature importance, error analysis, and retention team trust.
-3. **Evaluate Lift@20% and calibration curve** — endorsed by 7 experts. AUC does not tell you where to set the decision threshold.
-4. **Add fiber+no-support+month-to-month interaction feature** — endorsed by 6 experts (Chollet, Hinton, LeCun, Ng, Weng, Alammar). Likely top predictor.
-5. **Input schema validation + OOD detection at prediction endpoint** — endorsed by 6 experts. Non-optional for production.
-6. **Data contract with upstream engineering team** — endorsed by 5 experts. Automated tests that page someone when schema changes.
-7. **Define SLA before finalising serving architecture** — endorsed by 4 experts. Batch vs real-time changes everything about the infrastructure.
+1. **Ship logistic regression + XGBoost comparison in 2 weeks** — endorsed by 4/4 groups. Evaluate on Lift@20% and calibration curve.
+2. **Add fiber+no-support+month-to-month interaction feature** — endorsed by 3/4 groups (Theory, Applied, Strategy). Likely the top predictor.
+3. **Build SHAP-powered "call these 50 customers" workflow** — endorsed by 4/4 groups. This is the product, not the probability API.
+4. **Deploy with 3 monitoring alerts** — endorsed by 3/4 groups. Calibration drift > 5%, PSI > 0.15, volume anomaly > 20%.
+5. **Design A/B test for retention offer effectiveness** — endorsed by 3/4 groups. Required for uplift model v2.
+6. **Establish monthly model review with retention team** — endorsed by 2/4 groups. Builds trust and creates feedback loop.
 
 ## The Minority Report
 
-- **LeCun**: Frame this as survival analysis (Cox PH). Nobody else agreed, but the argument that temporal structure is being discarded is technically correct. Worth a parallel experiment before final model selection.
-- **Altman**: Build an uplift model, not a churn model. Requires A/B test data the team doesn't have, but the underlying point — that prediction without causal intervention design is incomplete — should shape the v2 roadmap.
-- **Olah**: Mechanistic interpretability beyond SHAP. Dismissed as overkill for tabular ML, but testing the model on synthetic edge cases (his concrete recommendation) is low-cost and high-value.
+- **Yann LeCun** (Theory): Frame this as survival analysis (Cox PH). Nobody else agreed, but the argument that temporal structure is being discarded is technically correct. Worth a parallel experiment.
+- **Chris Olah** (Strategy): Test model reasoning on synthetic edge cases. Dismissed as overkill for tabular ML, but the concrete recommendation is low-cost and high-value for catching spurious correlations.
 
 ## Bottom Line
 
-Train logistic regression and XGBoost in parallel (1 day). Evaluate both on Lift@20%, calibration, and McNemar's significance test — not just AUC. Before deployment: address the SeniorCitizen disparity explicitly, add input validation and OOD flagging, and define what "the model is wrong" looks like and how to roll back. The 20 experts agree on the model; they disagree on the infrastructure. Invest in the infrastructure — it's what determines whether this creates value in 6 months or gets quietly abandoned.`
+Ship a logistic regression baseline in week 1 with the interaction feature and SHAP explanations. Evaluate on Lift@20%, not AUC. Deploy as a "call these 50 customers today" list, not a probability API. Build monitoring from day one. Then run an A/B test on retention offers to collect the causal data needed for the uplift model that Sam Altman correctly identified as the real goal.`

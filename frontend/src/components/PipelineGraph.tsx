@@ -191,10 +191,12 @@ export default function PipelineGraph({ activeAgent, doneAgents, done, nodes, se
     svg.on('click', () => setSelected(null))
 
     sim.on('tick', () => {
+      const currW = svgRef.current?.clientWidth || W
+      const currH = svgRef.current?.clientHeight || H
       simNodes.forEach(d => {
-        const bp = (d.id === 'final_report' ? R_FINAL : R) + 30
-        d.x = Math.max(bp, Math.min(W - bp, d.x ?? W / 2))
-        d.y = Math.max(bp, Math.min(H - bp, d.y ?? H / 2))
+        const r = (d.id === 'final_report' ? R_FINAL : R) + 20
+        d.x = Math.max(r, Math.min(currW - r, d.x ?? currW / 2))
+        d.y = Math.max(r, Math.min(currH - r, d.y ?? currH / 2))
       })
 
       linkPaths.attr('d', (d: D3Link) => {

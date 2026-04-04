@@ -1,0 +1,142 @@
+[
+  {
+    "name": "Lucy",
+    "url": "https://github.com/AndrewNg/Lucy",
+    "stars": 13,
+    "description": "Browse the web hands-free.",
+    "language": "JavaScript"
+  },
+  {
+    "name": "fabric",
+    "url": "https://github.com/AndrewNg/fabric",
+    "stars": 3,
+    "description": "Virtual 3D Modeling Software using the Oculus VR and the Leap Motion.",
+    "language": "JavaScript"
+  },
+  {
+    "name": "COS424A4",
+    "url": "https://github.com/AndrewNg/COS424A4",
+    "stars": 1,
+    "description": "The final project for the class COS 424, Fundamentals of Machine Learning",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "guardian",
+    "url": "https://github.com/AndrewNg/guardian",
+    "stars": 1,
+    "description": "Parental controls for teenage drivers.",
+    "language": "JavaScript"
+  },
+  {
+    "name": "aegis",
+    "url": "https://github.com/AndrewNg/aegis",
+    "stars": 1,
+    "description": "S2014 Hack Red Hook. DIY security system.",
+    "language": "JavaScript"
+  },
+  {
+    "name": "sphinx",
+    "url": "https://github.com/AndrewNg/sphinx",
+    "stars": 1,
+    "description": "S2014 HackPrinceton. Facial recognition auth.",
+    "language": "CSS"
+  },
+  {
+    "name": "Multimodal-Toolkit",
+    "url": "https://github.com/AndrewNg/Multimodal-Toolkit",
+    "stars": 0,
+    "description": "Multimodal model for text and tabular data with HuggingFace transformers as building block for text data",
+    "language": "Python"
+  },
+  {
+    "name": "closeio",
+    "url": "https://github.com/AndrewNg/closeio",
+    "stars": 0,
+    "description": "A Ruby wrapper for the Close.io API",
+    "language": "Ruby"
+  },
+  {
+    "name": "rich-markdown-editor",
+    "url": "https://github.com/AndrewNg/rich-markdown-editor",
+    "stars": 0,
+    "description": "The open source React and Slate based markdown editor that powers Outline wiki. Want to try it out? Create a free account:",
+    "language": "Unknown"
+  },
+  {
+    "name": "anchore",
+    "url": "https://github.com/AndrewNg/anchore",
+    "stars": 0,
+    "description": "Legacy Anchore container analysis, inspection and control toolset. See https://github.com/anchore/anchore-engine for newer version that operates as a service with REST API instead of a cli tool.",
+    "language": "Python"
+  },
+  {
+    "name": "starter-gatsby-typescript",
+    "url": "https://github.com/AndrewNg/starter-gatsby-typescript",
+    "stars": 0,
+    "description": "",
+    "language": "TypeScript"
+  },
+  {
+    "name": "now-github-starter",
+    "url": "https://github.com/AndrewNg/now-github-starter",
+    "stars": 0,
+    "description": "Starter project to demonstrate a project whose pull requests get automatically deployed",
+    "language": "HTML"
+  },
+  {
+    "name": "www-new",
+    "url": "https://github.com/AndrewNg/www-new",
+    "stars": 0,
+    "description": "New Website",
+    "language": "JavaScript"
+  },
+  {
+    "name": "react-instantsearch",
+    "url": "https://github.com/AndrewNg/react-instantsearch",
+    "stars": 0,
+    "description": "⚡ Lightning-fast search for React and React Native apps, by Algolia.",
+    "language": "JavaScript"
+  },
+  {
+    "name": "flag_shih_tzu",
+    "url": "https://github.com/AndrewNg/flag_shih_tzu",
+    "stars": 0,
+    "description": "Bit fields for ActiveRecord",
+    "language": "Ruby"
+  },
+  {
+    "name": "heroku-buildpack-tesseract",
+    "url": "https://github.com/AndrewNg/heroku-buildpack-tesseract",
+    "stars": 0,
+    "description": "Heroku Custom Buildpack for Tesseract OCR",
+    "language": "Shell"
+  },
+  {
+    "name": "reezy",
+    "url": "https://github.com/AndrewNg/reezy",
+    "stars": 0,
+    "description": "reezy f baby",
+    "language": "Python"
+  },
+  {
+    "name": "frugal",
+    "url": "https://github.com/AndrewNg/frugal",
+    "stars": 0,
+    "description": "Save while spending.",
+    "language": "JavaScript"
+  },
+  {
+    "name": "leap_theremin",
+    "url": "https://github.com/AndrewNg/leap_theremin",
+    "stars": 0,
+    "description": "Leap Motion visualization for the Theremin Society.",
+    "language": "JavaScript"
+  },
+  {
+    "name": "Stockfish",
+    "url": "https://github.com/AndrewNg/Stockfish",
+    "stars": 0,
+    "description": "UCI chess engine",
+    "language": "C++"
+  }
+]

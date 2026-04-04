@@ -1,0 +1,212 @@
+[
+  {
+    "name": "aie-book",
+    "url": "https://github.com/chiphuyen/aie-book",
+    "stars": 14529,
+    "description": "[WIP] Resources for AI engineers. Also contains supporting materials for the book AI Engineering (Chip Huyen, 2025)",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "stanford-tensorflow-tutorials",
+    "url": "https://github.com/chiphuyen/stanford-tensorflow-tutorials",
+    "stars": 10383,
+    "description": "This repository contains code examples for the Stanford's course: TensorFlow for Deep Learning Research. ",
+    "language": "Python"
+  },
+  {
+    "name": "machine-learning-systems-design",
+    "url": "https://github.com/chiphuyen/machine-learning-systems-design",
+    "stars": 10323,
+    "description": "A booklet on machine learning systems design with exercises. NOT the repo for the book \"Designing Machine Learning Systems\", which is `dmls-book`",
+    "language": "HTML"
+  },
+  {
+    "name": "dmls-book",
+    "url": "https://github.com/chiphuyen/dmls-book",
+    "stars": 4604,
+    "description": "Summaries and resources for Designing Machine Learning Systems book (Chip Huyen, O'Reilly 2022)",
+    "language": "Unknown"
+  },
+  {
+    "name": "ml-interviews-book",
+    "url": "https://github.com/chiphuyen/ml-interviews-book",
+    "stars": 4585,
+    "description": "https://huyenchip.com/ml-interviews-book/",
+    "language": "HTML"
+  },
+  {
+    "name": "python-is-cool",
+    "url": "https://github.com/chiphuyen/python-is-cool",
+    "stars": 3656,
+    "description": "Cool Python features for machine learning that I used to be too afraid to use. Will be updated as I have more time / learn more.",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "lazynlp",
+    "url": "https://github.com/chiphuyen/lazynlp",
+    "stars": 2245,
+    "description": "Library to scrape and clean web pages to create massive datasets.",
+    "language": "Python"
+  },
+  {
+    "name": "sotawhat",
+    "url": "https://github.com/chiphuyen/sotawhat",
+    "stars": 1399,
+    "description": "Returns latest research results by crawling arxiv papers and summarizing abstracts. Helps you stay afloat with so many new papers everyday.",
+    "language": "Python"
+  },
+  {
+    "name": "sniffly",
+    "url": "https://github.com/chiphuyen/sniffly",
+    "stars": 1198,
+    "description": "Claude Code dashboard with usage stats, error analysis, and sharable feature",
+    "language": "Python"
+  },
+  {
+    "name": "just-pandas-things",
+    "url": "https://github.com/chiphuyen/just-pandas-things",
+    "stars": 994,
+    "description": "An ongoing list of pandas quirks",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "coding-exercises",
+    "url": "https://github.com/chiphuyen/coding-exercises",
+    "stars": 514,
+    "description": "My implementation of useful data structures, algorithms,  as well as my solutions to programming puzzles. ",
+    "language": "Python"
+  },
+  {
+    "name": "tf-oreilly",
+    "url": "https://github.com/chiphuyen/tf-oreilly",
+    "stars": 107,
+    "description": "Code for O'Reilly's \"A Short Course on TensorFlow\"",
+    "language": "Python"
+  },
+  {
+    "name": "chiphuyen",
+    "url": "https://github.com/chiphuyen/chiphuyen",
+    "stars": 68,
+    "description": "",
+    "language": "Unknown"
+  },
+  {
+    "name": "metaflow-transformers-tutorials",
+    "url": "https://github.com/chiphuyen/metaflow-transformers-tutorials",
+    "stars": 66,
+    "description": "Metaflow tutorials for ODSC West 2021",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "machine-learning-book",
+    "url": "https://github.com/chiphuyen/machine-learning-book",
+    "stars": 50,
+    "description": "Code Repository for Machine Learning with PyTorch and Scikit-Learn",
+    "language": "Unknown"
+  },
+  {
+    "name": "requests-for-research",
+    "url": "https://github.com/chiphuyen/requests-for-research",
+    "stars": 39,
+    "description": "A living collection of deep learning problems",
+    "language": "HTML"
+  },
+  {
+    "name": "LLaVAFT",
+    "url": "https://github.com/chiphuyen/LLaVAFT",
+    "stars": 11,
+    "description": "[NeurIPS'23 Oral] Visual Instruction Tuning (LLaVA) built towards GPT-4V level capabilities and beyond.",
+    "language": "Python"
+  },
+  {
+    "name": "github-markdown-toc",
+    "url": "https://github.com/chiphuyen/github-markdown-toc",
+    "stars": 11,
+    "description": "Easy TOC creation for GitHub README.md",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenSeq2Seq",
+    "url": "https://github.com/chiphuyen/OpenSeq2Seq",
+    "stars": 10,
+    "description": "Toolkit for efficient experimentation with various sequence-to-sequence models",
+    "language": "Python"
+  },
+  {
+    "name": "tensorflow",
+    "url": "https://github.com/chiphuyen/tensorflow",
+    "stars": 10,
+    "description": "Computation using data flow graphs for scalable machine learning",
+    "language": "C++"
+  },
+  {
+    "name": "Milano",
+    "url": "https://github.com/chiphuyen/Milano",
+    "stars": 9,
+    "description": "Milano is a tool for automating hyper-parameters search for your models on a backend of your choice.",
+    "language": "Python"
+  },
+  {
+    "name": "tensor2tensor",
+    "url": "https://github.com/chiphuyen/tensor2tensor",
+    "stars": 9,
+    "description": "A library for generalized sequence to sequence models",
+    "language": "Python"
+  },
+  {
+    "name": "ibis",
+    "url": "https://github.com/chiphuyen/ibis",
+    "stars": 8,
+    "description": "The flexibility of Python with the scale and performance of modern SQL.",
+    "language": "Python"
+  },
+  {
+    "name": "fastText",
+    "url": "https://github.com/chiphuyen/fastText",
+    "stars": 8,
+    "description": "Library for fast text representation and classification.",
+    "language": "C++"
+  },
+  {
+    "name": "transformer-xl",
+    "url": "https://github.com/chiphuyen/transformer-xl",
+    "stars": 7,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "D2C",
+    "url": "https://github.com/chiphuyen/D2C",
+    "stars": 6,
+    "description": "",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "awd-lstm-lm",
+    "url": "https://github.com/chiphuyen/awd-lstm-lm",
+    "stars": 6,
+    "description": "LSTM and QRNN Language Model Toolkit for PyTorch",
+    "language": "Python"
+  },
+  {
+    "name": "feathr",
+    "url": "https://github.com/chiphuyen/feathr",
+    "stars": 5,
+    "description": "Feathr – An Enterprise-Grade, High Performance Feature Store",
+    "language": "Unknown"
+  },
+  {
+    "name": "tvm",
+    "url": "https://github.com/chiphuyen/tvm",
+    "stars": 2,
+    "description": "Open deep learning compiler stack for cpu, gpu and specialized accelerators",
+    "language": "Unknown"
+  },
+  {
+    "name": "plugin-mathjax",
+    "url": "https://github.com/chiphuyen/plugin-mathjax",
+    "stars": 1,
+    "description": "MathJAX plugin for GitBook",
+    "language": "Unknown"
+  }
+]

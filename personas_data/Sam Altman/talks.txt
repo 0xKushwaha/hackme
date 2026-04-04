@@ -1,0 +1,1568 @@
+## OpenAI’s Sam Altman Talks ChatGPT, AI Agents and Superintelligence — Live at TED2025
+
+URL: https://www.youtube.com/watch?v=5MWT_doo68k
+
+Chris Anderson: Sam, welcome to TED. Thank you so much for coming. Sam Altman: Thank you. It's an honor. CA: Your company has been releasing
+crazy insane new models   pretty much every other week
+it feels like. I've been playing with a couple of them. I'd like to show you
+what I've been playing. So, Sora, this is the image
+and video generator. I asked Sora this: What will it look like when you share
+some shocking revelations here at TED? You want to see
+how it imagined it, you know? (Laughter) I mean, not bad, right? How would you grade that? Five fingers on all hands. SA: Very close to what I'm wearing,
+you know, it's good. CA: I've never seen you
+quite that animated. SA: No, I'm not that animated of a person. CA: So maybe a B-plus. But this one genuinely astounded me. When I asked it to come up with a diagram that shows the difference
+between intelligence and consciousness. Like  how would you do that? This is what it did. I mean, this is so simple,
+but it's incredible. What is the kind of process
+that would allow -- like this is clearly not just
+image generation. It's linking into the core intelligences
+that your overall model has. SA: Yeah, the new image
+generation model is part of GPT-4o, so it's got all
+of the intelligence in there. And I think that's one of the reasons it's been able to do these things
+that people really love. CA: I mean, if I'm a management consultant
+and I'm playing with some of this stuff, I'm thinking, uh oh,
+what does my future look like? SA: I mean, I think there are
+sort of two views you can take. You can say, oh, man,
+it's doing everything I do. What's going to happen to me? Or you can say, like through every other
+technological revolution in history, OK, now there's this new tool. I can do a lot more. What am I going to be able to do? It is true that the expectation of what we’ll have for someone
+in a particular job increases, but the capabilities
+will increase so dramatically that I think it will be easy
+to rise to that occasion. CA: So this impressed me too. I asked it to imagine Charlie Brown
+as thinking of himself as an AI. It came up with this. I thought this was actually
+rather profound. What do you think? (Laughs) I mean, the writing quality
+of some of the new models, not just here, but in detail, is really going to a new level. SA: I mean, this is
+an incredible meta answer, but there's really no way to know
+if it is thinking that or it just saw that a lot of times
+in the training set. And of course like
+if you can’t tell the difference, how much do you care? CA: So that's really interesting. We don't know. Isn't there though ... like at first glance
+this looks like IP theft. Like you guys don’t have a deal
+with the “Peanuts” estate? (Applause) You can clap about that
+all you want, enjoy. (Laughter and murmuring) I will say that I think
+the creative spirit of humanity is an incredibly important thing, and we want to build
+tools that lift that up, that make it so that new people
+can create better art, better content, write better novels that we all enjoy. I believe very deeply that humans
+will be at the center of that. I also believe that we probably
+do need to figure out some sort of new model
+around the economics of creative output. I think people have been building
+on the creativity of others for a long time. People take inspiration for a long time. But as the access to creativity
+gets incredibly democratized and people are building off
+of each other's ideas all the time, I think there are incredible
+new business models that we and others are excited to explore. Exactly what that's going to look like, I'm not sure. Clearly, there’s some cut and dry stuff, like you can’t copy someone else’s work. But how much inspiration can you take? If you say, I want to generate art
+in the style of these seven people, all of whom have consented to that, how do you, like divvy up
+how much money goes to each one? These are like big questions. But every time throughout history we have put better
+and more powerful technology in the hands of creators. I think we collectively get
+better creative output and people do just more amazing stuff. CA: An even bigger question
+is when they haven't consented to it. In our opening session,
+Carole Cadwalladr, showed, you know, "ChatGPT give a talk in the style
+of Carole Cadwalladr" and sure enough, it gave a talk that wasn't quite as good
+as the talk she gave, but it was pretty impressive. And she said, "OK, it's great,
+but I did not consent to this." How are we going to navigate this? Like isn’t there a way, should it just be people who’ve consented? Or shouldn’t there be a model that somehow says that any
+named individual in a prompt whose work is then used,
+they should get something for that? SA: So right now, if you use
+our image-gen thing and say, I want something in the style
+of a living artist, it won't do that. But if you say I want it in the style
+of this particular like kind of vibe, or this studio or this art movement
+or whatever, it will. And obviously if you’re like, you know, output a song that is like a copy
+of a song, it won't do that. The question of like
+where that line should be and how people say like,
+this is too much, we sorted that out before
+with copyright law and kind of what fair use looks like. Again, I think in the world of AI, there will be a new model
+that we figure out. CA: From the point of view, I mean, creative people are some
+of the angriest people right now or the most scared people about AI. And the difference between
+feeling your work is being stolen from you and your future is being stolen from you, and feeling your work is being amplified
+and can be amplified, those are such different feelings. And if we could shift
+to the other one, to the second one, I think that really changes how much
+humanity as a whole embraces all this. SA: Well, again, I would say
+some creative people are very upset. Some creatives are like,
+"This is the most amazing tool ever, I'm doing incredible new work." But you know like
+it’s definitely a change. And I have a lot of like
+empathy to people who are just like, "I wish this change weren't happening. I liked the way things were before." CA: But in principle, you can calculate
+from any given prompt how much ... there should be some way
+of being able to calculate what percentage of a subscription,
+revenue or whatever goes towards each answer. In principle, it should be possible if one could get the rest
+of the rules figured out. It's obviously complicated. You could calculate some kind
+of revenue share, no? SA: If you're a musician and you spend
+your whole life, your whole childhood, listening to music, and then you get an idea
+and you go compose a song that is inspired by what
+you've heard before, but a new direction, it'd be very hard for you to say like, this much was from this song
+I heard when I was 11. CA: That's right. But we're talking here about the situation where someone specifically
+in a prompt names someone. SA: Well, again,
+right now, if you try to like, go generate an image in a named style, we just say that artist
+is living, we don't do it. But I think it would be cool to figure out a new model
+where if you say, I want to do it in the name
+of this artist and they opt in, there's a revenue model there. I think that's a good thing to explore. CA: So, I think the world should help you
+figure out that model quickly. And I think it will make
+a huge difference actually. I want to switch topics quickly. (Applause) The battle between
+your model and open source. How much were you shaken up
+by the arrival of DeepSeek? SA: I think open source
+has an important place. We actually, just last night,
+hosted our first community session to kind of decide the parameters
+of our open-source model and how we want to shape it. We're going to do a very
+powerful open-source model. I think this is important. We're going to do something
+near the frontier, I think, better than any current
+open-source model out there. This will not be all -- there will be people who will use this
+in ways that some people in this room, maybe you or I, don’t like. But there is going to be an important
+place for open-source models as part of the constellation here. And, you know, I think
+we were late to act on that, but we're going to do it really well now. CA: I mean, you're spending
+it seems, like an order, or even orders of magnitude more
+than DeepSeek allegedly spent, although I know there's
+controversy around that. Are you confident that the actual
+better model is going to be recognized? Or are you actually like, isn't this in some ways life-threatening
+to the notion that, yeah, by going to massive scale,
+tens of billions of dollars of investment, we can maintain an incredible lead. SA: All day long, I call people
+and beg them to give us their GPUs. We are so incredibly constrained. Our growth is going like this. DeepSeek launched,
+and it didn’t seem to impact it. There's other stuff that's happening. CA: Tell us about the growth, actually. You gave me a shocking
+number backstage there. SA: I have never seen
+growth in any company, one that I've been involved with or not, like this, like the growth of ChatGPT. It's really fun. I feel like great, deeply honored. But it is crazy to live through, and our teams are exhausted and stressed. And we’re trying to keep things up. CA: How many users do you have now? SA: I think the last time we said
+was 500 million weekly actives, and it is growing very rapidly. CA: I mean, you told me that like
+doubled in just a few weeks. Like in terms of compute
+or in terms of ... SA: I said that privately, but I guess ... CA: Oh. (Laughter) I misremembered, Sam, I'm sorry. We can edit that out of the thing
+if you really want to. And no one here would tweet it. SA: It's growing very fast. (Laughter) CA: So you're confident,
+you're seeing it grow, take off like a rocket ship, you're releasing incredible
+new models all the time. What are you seeing in your best
+internal models right now that you haven't yet shared with the world but you would love to here on this stage? SA: So first of all, you asked about, are we worried about this
+model or that model? There will be a lot
+of intelligent models in the world. Very smart models will be
+commoditized to some degree. I think we’ll have the best, and for some use you'll want that. But like, honestly,
+the models are now so smart that for most of the things
+most people want to do, they're good enough. I hope that'll change over time because people will raise
+their expectations. But like, if you're kind of
+using ChatGPT as a standard user, the model capability is very smart. But we have to build a great product, not just a great model. And so there will be a lot of people
+with great models, and we will try to build the best product. And people want their image-gen, you know, you saw some
+Sora examples for video earlier. They want to integrate it
+with all their stuff. We just launched a new feature,
+it's still called Memory, but it's way better
+than the Memory before, where this model will get to know you
+over the course of your lifetime. And we have a lot more stuff
+to come to build like this great integrated product. And, you know, I think
+people will stick with that. So there will be many models,
+but I think we will, I hope, continue to focus on building the best
+defining product in this space. CA: I mean after I saw
+your announcement yesterday that ChatGPT will know all
+of your query history, I entered, "Tell me about me, ChatGPT, from all you know." And my jaw dropped, Sam, it was shocking. It knew who I was
+and all these sort of interests that hopefully mostly were
+pretty much appropriate and shareable. But it was astonishing. And I felt the sense of real excitement, a little bit queasy, but mainly excitement, actually, at how much more that would allow it
+to be useful to me. SA: One of our researchers
+tweeted, you know, kind of like yesterday or this morning, that the upload happens bit by bit. It’s not you know, that you plug
+your brain in one day. But you will talk to ChatGPT
+over the course of your life and some day, maybe if you want, it'll be listening to you
+throughout the day and sort of observing what you're doing, and it'll get to know you and it'll become this extension
+of yourself, this companion, this thing that just tries to,
+like, help you be the best, do the best you can. CA: In the movie "Her," the AI basically announces
+that she's read all of his emails and decided he's a great writer and you know, persuades
+a publisher to publish him. That might be coming
+sooner than we think. SA: I don't think it will happen
+exactly like that, but yeah, I think something
+in the direction where AI -- you don’t have to just,
+like, go to ChatGPT or whatever and say, I have a question,
+give me an answer. But you're getting like,
+proactively pushed things that help you, that make you better or whatever. That does seem like it's soon. CA: So what have you seen
+that's coming up, internally, that you think is going
+to blow people's minds? Give us at least a hint
+of what the next big jaw dropper is. SA: The thing that I'm personally
+most excited about is AI for science at this point. I am a big believer that the most important
+driver of the world and people's lives getting better
+and better is new scientific discovery. We can do more things with less, we sort of push back the frontier
+of what's possible. We're starting to hear
+a lot from scientists with our latest models that they're actually just more productive
+than they were before. That's actually mattering
+to what they can discover. CA: What’s the plausible near-term
+discovery, like, room temperature -- SA: Superconductors? CA: Superconducting, yeah. Is that possible? SA: I don't think that's prevented
+by the laws of physics. So it should be possible. But we don't know for sure. I think you'll start to see some ... meaningful progress against disease
+with AI-assisted tools. You know, physics maybe
+takes a little bit longer, but I hope for it. So that's like, one direction. Another that I think is big
+is starting pretty soon, like in the coming months. Software development
+has already been pretty transformed. Like it’s quite amazing how different
+the process of creating software is now than it was two years ago. But I expect like another move
+that big in the coming months as agentic software engineering
+really starts to happen. CA: I've heard engineers say
+that they've had almost like religious-like moments
+with some of the new models where suddenly, they can do
+in an afternoon what would have taken them two years. SA: Yeah, it's like mind -- it really like, that’s been one
+of my big “feel the AGI” moments. CA: But talk about what
+is the scariest thing that you've seen. Because like, outside, a lot of people picture you as,
+you know, you have access to this stuff. And we hear all these rumors
+coming out of AI, and it's like, "Oh my God,
+they've seen consciousness," or "They've seen AGI," or "They've seen some kind
+of apocalypse coming." Have you seen, has there been a scary moment when you've seen something
+internally and thought, "Uh oh, we need to pay attention to this?" SA: There have been like moments of awe. And I think with that is always like,
+how far is this going to go? What is this going to be? But there's no like,
+we don't secretly have, we're not secretly sitting
+on a conscious model or something that's capable of self-improvement
+or anything like that. You know, I ... people have very different views of what
+the big AI risks are going to be. And I myself have like
+evolved on thinking about where we're going to see those. I continue to believe there will come
+very powerful models that people can misuse in big ways. People talk a lot about the potential
+for new kinds of bioterror, models that can present
+like a real cybersecurity challenge, models that are capable
+of self-improvement in a way that leads
+to some sort of loss of control. So I think there are big risks there. And then there's a lot of other stuff, which honestly is kind of
+what I think, many people mean, where people talk about disinformation or models saying things
+that they don't like or things like that. CA: Sticking with the first of those, do you check for that
+internally before release? SA: Of course, yeah. So we have this preparedness framework that outlines how we do that. CA: I mean, you've had some
+departures from your safety team. How many people have departed,
+why have they left? SA: We have, I don't know
+the exact number, but there are clearly different views
+about AI safety systems. I would really point to our track record. There are people who will say
+all sorts of things. You know, something like 10 percent
+of the world uses our systems now a lot. And we are very proud
+of the safety track record. CA: But track record
+isn't the issue in a way -- SA: No, it kind of is. CA: Because we're talking
+about an exponentially growing power where we fear that we may wake up one day and the world is ending. So it's really not about track record, it's about plausibly saying
+that the pieces are in place to shut things down quickly
+if we see a danger. SA: Yeah, no, of course,
+of course that's important. You don't, like, wake up one day and say, "Hey, we didn't have
+any safety process in place. Now we think the model is really smart. So now we have to care about safety." You have to care about it
+all along this exponential curve. Of course the stakes increase,
+and there are big challenges. But the way we learn
+how to build safe systems is this iterative process of deploying them to the world,
+getting feedback, while the stakes are relatively low,
+learning about like, this is something we have to address. And I think as we move
+into these agentic systems, there's a whole big category of new things
+we have to learn to address. CA: So let's talk about agentic systems
+and the relationship between that and AGI. I think there's confusion
+out there, I'm confused. So artificial general intelligence, it feels like ChatGPT is already
+a general intelligence. I can ask it about anything, and it comes back
+with an intelligent answer. Why isn't that AGI? SA: It doesn't ... First of all, you can't ask it anything. That's very nice of you to say, but there's a lot of things
+that it's still embarrassingly bad at. But even if we fixed those,
+which hopefully we will, it doesn't continuously learn and improve. It can't go get better at something that it's currently weak at. It can't go discover new science
+and update its understanding and do that. And it also kind of can't,
+even if we lower the bar, it can't just sort of do
+any knowledge work you could do in front of a computer. I actually, even without
+the sort of ability to get better at something
+it doesn't know yet, I might accept that
+as a definition of AGI. But the current systems, you can't say like, hey,
+go do this task for my job, and it goes off and clicks
+around the internet and calls someone and looks
+at your files and does it. And without that,
+it feels definitely short of it. CA: I mean, do you guys have internally
+a clear definition of what AGI is, and when do you think
+that we may be there? SA: It's like the joke, if you’ve got 10 OpenAI
+researchers in a room and ask to define AGI,
+you’d get 14 definitions. CA: That's worrying, though, isn't it? Because that has been
+the mission initially, “We’re going to be
+the first to get to AGI. We'll do so safely. But we don't have a clear
+definition of what it is." SA: I was going to finish the answer. CA: Sorry. SA: What I think matters though, and what people want to know
+is not where is this one, you know, magic moment of, “We finished.” But given that what looks
+like is going to happen is that the models are just going to get
+smarter and more capable and smarter and more capable, on this long exponential, different people will call it AGI
+at different points. But we all agree it’s going to go
+way, way past that. You know, to whatever you want
+to call these systems that get much more capable than we are. The thing that matters
+is how do we talk about a system that is safe through all
+of these steps and beyond, as the system gets
+more capable than we are, as the system can do things
+that we don't totally understand. And I think more important
+than when is AGI coming and what's the definition of it, it's recognizing that we are
+in this unbelievable exponential curve. And you can, you know,
+say this is what I think AGI is. You can say you think
+this is what you think AGI is. Someone else can say
+superintelligence is out here, but we're going to have to contend and get wonderful benefits
+from this incredible system. And so I think we should
+shift the conversation away from what's the AGI moment to a recognition that,
+like, this thing is not going to stop, it's going to go way beyond
+what any of us would call AGI. And we have to build a society
+to get the tremendous benefits of this and figure out how to make it safe. CA: Well, one of the conversations
+this week has been that the real change moment is -- I mean, AGI is a fuzzy thing,
+but what is clear is agentic AI -- when AI is set free
+to pursue projects on its own and to put the pieces together -- you’ve actually, you've got a thing called Operator
+which starts to do this. And I tried it out. You know, I wanted to book a restaurant, and it's kind of incredible. It kind of can go ahead and do it,
+but this is what it said. You know, it was an intriguing process. And, you know, “Give me your credit
+card” and everything else, and I declined on this case to go forward. But I think this is the challenge
+that people are going to have. It's kind of like,
+it's an incredible superpower. It's a little bit scary. And Yoshua Bengio, when he spoke here, said that agentic AI is the thing
+to pay attention to. This is when everything could go wrong
+as we give power to AI to go out onto the internet to do stuff. I mean, going out onto the internet
+was always, in the sci-fi stories, the moment where, you know, escape happened and potential --
+things could go horribly wrong. How do you both release agentic AI and have guardrails in place
+that it doesn't go too far? SA: First of all, obviously you
+can choose not to do this and say, I don't want this. I'm going
+to call the restaurant and read them my credit card
+over the phone. CA: I could choose,
+but someone else might say, “Oh, go out, ChatGPT
+onto the internet at large and rewrite the internet to make it 
+better for humans,” or whatever. SA: The point I was going to make
+is just with any new technology, it takes a while for people
+to get comfortable. I remember when I wouldn't
+put my credit card on the internet because my parents had convinced me
+someone was going to read the number, and you had to fill out the form
+and then call them. And then we kind of all said, OK, we’ll build anti-fraud systems,
+and we can get comfortable with this. I think people are going to be slow
+to get comfortable with agentic AI in many ways. But I also really agree
+with what you said, which is that even if some people
+are comfortable with it and some aren't, we are going to have AI systems
+clicking around the internet. And this is, I think, the most interesting and consequential
+safety challenge we have yet faced. Because AI that you give access
+to your systems, your information, your ability to click around
+on your computer, now, those, you know, when AI makes a mistake,
+it's much higher stakes. It is the gate on -- so we talked earlier
+about safety and capability. I kind of think they're increasingly
+becoming one-dimensional. Like a good product is a safe product. You will not use our agents if you do not trust
+that they’re not going to like empty your bank account
+or delete your data or who knows what else. And so people want to use agents
+that they can really trust, that are really safe. And I think we are gated
+on our ability to make progress on our ability to do that. But it's a fundamental part
+of the product. CA: In a world where agency is out there and say that, you know,
+maybe it’s open models are widely distributed
+and someone says,  "OK, AGI, I want you to go out onto the internet and, you know, spread a meme however you can that X people are evil,”
+or whatever it is. It doesn't have to be
+an individual choice. A single person could let that agent
+out there, and the agent could decide, "Well, in order to execute
+on that function, I've got to copy myself everywhere," and, you know. Are there red lines that you have
+clearly drawn internally, where you know what
+the danger moments are, and that we cannot put out
+something that could go beyond this? SA: Yeah, so this is the purpose
+of our preparedness framework. And we'll update that over time. But we’ve tried to outline where we think
+the most important danger moments are, or what the categories are,
+how we measure that, and how we would mitigate something
+before releasing it. I can tell from the conversation
+you're not a big AI fan. CA: Actually, on the contrary,
+I use it every day. I'm awed by it. I think this is an incredible
+time to be alive. I wouldn't be alive any other time, and I cannot wait to see where it goes. We've been holding ... I think it's essential to hold ... like we can’t divide people
+into those camps. You have to hold a passionate
+belief in the possibility, but not be overseduced by it because things could go horribly wrong. (Applause) SA: What I was going to say
+is I totally understand that. I totally understand looking at this and saying this is an unbelievable
+change coming to the world. And, you know, maybe I don't want this,
+or maybe I love parts of it. Maybe I love talking to ChatGPT, but I worry about what's going
+to happen to art, and I worry about the pace of change, and I worry about these agents
+clicking around the internet. And maybe, on balance, I wish this weren't happening. Or maybe I wish it were
+happening a little slower. Or maybe I wish it were happening in a way where I could pick and choose what parts
+of progress were going to happen. And I think, the fear is totally rational. Sort of, the anxiety is totally rational. We all have a lot of it, too. But ... A, there will be tremendous upside. Obviously, you know,
+you use it every day, you like it. B ... I really believe that society
+figures out, over time, with some big mistakes along the way,
+how to get technology right. And C, this is going to happen. This is like a discovery
+of fundamental physics that the world now knows about. And it's going to be part of our world. And I think this conversation
+is really important. I think talking about these
+areas of danger [is] really important to talk about. New economic models are really important. But we have to embrace this
+with like, caution but not fear, or we will get run by with other people
+that use AI to do better. CA: You've actually been one of the most
+eloquent proponents of safety. You testified in the Senate. I think you said basically that we should form a new safety agency that licenses any effort, ie. it will refuse
+to license certain efforts. Do you still believe
+in that policy proposal? SA: I have learned more
+about how the government works. I don't think this is quite
+the right policy proposal. CA: What is the right policy proposal? SA: But, I do think the idea
+that as these systems get more advanced and have legitimate global impact, we need some way, you know, maybe the companies themselves
+put together the right framework or the right sort of model for this,
+but we need some way that very advanced models
+have external safety testing. And we understand when we get close
+to some of these danger zones. I very much still believe in that. CA: Struck me as ironic
+that a safety agency might be what we want, and yet agency is
+the very thing that is unsafe. There's something odd
+about the language there, but anyway. SA: Can I say one more thing on that? I do think this concept of we need to define
+rigorous testing for models, understand what the threats
+that we, collectively, society, most want to focus on, and make sure that as models
+are getting more capable, we have a system where we all
+get to understand what's being released in the world. I think this is really important. And I think we’re not far away
+from models that are going to be of great public interest in that sense. CA: So Sam, I asked
+your o1-pro reasoning model, which is incredibly -- SA: Thank you for the 200 dollars. CA: (Laughs) 200 dollars a month. It's a bargain at the price. I said, what is the single most
+penetrating question I could ask you? It thought about it for two minutes. Two minutes. You want to see the question? SA: I do. CA: "Sam, given that you're
+helping create technology that could reshape the destiny
+of our entire species, who granted you (or anyone)
+the moral authority to do that?” (Laughter) "And how are you personally
+accountable if you're wrong?" SA: No, it was good. CA: That was impressive. SA: You've been asking me versions
+of this for the last half hour. What do you think? (Laughter and applause) CA: What I would say is this. Here's my version of that question. SA: But no answer? CA: What was your question to me? SA: How would you answer that one? CA: In your shoes? SA: Or as an outsider. CA: I don't know. I am puzzled by you. I’m kind of awed by you. Because you’ve built one of the most
+astonishing things out there. There are two narratives
+about you out there. One is, you know, you are this incredible
+visionary who's done the impossible, and you shocked the world. With far fewer people than Google, you came out with something
+that was much more powerful than anything being done. I mean, it is amazing what you've built. But the other narrative
+is that you have shifted ground, that you've shifted from being OpenAI, this open thing, to the allure of building
+something super powerful. And you know, you’ve lost
+some of your key people. There's a narrative out there. Some people believe that you're not
+to be trusted in this space. I would love to know who you are. What is your narrative about yourself? What are your core values, Sam, that can give us, the world, confidence that someone with so much
+power here is entitled to it? SA: Look, I think like anyone else,
+I'm a nuanced character that doesn't reduce well
+to one dimension here. You know, probably some
+of the good things are true and probably some
+of the criticism is true. In terms of OpenAI, our goal is to make AGI and distribute it, make it safe, for the broad
+benefit of humanity. I think by all accounts,
+we have done a lot in that direction. Clearly our tactics
+have shifted over time. I think we didn't really know
+what we were going to be when we grew up. We didn't think we would have
+to build a company around this. We learned a lot about how it goes and the realities of what these systems
+were going to take from capital. But I think we've been, in terms of putting incredibly capable AI with a high degree of safety
+in the hands of a lot of people, and giving them tools to sort of do whatever amazing
+things they're going to do, I think it'd be hard to give us
+a bad grade on that. I do think it's fair that we should
+be open sourcing more. I think it was reasonable for all of the reasons
+that you asked earlier, as we weren't sure about the impact
+these systems were going to have and how to make them safe, that we acted with precaution. I think a lot of your questions earlier
+would suggest at least some sympathy to the fact that we've operated that way. But now I think we have a better
+understanding, as a world, and it is time for us to put very
+capable open systems out into the world. If you invite me back next year,
+you will probably yell at me for somebody who has misused
+these open-source systems, and say, "Why did you do that?" You know, "You should have
+not gone back to your open roots." But, you know, there's trade offs
+in everything we do. And we are one player, one voice, in this AI revolution, trying to do the best we can and kind of steward this technology
+into the world in a responsible way. We've definitely made mistakes, we'll definitely make more in the future. On the whole, I think we have,
+over the last almost decade, it’s been a long time now, you know, we have mostly done
+the thing we’ve set out to do. We have a long way to go in front of us. Our tactics will shift more in the future, but adherence to this sort of mission and what we're trying to do,
+I think very strong. (Applause) CA: You posted this -- Well, OK, so here's the Ring of Power from "Lord of the rings." Your rival, I will say,
+not your best friend at the moment, Elon Musk, claimed that, you know, he thought that you'd been corrupted
+by the Ring of Power. An allegation that, by the way -- (Laughter) SA: Hi, Steve. CA: An allegation that could
+be applied to Elon as well, you know, to be fair. But I'm curious, people, you have -- SA: I might respond.
+I'm thinking about it. I might say something. (Laughter) CA: It's in everyone's mind, as we see technology CEOs
+get more powerful, get richer, is can they handle it,
+or does it become irresistible? Does the power and the wealth
+make it impossible to sometimes do the right thing and you just have to cling
+tightly to that ring? What do you think? I mean, do you feel that ring sometimes? SA: How do you think I'm doing,
+relative to other CEOs, that have gotten a lot of power and changed how they act or done a bunch of stuff in the world, like how do you think? (Applause) CA: You have a beautiful ... you are not a rude, angry person who comes out and says
+aggressive things to other people. SA: Sometimes I do that. That's my single vice, you know? (Laughter) CA: No, I think in the way
+that you personally conduct yourself, it's impressive. I mean, the question some people ask is,
+is that the real you or, you know, is there something else going on? SA: No, I'll take the feedback. You put up the Sauron Ring of Power
+or whatever that thing is. So I'll take the feedback. What is like something I have done where you think
+I've been corrupted by power? CA: I think the fear is
+that just the transition of OpenAI to a for-profit model, is, you know, some people say,
+well, there you go. You got corrupted
+by the desire for wealth. You know, at one point there was going
+to be no equity in it. It will make you fabulously wealthy. By the way, I don't think
+that is your motivation, personally. I think you want to build stuff
+that is insanely cool. And what I worry about
+is the competitive feeling that you see other people doing it, and it makes it impossible
+to develop at the right pace. But you tell me, if you don't
+feel that, like, what ... so few people in the world have the kind
+of capability and potential you have, we don't know what it feels like. What does it feel like? SA: Shockingly, the same as before. I think you can get used
+to anything step by step. I think if I were like transported
+from 10 years ago to right now, all at once, it would feel very disorienting. But anything does become
+sort of the new normal, so it doesn't feel any different. And it's strange to be sitting here
+talking about this, but like, you know, the monotony of day-to-day life, which I mean in the best possible way, feels exactly the same. CA: You're the same person. SA: I mean, I'm sure
+I'm not in all sorts of ways, but I don't feel any different. CA: This was a beautiful thing
+you posted, your son. I mean, that last thing you said there,
+"I've never felt love like this," I think any parent in the room
+so knows that feeling, that wild biological
+feeling that humans have and AIs never will, of you’re holding your kid. And I'm wondering whether
+that's changed how you think about things like if, you know,
+say, here's a red box, here's a black box
+with the red button on it, you can press that button and you give your son
+likely the most unbelievable life, but also you inject a 10 percent chance
+that he gets destroyed. Do you press that button? SA: In the literal case, no. If the question is, do I feel
+like I'm doing that with my work, the answer is, I also
+don't feel like that. Having a kid changed a lot of things. And by far the most amazing thing
+that has ever happened to me, like everything everybody says is true. A thing my cofounder Ilya
+said once is, I don’t know. This is a paraphrase, something like, "I don't know what the meaning of life is, but for sure it has something
+to do with babies." And it's like, unbelievably accurate. It changed how much I’m willing to
+like spend time on certain things and like the kind of cost
+of not being with my kid is just like crazily high. And I ... But, you know, I really cared about
+like not destroying the world before. I really care about it now. I didn't need a kid for that part. (Applause) I mean, I definitely
+think more about like what the future will be like
+for him in particular, but I feel a responsibility
+to do the best thing I can for the future of everybody. CA: Tristan Harris gave
+a very powerful talk here this week in which he said that the key
+problem, in his view, was that you and your peers
+in these other models all feel basically, that the development
+of advanced AI is inevitable, that the race is on, and that there is no choice but to try and win that race and to do so as responsibly as you can. And maybe there’s a scenario where your superintelligent AI
+can act as a brake on everyone else's or something like that. But that the very fact that everyone
+believes it is inevitable, that is a pathway
+to serious risk and instability. Do you think that you and your peers
+do feel that it's inevitable, and can you see any pathway out of that where we could collectively agree to just slow things down a bit, have society as a whole
+weigh in a bit and say, no, you know, we don't want this
+to happen quite as fast. It's too disruptive. SA: First of all, I think people slow
+things down all the time because the technology is not ready, because something's not safe enough,
+because something doesn't work. There are, I think, all of the efforts hold on things, pause on things,
+delay on things, don't release certain capabilities. So I think this happens. And again, this is where I think
+the track record does matter. If we were rushing things out and there were all sorts of problems, either the product didn’t work
+as people wanted it to or there were real safety issues
+or other things there. And I will come back to a change we made,
+I think you could do that. There is communication between most
+of the efforts, with one exception. I think all of the efforts
+care a lot about AI safety. And I think that -- CA: Who's the exception? SA: I'm not going to say. And I think that there's really deep care to get this right. I think the caricature of this
+as just like this crazy race or sprint or whatever, misses the nuance of people are trying
+to put out models quickly and make great products for people. But people feel the impact
+of this so incredibly that ... you know, I think if you could go
+sit in a meeting in OpenAI or other companies, you'd be like, oh, these people are really
+kind of caring about this. Now we did make a change recently
+to how we think about one part of what's traditionally
+been understood as safety. Which is, with our new image model, we've given users much more freedom on what we would traditionally
+think about as speech harms. You know, if you try
+to get offended by the model, will the model let you be offended? And in the past, we've had much
+tighter guardrails on this. But I think part of model alignment is following what the user
+of a model wants it to do within the very broad bounds
+of what society decides. So if you ask the model to depict a bunch
+of violence or something like that or to sort of reinforce some stereotype, there's a question of whether
+or not it should do that. And we're taking a much more
+permissive stance. There's a place where that starts
+to interact with real-world harms that we have to figure out how
+to draw the line for, but, you know, I think there will be cases
+where a company says, OK, we've heard the feedback from society. People really don't want
+models to censor them in ways that they don't think make sense. That's a fair safety negotiation. CA: But to the extent
+that this is a collective, a problem of collective belief, the solution to those kinds
+of problems is to bring people together and meet at one point
+and make a different agreement. If there was a group of people, say,
+here or out there in the world who were willing to host a summit of the best ethicists, technologists, but not too many people, small, and you and your peers to try to crack what agreed safety
+lines could be across the world, would you be willing to attend? Would you urge your colleagues to come? SA: Of course,
+but I'm much more interested in what our hundreds of millions
+of users want as a whole. I think a lot of the room
+has historically been decided in small elite summits. One of the cool new things about AI
+is our AI can talk to everybody on Earth, and we can learn the collective
+value preference of what everybody wants, rather than have a bunch of people
+who are, like, blessed by society to sit in a room and make these decisions, I think that's very cool. (Applause) And I think you will see us
+do more in that direction. And when we have gotten things wrong, because the elites in the room
+had a different opinion about what people wanted
+for the guardrails on image-gen than what people actually wanted, and we couldn't point to real-world harm,
+so we made that change. I'm proud of that. (Applause) CA: There is a long track record
+of unintended consequences coming out of the actions
+of hundreds of millions of people. SA: Also 100 people
+in a room making a decision. CA: And the hundreds of millions of people
+don't have control over, they don't necessarily see
+what the next step could lead to. SA: I am hopeful that -- that is totally accurate
+and totally right -- I am hopeful that AI can help us be wiser,
+make better decisions, can talk to us, and if we say,
+hey, I want thing X, you know, rather than like,
+the crowds spin that up, AI can say, hey, totally
+understand that's what you want. If that's what you want
+at the end of this conversation, you're in control, you pick. But have you considered it
+from this person's perspective or the impact it will have on this? I think AI can help us be wiser and make better collective governance
+decisions than we could before. CA: We're out of time. Sam, I'll give you the last word. What kind of world do you believe, all things considered,
+your son will grow up into? SA: I remember -- it's so long ago now, I don't know when the first iPad came out. Is it like 15 years, something like that? I remember watching
+a YouTube video at the time, of like a little toddler sitting in a doctor's office
+waiting room or something, and there was a magazine,
+like one of those old, you know, glossy-cover magazines, and the toddler had his hand on it and was going like this and kind of angry. And to that toddler,
+it was like a broken iPad. And he never, she never thought
+of a world that didn't have, you know, touch screens in them. And to all the adults watching this, it was this amazing thing
+because it was like it's so new, it's so amazing,
+it's a miracle. Of course, you know, magazines
+are the way the world works. My kid, my kids hopefully,
+will never be smarter than AI. They will never grow up in a world where products and services
+are not incredibly smart, incredibly capable. They will never grow up in a world where computers don't just
+kind of understand you. And do, you know, for some definition
+of whatever you can imagine, whatever you can imagine. It'll be a world of incredible
+material abundance. It'll be a world where the rate of change is incredibly fast and amazing new things are happening. And it’ll be a world where,
+like individual ... ability, impact, whatever, is just so far beyond
+what a person can do today. I hope that my kids and all of your kids will look back at us with some like
+pity and nostalgia and be like, "They lived
+such horrible lives. They were so limited. The world sucked so much." I think that's great. (Applause) CA: It's incredible what you've built. It really is, it's unbelievable. I think over the next few years,
+you're going to have some of the biggest opportunities,
+the biggest moral challenges, the biggest decisions to make of perhaps any human
+in history, pretty much. You should know that everyone
+here will be cheering you on to do the right thing. SA: We will do our best,
+thank you very much. CA: Thank you for coming to TED. (Applause) Thank you. SA: Thank you very much.
+
+
+## The Winding Path of Progress | Sam Altman | Talks at Google
+
+URL: https://www.youtube.com/watch?v=iRwk9UajXFg
+
+[MUSIC PLAYING] JORGE CUETO: Hi, everyone. Welcome to our Talks
+at Google event. I'm going to go through
+some logistics first. This is a fire side
+chat style talk. So it will take about 40 minutes
+to talk through some questions. And then in the last 20 minutes,
+we'll open up to the audience to submit questions, both
+in person here through a mic in the back of the room and also
+through the Dory at go/ask-sam. And I'd like to thank
+everyone who has helped out to make this talk possible,
+including our facilities team and everyone on the PM
+speaker series organizing team. So it's great to have Sam
+Altman here with us today for Talks at Google. Sam is the President
+of Y Combinator, which is widely regarded as
+one of the top startup incubators in Silicon Valley. He went to Stanford and
+studied computer science and was the founder and CEO of
+a mobile location-based startup called Loopt, which was
+funded by YC as part of its first class
+of startups in 2005 and acquired by a financial
+services company Green Dot in 2012. In 2014, he was named
+president of Y Combinator. And since then, he's worked
+on a wide range of initiatives from YC Research, which is
+a non-profit branch of Y Combinator that focuses
+on doing pure research around moon-shot ideas,
+like universal basic income. And he's also worked on OpenAI,
+which is a non-profit AI research company looking
+into finding ways to create safe, friendly
+artificial intelligence that can actually help
+all of humanity. And it's great to have you here. SAM ALTMAN: Thanks
+for having me. JORGE CUETO: So
+just as I mentioned, you're involved in a wide range
+of things from YC to OpenAI. And most recently, you
+released The United Slate So I wanted to ask you how
+you think about prioritizing the projects that you work on. SAM ALTMAN: You know, I
+think optimal time allocation is probably like an
+AI complete problem. I think if you can get to
+spending like 1% of your time perfectly, that's really good. And so I think this idea of
+figuring out what to focus on and what not to focus on is
+both really hard and still significantly under-invested in. The frameworks that
+I have used, the sort of two big frameworks that
+I've used to figure out how to allocate time, one
+is impact maximization slash regret minimisation. So I try to look at those
+two curves together. And I try to think about
+where I can have the biggest net impact on the world, net
+positive impact on the world. Easy to have a big impact. And then, also, just
+regret minimization. You know, you get to live once. It's really important that
+you do what you want to do and that you spend time
+with the people you'd like to work with and
+work on the things that you find
+personally fulfilling. And so if I think I'm going to
+really regret doing something or regret not doing
+something, even if I think it's not the best
+use of my time for a pure sort of net impact on
+the world, I'm still willing to take that
+really seriously. And I think that
+makes me do better at the things I do
+that do help the world. So you know, the
+broad things that I've learned that I like to do-- one is teach people. Another is create
+economic growth. I really do believe that one
+of the things that is most fundamentally going wrong
+right now in the country is that we don't have
+enough economic growth. And the little that we do is
+not evenly distributed at all. And so I think in a
+democracy you really want everyone's lives to
+get better every year. We're basically insensitive
+to the absolute quality of our lives and
+extremely sensitive to relative differences year
+over year to our neighbors. And it's really important
+that everyone's life is getting better constantly. And I think economic growth
+is important in that. I think that AI is
+going to be the most important technological
+trend of our lifetime. So I spend a lot
+of my time on that. And you know, I try
+to think about things on those two strategies. The other framework besides the
+sort of impact maximization, regret minimization that
+I found really useful is spend a little bit of
+effort trying a lot of things, and then relentlessly prune
+down and focus quickly on the ones that you
+like and the ones that seem to be working. So in some sense, this is the Y
+Combinator model of fund a lot of startups with a
+little bit of money. And then, you know,
+most don't work out, and some work really well. You spend more time and more
+money on the ones that do. Hey, guys. This is the thing that I've
+tried to apply to my life more generally is this idea that
+I can try a lot of things with a little bit of effort. It's very hard to predict
+exactly what's going to work and what hasn't. But then the hard
+part about that, the thing that most
+people don't do, is you really want to
+relentlessly focus down on the ones that do work. And the last thing I'll
+say about prioritization is the other hack
+I have learned is if you can get one really
+great partner with you on every project, that will
+cover up a lot of the slack. Because if you try to do
+multiple things at once, crises come at the same times. And that's really hard if you
+have to do it all yourself. JORGE CUETO: And focusing
+more specifically on productivity, what
+are some life hacks maybe you apply to make your
+everyday more productive? SAM ALTMAN: I mean,
+I think there's like a lot of crap written
+about productivity, secrets on the internet. And people sort of like
+get into this thing where they spend
+more time trying to be productive about
+their productivity system than actually
+getting things done. Well, say two, I
+think, pieces of advice that aren't that obvious. One is, I think,
+far more important than any particular system
+is just figuring out the right things to work on. And so all of the
+time that people spend with this new
+productivity app or that or whatever would
+be better spent like really trying to
+think diligently about I have the same number of
+hours as anybody else. What am I going
+to spend them on? And getting that right is
+more important than exactly like being perfectly
+productive with those hours. A big part of that is not
+doing things that waste time. I think if you can just focus
+on the things that are important and not do the things
+that waste time, you can be fairly sloppy
+with productivity otherwise, and you'll still get far
+more done than most people. It's really hard to do, though. The other thing that I think
+people don't think about enough is figuring out your
+own personal rhythms of productivity. And there's huge
+variance, I've noticed, between people that
+figured this out and don't. So for me personally,
+it turns out that I am most productive if I
+go to sleep late, wake up late, and then keep the first like
+three or four hours of the day and don't schedule any
+meetings, like work from home, get there my list of
+stuff then, and then pack all my meetings when I'm kind
+of less productive at just grinding stuff out or thinking
+creatively in the afternoon. And it took me some number
+of years to figure out, because it didn't fit
+well with the work schedule I was naturally in. But then I was like, all right. If this is the thing that
+makes me most productive, then I'm going to make my whole
+schedule work to support that. And that was a really
+important change for me. So I think figuring out your
+own personal optimal times to work on what kind
+of different things, people don't really
+talk about that much. And at least for me,
+it had a huge impact. JORGE CUETO: Shifting
+gears a little bit, but still trying to get your
+perspective on different things related to day to day, but
+one of the key issues that has come up recently is
+bias in the workplace. and both conscious
+and unconscious bias. And I wanted to get
+your perspective on what are some of the
+strategies that you implement personally, whether in
+the way you interact with people that you encounter
+or in how you approach the decision making process
+and using strategies to minimize your own bias. SAM ALTMAN: Look,
+I think this is an important conversation
+happening in Silicon Valley right now. And there's a lot of
+opinions on a lot of sides. But I would just like
+to say the following. I think no matter what you
+believe about biology, no one that I respect does
+not believe that women and racial minorities and
+a number of other groups face an absolutely
+unfair playing field their entire lives. I think people start getting
+told directly or indirectly from the very young age this
+is the kind of thing you should do or can do or whatever. And that has an effect, a
+[INAUDIBLE] effect on anyone. And I think trying to counter
+that is really important. And again, I think
+there are things reasonable well-meaning
+people can disagree on. I think, unfortunately, we
+spend all of our time talking about the disagreements. And we don't focus
+enough on the agreements. And I think almost all
+smart, reasonable people will agree that the
+society we grew up in has a hugely unfair
+playing field. And I think because
+of that, it is not enough to talk about
+unconscious bias. I think that is a real
+problem to be clear. I think we are all a product
+of the society we grew up in. And we all have biases
+that aren't our fault, but still have a
+responsibility to counteract. But one thing I don't like
+about the discussion in Silicon Valley about
+unconscious bias and how that's the problem that
+we need to fix is I think it is not
+nearly sufficient. A good thing to fix,
+but it ignores the fact that, you know, decades
+or centuries of society have built up a very
+uneven playing field, and that is why we do
+need programs to try to proactively counter that. So you know, I think it's
+really important we not lose sight of that. And that unconscious
+bias training alone, although currently very
+fashionable, will not fix that. That said, I do believe
+unconscious bias is a problem. We try to counteract it,
+A, by talking about it and doing training,
+which I think does help. But B, I think one
+of the things that we have done that, unfortunately,
+other investors have not done as much is just have
+a very diverse partnership. You know, we have six
+female GPs on our team. And that's probably a large part
+of the women in top investing roles in Silicon Valley. And that's really bad. We have the CEO of our
+corp program is black. And I hate to play
+the kind of like, who's the most
+discriminated stack game. But I think black
+entrepreneurs in Silicon Valley have an exceptionally hard time. And I think by having
+a more diverse team, it helps us have
+broader networks and also think about our own
+unconscious bias all the time. JORGE CUETO: And the issue of
+politics or maybe even bringing these issues of in the workplace
+is sometimes seen as a taboo. And yet, you've been pretty
+vocal about your views on current political events
+and also other issues that are coming up
+in Silicon Valley. So I wanted to ask
+you how you walk that fine line between
+expressing your opinions, but also minimizing
+any repercussions that that could have on the
+day to day business of YC. SAM ALTMAN: Well, now it's
+not even controversial. You know, like now,
+all the tech CEOs are talking about politics. When I started doing
+it a couple of years ago kind of at the beginning
+of the rise of Trump, it was controversial. Two things were going on. One is I think no one
+took him seriously. So most people were
+like, yeah, this is a ridiculous thing
+that's going to go away. Two is that I think
+in normal times, it does make sense for business
+leaders of large organizations to remain apolitical. You know, I think it actually
+does make a lot of sense. It's a huge distraction. It's hugely time consuming. And it has all of these,
+like, weird negative effects, like you know, if you
+piss off the president, he can do bad things to you. However, these are
+not normal times. And I think when the future
+of the republic is at risk, the duty to the
+country and our values transcends the duty to
+your particular company. and your stock price. And I think I started
+that a little bit earlier than other people. But at this point, I'm
+in very good company. And it doesn't seem to be
+that controversial anymore. JORGE CUETO: What
+are some things that you wish people
+knew about you that they don't know about you? SAM ALTMAN: You
+know, at this point, I would just like to have my own
+little quiet private life back. I'll say nothing at all. JORGE CUETO: OK. Fair answer. Moving on to talking
+a little bit about YC and what you look for
+in companies, are there qualities in founders
+that you think are overrated or underrated? SAM ALTMAN: Yeah. I think the most
+underrated quality of all is being really determined. This is more important
+than being smart. This is more important
+than having a network. This is more important
+than a great idea. The hardest thing about
+starting a company is the level and the
+frequency of bad stuff that happens to you. And most people that are
+good in really other ways eventually just get
+killed, the company gets killed, by
+stuff going wrong. And you know, so much about
+being a successful entrepreneur is just not giving up. When we have funded
+people who have a great idea, perfect background
+on paper, and a great product and still failed, it has
+usually been that they're insufficiently determined. So I think this is the most
+important non-obvious skill of a founder. Of course, you need a good
+product and a good market and to be smart. But that's really obvious. The degree to which being
+like a three or four standard deviation
+outlier on determination is a required skill
+of a CEO is not something that was obvious
+to me when I started. That's also bad, because
+it's really hard to select. It's really hard
+to identify that. As we have said more publicly
+how important that is, people applying to YC have
+gotten better and better at telling us stories from
+their past life about how they overcame these impossible
+odds to get through something. And unlike intelligence, which
+is very difficult to fake in a, you know, one hour
+meeting, you can definitely fake determination in
+a one hour meeting. So that's one thing
+that really matters. Another thing that really
+matters that is non-obvious is independent thought. And this I think is an
+even more unusual skill than determination. I think both of these you
+can make a conscious effort and build up. But I think independent thought
+is one of the hardest skills to build up. Because speaking of social
+pressures from birth, we are all pushed to
+think like other people. And if you think
+in your own lives about the number of people you
+spend time with that you would say are true independent
+thinkers that consistently have new ideas you haven't
+heard from other people and think about the
+world in different ways, it's probably a very short list. And yet, these are
+the people that start all the interesting companies. The consensus idea
+is everyone tries Google will eat your lunch at. And they're also not kind
+of the really big trends of the future. You want startup ideas-- if you picture a Venn
+diagram, and here you have is a good
+idea, and here you have sounds like a bad idea, you
+want that tiny little overlap. And those are the kind of
+ideas that are the hardest to identify and
+the ones that, even if you do manage to notice them,
+most people will talk you out of. So I'd say those are two
+non-obvious skills that we look for. JORGE CUETO: And
+what's one challenge that YC companies face
+repeatedly that you notice? SAM ALTMAN: Hiring engineers,
+when Google can just sort of like throw unlimited
+cash at anyone they want, has become very
+problematic for startups. I think the good
+thing about that-- I always try to find the
+good in any bad situation. And the good thing
+about this is it means that all of the
+really good startups have really important missions. Eventually, they figure it out. They may not have it on day
+one, but they eventually get to this, like,
+missionary mindset. And it used to be that even
+if you didn't have that, you could just sort of
+get a bunch of mercenaries to come work for you. And now you can't, because
+you can't [INAUDIBLE] Google. And so one positive side
+effect of this thing has been that the importance
+now of a startup having a really clear and really
+important mission on day three has gone up a lot. And I think that's leading
+to better startups. Because, otherwise,
+you just can't recruit. Another common problem
+that startups have-- and this doesn't sound
+like a great insight. But most startups still
+don't ever built a product that people want. And it doesn't seem to matter
+how much we talk about this. It doesn't seem to matter how
+much anyone talks about this. People still keep trying
+to do anything but this. And if there's one thing that
+a startup has to get right, it's build a product that people
+really want, not a little. If they want it a
+little bit, then you won't generate enough momentum. Like, you've got
+to build something that some people really love. And after failing, because
+of insufficiently determined founders, this is
+the number two reason that startups that seem
+really good otherwise fail. JORGE CUETO: Moving
+on to talking about different
+technologies, what would you say is the
+biggest challenge that we're facing in
+terms of making progress on artificial
+intelligence right now? SAM ALTMAN: Well, I don't
+know if any of you saw this, but OpenAI beat the best
+single player DotA players in the world last Friday. And when we started that project
+at the beginning of this year, I did not think that was
+going to happen this year. And I wasn't even sure it was
+going to happen next year. And it was very wild
+to watch that happen. Because it was almost
+purely self-training. And it was this very
+complex environment. And the AI was just
+playing itself and getting better and better and better. In fact, the final bot that we
+had that beat all the humans handily, one day later, it lost
+60-40 to a one-day-more evolved version of itself,
+just to give you a sense for the
+rate of improvement. And so I think people are kind
+of asleep at the wheel here. There are problems. But again, in the same
+spirit of always trying to figure out the
+good, not the bad, we are making unbelievable
+progress, maybe too much progress. But I think of all the
+things I worry about with AI, the technical
+barriers to progress are not the top of the list. JORGE CUETO:
+There's another camp that says that maybe we're
+placing too much emphasis on the threat of AI. What do you think about that? SAM ALTMAN: Yeah, I think
+we don't talk enough about the benefits. I think that AI
+has the potential to eliminate nearly
+all human suffering in the next couple of decades. I think we can have
+a world of abundance. We can eliminate
+poverty over time. We can probably cure a
+whole lot of diseases. There all these wonderful
+things that technology can do. I think we're
+already seeing that in just how much better a
+lot of consumer products we use everyday have gotten. People like disaster porn. People are more
+interested in talking about the end of the world than
+they are about life getting 10% better every year and
+having that compound, which gets a lot better. So you know, if
+you're a journalist, you can write an
+article about how AI is going to end the world
+and get a lot of clicks and, you know, a page view
+bonus or whatever you get. Or, you can write an article
+about how AI is gradually making all these
+problems 10% better. And probably no one reads it. Certainly, no one shares it. And so I think, for whatever
+reason, the way we're wired is to talk much more
+about the downside of this than the upside. But the upside I think
+is going to be huge. It already is huge. JORGE CUETO: And what do you
+think about cryptocurrencies? Do you see the same growth? SAM ALTMAN: Yeah. I mean, I think it's
+going to go up and down. Like I bought my
+bitcoin a long time ago. I plan to hold them
+for a really long time. I try not to watch
+the price ticks, but it's so addicting
+that I can't help myself. I think-- this is not
+investment advice. I think the only super
+compelling proven use case we have seen so
+far is store value. And as a replacement
+for gold, I think we are seeing real
+adoption there and real collective
+belief that actually makes it have some value. However, if that's how
+it's going to play out, then I think bitcoin
+should dominate-- biggest network, first biggest
+brand, most collective belief, whatever. And so I have been surprised
+by the continual strength on all of the altcoins. I think there are potential
+other truly valuable applications of the blockchain. Filecoin is a YC thing, so
+I know that one pretty well. And I can see that being big. But I think most of what's
+going on, outside of bitcoin, feels like a complete
+speculative bubble. And I feel bad that a lot of
+people are going to get burned. So I think probably
+the right thing to do, if you believe in it,
+is to buy bitcoin, and then not think about
+it for another five years. JORGE CUETO: Is there
+any specific product area or technology that you
+think people are sleeping on? SAM ALTMAN: Sure, a lot. AI, as we mentioned,
+I think people are asleep at the wheel
+on a really big way on. Nuclear fusion, I think,
+is within some single digit number of years of working. And because it's been
+so bad for so long, people are just kind of burned
+out and not really taking a new look at new materials
+and stronger magnets and better computer
+models that's going to enable this to work. Synthetic biology-- again, it's
+like people talked about it a lot a couple of years ago. It didn't quite work as
+fast as people were hoping. So we have like this hype cycle,
+and then it really falls off. And now, we're in the part where
+I think the interesting work is happening. And people aren't
+paying enough attention. I guess, that's a topic I
+can go on for a long time. But I'll limit it to three. JORGE CUETO: Sure. Is there any particular
+problem that you think technology can't solve? SAM ALTMAN: How to make us
+nice to each other technology has clearly been
+quite bad at solving. I won't say it can't. But I haven't seen it
+yet, and I certainly don't think technology
+can by itself. And I think we are kind
+of in the situation, at least in the
+developed world, where the world keeps getting better,
+and we keep getting unhappier. And you know, there's like a
+decent amount of data on this. And I think technology
+is not entirely to blame, but it's certainly
+not blameless. And I think 30 minutes
+left, I couldn't even start the conversation. But I think the number
+of things that technology has done to make
+us more isolated, feeling relatively worse-- a friend of mine
+a little bit older said she never
+used to be unhappy. Because she had no idea
+what she was missing. And now that she
+has to watch, like-- I'm very bad a pop
+culture, I'm going to pick a name at random-- Kim Kardashian fly around
+in private jets on Instagram all day, she's jealous. And it makes her very unhappy. And it didn't used to happen. And I've been thinking
+about that a lot in the last couple of weeks. And I don't have a
+solution to that. But I understand why
+that's a problem. So I think figuring out how
+to make us happier and nicer to each other in particular, I
+think one thing that technology does that's really bad
+is we have some probably long-standing evolutionary
+pressure that even if I really don't like you, I'm
+very unlikely to come stand next to you and
+say, I fucking hate you. You're a jerk,
+you know, whatever else people say on Twitter. JORGE CUETO: A lot of things. SAM ALTMAN: Because we're
+like these pack animals. And we have to live
+with each other and help each other survive. But somehow on Twitter,
+that goes away. And I think I'll save my
+whole rant about Twitter. But I think that is a
+platform in particular that rewards saying the most
+aggressive snarky things. That's how you get likes
+and re-tweets and sort of value out of the platform. But a lot of
+technology does this. We don't have whatever
+kind of the human, being nice to each other
+in person, instinct is. And we have these platforms
+that reward being bad, reward being a jerk. And so I think
+I'm not optimistic that technology is going
+to solve that problem. I think that's going to have to
+be people solving that problem. JORGE CUETO: In an interview
+with "Vanity Fair" in 2015, you mentioned that you were
+optimistic about the future. And that was right before all
+of the election stuff happened and the situation that
+we find ourselves in. So would you say
+that you're still optimistic about the future? SAM ALTMAN: Yeah, of
+course, of course. Like, progress, it's not a
+perfectly exponential curve. It's not even a straight line. And you know, we are clearly
+in a challenging period now. But I think if you look back
+at the last few hundred, and then few thousand
+years, if you zoom out enough, the squiggles on
+the curve kind of disappear. The world's getting
+so much better. And I think that's
+going to keep happening. And even with everything
+going on right now, I'm delighted to
+be alive right now and not 100 years
+ago, and certainly not 200 or 2,000 years ago. And I think we do have
+technology to thank for a lot. And we have better governance. Like, the number of people
+living in an democracy, you know, 200 years ago was
+very low, the percentage. And as horrible as
+things are, the fact that we get to stand up and
+speak our minds without fear of being thrown in jail
+for political opposition and the fact that we get to vote
+again in 3 and 1/2 more years, I think that's amazing. And I think it's easy to
+take that for granted. But yeah, I think the future
+is going to be a lot better. I remain very optimistic. JORGE CUETO: What do you
+see as being a big challenge that we're facing as
+a society right now? SAM ALTMAN: How we
+deal with a world where the natural forces are
+for wealth to concentrate into the hands of a smaller
+and smaller number of people. As I mentioned
+earlier, I think people are more sensitive to
+relative quality of life than absolute quality of life. And I think technology
+is naturally a force. It's a giant lever
+that tends to create way more wealth, but
+really concentrated. So I think one of the most
+tone deaf things people say in Silicon Valley is, you know,
+poor people should be happy. They get this Android
+phone for not much money. They can access
+anything in the world. And they wouldn't
+have that without us, so why are they complaining? And OK, like there is
+some truth to that. I do think it is
+cool about the world that the richest
+person and someone living in an absolute poverty
+carry around the same phone. There was no analogy to
+that other than maybe like if you got a
+really bad disease. There was no like
+equality like that, you know, 400, 500 years ago. However, that point,
+which is always what Silicon Valley
+falls back to, I think is like maybe not the most
+tone deaf possible response, but up there. Like people want to feel
+like they have agency. They want to feel like they
+have a voice in the future. They want to feel like
+they can participate. And they want to
+feel like they're not just kind of like given this
+baseline, while like they toil in the provinces
+and Silicon Valley just gets all the money. And I think people who don't
+see that are just not thinking clearly. And so I think one of
+the greatest threats-- something else I don't think
+technology can fix on its own-- is how we get to
+a more just world. I really, really
+fundamentally believe that economic justice is
+the most important thing you can do for social justice. And if you have all
+of the resources going to a small set of people, even
+if everybody else is having their absolute quality of
+life raised very quickly, that's not enough. JORGE CUETO: You recently
+announced The United Slate, which puts forth some
+policy proposals as well as an invitation for candidates. What would you say success
+looks like for that? SAM ALTMAN: You
+know, if we could run five, six candidates in
+the 2018 cycle on that platform and have two of them
+win their elections, I think that'd be
+an incredible start. And you know, maybe it
+doesn't work at all. Because maybe those
+issues, although I believe they're
+important, are not yet ready to convince
+the public at large. But I think it will
+be a good start. And I think over time
+it will be really good if people on the
+progressive side built up a kind of
+long-term organization focusing on winning elections
+and shifting public perception at all levels. The right has done a
+fabulous job with this. Congratulations to any of
+you who are on that side. But I would like the left
+to do a better job at that. I don't think we're putting
+forward our best game there. JORGE CUETO: In your
+invitation, you also mentioned that you would be willing
+to work with Democrats, Independents, and Republicans. Is there any issue in particular
+that you see anyone, regardless of political ideology, coming
+together and agreeing on more so than other issues? SAM ALTMAN: I think there
+are a lot of issues. Again, I think people agree on
+way more than they disagree on. You know, as we went
+around the state and talked to Californians,
+Republicans, Democrats, San Francisco, LA, Fresno,
+Shasta County, wherever you go, the price of housing is like
+the biggest issue for most sort of regular people that are
+not Google employees, maybe even for Google employees. It's really, really bad. I mean, this is if you could
+fix I think one thing that would have hugely positive
+secondary effects, it's bring the cost of housing
+down by a factor of 10. It'd be transformative
+for society. It's a-- AUDIENCE: [INAUDIBLE]
+government regulation? SAM ALTMAN: What? AUDIENCE: Eliminate
+government regulations. SAM ALTMAN: Eliminate
+government regulations? AUDIENCE: Five stories. SAM ALTMAN: Yeah. Like, I think many regulations
+have good elements. I'm not kind of the
+libertarian, anarchist, all government
+regulations are bad. But I do think that the sort of
+no more building, no building taller, has been
+disastrous for the state. And I think it is the
+worst possible allocation of resources to have people tie
+up every free penny they can find into the place they live. Think about anything else
+we could spend that on. Think about what
+it would be like if people could live
+close to where they work rather than
+commuting an hour and a half to get here each day. And that is something that
+Democrats, Republicans, Independents, almost
+everybody agrees on, or at least there are people
+in all of those camps that do. So I think like, again, easy
+to talk about the divisions. It's really good that when
+you talk to regular people, they all agree on what the
+most important issue is. And they all want to
+fix it in the state. JORGE CUETO: What do you think
+the tech industries role is in government and politics? SAM ALTMAN: Look, I think we are
+all citizens of this country. And we all have, like-- you know, there is a
+right to participate in the electoral process. And I think there's
+also a duty to do that. And I think tech is
+going through such a boom right now it is
+easy to say, hey, I'm just going to focus
+on, like, doing my thing, building products, making
+money, and whatever. And I'm going to let someone
+else take care of the rest. One of the kind of
+disappointing things that I have learned
+as I've gotten to spend more and more time with
+increasingly influential people and kind of how the world
+works is that there is no plan. And there is no group
+figuring out everything. And it's kind of
+up to all of us. Everyone hopes. Like, the reason
+conspiracy theories are so appealing
+is that everybody wants there to be a conspiracy. You want to think that someone
+has a plan, that, you know, there's all this
+stuff happening. But someone's got
+a centralized plan, and it's all going to work out. And I think one of the sad
+realizations of growing up is that there are no grownups. No one has this master plan. And if we don't
+participate, the thing can just go off the rails. JORGE CUETO: What
+do you think are some of the most effective ways
+for employees at a large tech company, like Google,
+to get involved in government and politics? SAM ALTMAN: Everyone wants an
+answer other than this one, because it would
+be more convenient. But I think one of the answers
+is to just run for office. We have this process. We have this system,
+set of rules, that we've all agreed to. And everyone wants some way to
+act around the edges of that rather than just
+participate directly. And that's OK. There are good things to do. But I think just taking
+the problem head on, not enough people try that. JORGE CUETO: And there's
+rumors going around that Mark Zuckerberg is
+going to run for office, like, every other week. And then there's
+also been rumors about you running for governor. And we've seen tech people
+run for office in the past. Meg Whitman ran for governor
+of California in 2010. But she lost by a significant
+margin to Jerry Brown. So my question is, do you
+think that it's actually feasible for someone in tech
+to run for office and win? Or is there too much of this
+perception of the tech industry as being elitist,
+such that people won't connect with voters? SAM ALTMAN: I think there is. I think, at least,
+people should try. I think the tech industry is
+the most hated in the Bay Area. And if you go out
+throughout the rest of the state or the
+country, there's a lot of people who
+think it's really cool. They aspire to it. They want to participate in it. And I think it is easy to get
+too negative a view of how technology people
+are perceived here. I don't know if a tech person
+can win the presidency. I have a feeling we're
+going to find out. But what I am confident about is
+that people from the technology industry could start winning
+local school board and city council and, you know,
+congressional seats. And that would be a great
+thing to start with. JORGE CUETO: Is there
+any person currently living that you would
+want to run for president? Who's your ideal candidate? SAM ALTMAN: Ideal? I can't answer that on the fly. That's a good question
+to think about. When you said that,
+I was like, oh, I should figure out who
+that person is and go try to convince them to run. But I don't have an answer
+ready to go in my head. JORGE CUETO: OK. Well, with that, I'm going to
+open up the floor for audience questions. So if you have a
+question, feel free to go to the mic in the
+back of the room, or also submit your
+question to the Dory. AUDIENCE: [INAUDIBLE] Hi. You mentioned the
+anecdote about your friend being unhappy and
+Kim Kardashian. And it reminded me of a quote. And it said, people
+aren't unhappy, because they want to be happy. They're unhappy, because
+they want to be happier than other people. And you mentioned that
+technology may or may not be able to solve this. So I'd like to hear some of
+your ideas or success strategies on how to solve this on
+a micro and macro level, whether it be
+delete Twitter to-- SAM ALTMAN: That's
+a good thing to do. That's a good thing to do. Yeah. I deleted all the social
+apps from my phone. And yeah, I can still check
+them on my computer when I want. But I don't have
+that constant urge to push button for
+dopamine hit here. And that's been really good. You know, I think after talking
+to a bunch of these people about the things that
+make people happy, there's the obvious
+stuff, which is like spend time with
+loved ones that everyone knows even if they don't do. But there's a bunch
+of things that are less obvious to me that seem
+to have huge measured effects. Like taking time to think
+about the things that went well as opposed to things
+you're upset about, or going for a walk outside
+everyday no matter what. And I think as we get sort
+of to abundance and unlimited resources, this is going to
+be a more important topic. What I would encourage you to do
+is to just like start reading. There's a lot of
+literature on the subject. No one seems to care about
+it enough to spend time. But I would say
+start reading it. And hopefully, I'll finish
+my blog post on it soon. Thank you. AUDIENCE: Hey, Sam. Thanks for coming. I wanted to ask a question
+about the larger landscape of VC in general. I heard a rumor that YC is
+looking to a growth fund. I think it broke on
+TechCrunch like month ago, like potentially
+raising $1 billion fund. I wanted to get your
+thoughts on growth versus venture and how you see
+growth evolving for the Bay Area in general. You see private
+companies staying private longer and longer. SAM ALTMAN: So we already
+have a growth fund. It's called YC Continuity. We raised the first one in 2015. It's about halfway invested. And it basically follows on
+in capital in YC companies. One of the things that I
+wanted to do after I joined YC was start to fund
+hard tech companies, nuclear fusion, something like
+biology quantum computing, self-driving cars-- long list. And one of the good
+things that I realized is that nobody else was
+funding those companies. And so we could have our pick. One of the bad things
+that I realized is nobody else was
+funding those companies. And so we could fund
+them all we wanted, and there was no
+follow on capital. So that was actually the
+genesis for our growth fund is that there was this
+class of companies that I think are really
+important and really valuable. And they weren't getting funded. Since then, we've
+expanded it, and we fund lots of other companies. I will certainly
+say that there is no shortage of growth
+capital for software companies in Silicon Valley. You know, it may
+have gotten harder to raise a seed or an A round. It probably has somewhat. But if you have things
+working, like when you want to go
+raise a B or C round and you have this beautiful
+exponential growth, you will not be able to keep up
+with the number of term sheets you're getting. That is the stage
+that I think just has a huge amount of
+capital allocated to it. As companies are
+staying private longer, as public market investors
+have a harder and harder time finding alpha, they
+are more and more willing to do stuff like this. So that part of
+the market is not suffering, at least, not yet. AUDIENCE: Thanks. SAM ALTMAN: Sure. JORGE CUETO: Let me do a
+question from the Dory. We have a question about
+universal basic income and how Google has been
+supporting GiveDirectly's research on UBI in Africa. And you're a proponent
+here in the US. So what are your
+thoughts on how, when, and where the universal
+basic income approach might be most effective? SAM ALTMAN: Yeah. I don't think universal
+basic income is the solution to all problems. I think, in fact, of
+the bigger problem that we were talking
+about earlier of what makes people happy and fulfilled
+and feel needed, and valued, and have meaning
+in their lives, it is not sufficient to
+solve that problem. And I don't think
+it will replace the entire other social safety
+net, like the people who are like eliminate
+everything else, you know, no health care, no schools,
+no minimum wage, basic income. I don't believe in that either. But I do think that if
+we do all of our jobs, if we Silicon Valley
+do all of our jobs, we will create more wealth
+than the world's ever seen before and less jobs. And in that world, I think
+there is a moral obligation to eliminate poverty. I think poverty is a,
+obviously, very bad thing. But it is worse even
+than people realize. If you look at the studies on
+the long-term psychological damage that living in
+poverty does to people and how it means that you never
+get a chance to really invest in your own future, because
+you're always just trying to survive, I think
+there's just a huge amount of wasted potential. And so you know, there are a
+lot of arguments about UBI. This was another thing. Like, when we started
+this couple of years ago, I did not predict
+at all that this was going to ignite into
+this big national debate. It was like, we were just
+trying to hire a researcher. You know, like, maybe
+this is a good idea. Can we just do a project? And it's just been like-- so I don't think
+I quite understand why it has become such a
+national issue so quickly. But I do think that longer
+term, if we have the ability to eliminate poverty,
+we will get a lot more out of the world as a whole. JORGE CUETO: As you started
+the experiment in East Bay, have you noticed
+anything that maybe you didn't expect, or has it
+changed your attitude towards it in any way? SAM ALTMAN: You know,
+we're like seven or eight months into a five year study. So not yet. JORGE CUETO: OK. AUDIENCE: Hi, Sam. I'm thinking more in
+general of founders, but this could be general, too. But what advice do
+you frequently give, but you find most people never
+actually follow through on? SAM ALTMAN: I mean,
+no one ever listens to any advice of any sort. So, all of it. I think the thing that people-- well, the piece of
+advice that people later say they wish they
+had listened to is that it is very easy to get
+sucked into a path in life. And you can do things
+like, say, oh, I want to start a startup someday. Or, oh, I want to be an
+AI researcher someday. But first, I'm going to go do
+this other job to, you know, make money and gain
+experience and whatever. And it's so easy to
+get sucked into a path where you spend your entire
+life doing something that is not really what you want to do. That's probably
+the piece of advice that I have given people that
+they have most often come to me, like, five
+years later and said, I really wish I had
+listened to that. AUDIENCE: Thank you. SAM ALTMAN: Sure. AUDIENCE: I'm curious
+to hear your thoughts on the relative
+rates of progress in AI between China
+and everywhere else. So you mentioned
+nobody has a plan, but China has a plan for
+state level centralized investment in AI. Whereas, Elon Musk is
+calling for regulation that would slow down-- SAM ALTMAN: Yeah. AUDIENCE: ----[INAUDIBLE]
+everywhere else. SAM ALTMAN: China does
+plan, that's true. It doesn't always work. They don't always have
+global coordination. You know, like right now
+we're in this kind of world where it seems like you
+have the internet in China, and the internet in
+the rest of the world. Maybe they have a plan
+for their piece of it. I don't honestly know how
+far along China is with AI. And I don't think anybody else
+honestly really does either. I think it would be bad
+to get into an arms race with China over AI. I think that's something
+we should try to avoid. And I think there is
+a real opportunity, although we may not have the
+leaders in place to do it right now, to make this a joint
+kind of worldwide project, rather than another space
+race or nuclear arms race. Thanks. AUDIENCE: Hi, Sam. I was wondering if you
+could expand a little bit on funding hard tech. Because I think there's a big
+problem with private capital allocation. And you know, like, $70 billion
+was put into VC last year, which is a drop in the bucket in
+terms of worldwide investment. So do you see YC maybe
+raising an $100 billion fund in the future? SAM ALTMAN: Yeah, maybe. AUDIENCE: Like, yeah,
+how can we solve this? SAM ALTMAN: I think capital
+is allocated really badly. And unfortunately,
+there are huge efforts-- like if you have this
+really valuable thing which is you get access to
+invest in great startups and most of the world doesn't,
+then there will obviously be a super return there. And you're going to work
+really hard to protect that. And so I think expanding
+access to invest in startups-- which is happening, but slowly--
+is a really good thing to do. And I think, you know,
+equity crowdfunding we're still in the early days
+of, but is an important trend. And I think that will change
+the capital allocation. I think you're seeing startups
+in all these different ways go to non-traditional funders. And that's been really good. We first saw that with
+consumer hardware. We're now seeing that in
+a lot of other places. You know, I think the other
+thing that's happening, finally, is there's just-- and there's bad to this, too. But there's just a huge
+amount more capital coming in to fund early stage
+private companies or mid-stage private companies. And I expect that in a world
+where interest rates stay even close to as
+low as they are, we are in the very early
+innings of that trend. So my general model is that
+the world's a very complex financial system. Capital sloshes around
+looking for the best return. There are periods where there's
+a really outperforming return, but then more capital
+gets allocated there. And I think we're
+seeing that now. AUDIENCE: But do you think
+that a nuclear fusion company could raise
+$100 million in an ICO or something like that? SAM ALTMAN: Yeah. Or maybe I wouldn't suggest
+that they do an ICO. But I do think they
+can raise $100 million. And I don't think they
+could have three years ago. And I think that's a really
+positive trend for the world that this stuff is now at
+least somewhat possible. AUDIENCE: Awesome, thanks. SAM ALTMAN: Sure. JORGE CUETO: Another
+Dory question-- what are the most common reasons
+that qualified candidates get rejected from YC? SAM ALTMAN: Well, there
+is one particular thing that happens a lot with
+super talented people from large tech companies. So since I'm here,
+I'll mention that one, which is you are a really great
+person, really talented, really smart, really driven. And you don't have a good idea,
+or you don't have any idea. So you make up a bad one. And there's this,
+like, myth about startups that the idea
+doesn't matter at all. And I think there's existential
+proof that that's not true. And I think there is
+this particular failure mode of people from
+the big tech companies which is like, hey,
+I'm really talented. I'm like, yes, you are. So I'm going to start a company. And I'll figure out
+what to do later. And I think that
+isn't usually what produces the great companies. And so we have learned
+that it's much, much better if you're otherwise a qualified
+candidate to have a good idea. And I think that would be the
+common failure case for people coming out of Google. AUDIENCE: Hey, Sam. SAM ALTMAN: Hey. AUDIENCE: So what are your
+thoughts about, you know, where you're going to
+go or what you're going to do with your life after YC? Or does that come across? Like, are you going to take
+a political office seriously? SAM ALTMAN: You
+know, I don't even know what I'm going
+to do in three weeks. I plan to run YC for
+a really long time. I do plan to get continually
+more involved with politics. But I'd like to support others,
+not run for office myself, at least not any time soon. Like, I am a big believer in
+do the things that you think about in the shower
+in the morning when you can think
+about anything you want and your kind
+of mind is just off. And the things I keep
+coming back to are how can I make YC
+like 100 times bigger? How can I make sure that
+the arrival of AI goes well? And in the short term, how can
+I help our political system from going off the rails
+or any more off the rails than it already has? So you know, I kind of plan to
+keep working on those things for, hopefully, you
+know, a really long time. AUDIENCE: Good to hear. Thanks. AUDIENCE: Hi, thank
+you for being here. I have a question
+about the general way Silicon Valley works. Because it seems
+like it's a system in which you have the most
+talented minds dealing with maybe not the
+most important issues. Like, you have the
+sharpest mind working on social apps or mobile apps. But we still don't
+have a cure for cancer, or we still don't have
+another way of having energy, or really important stuff
+that the world should handle. And So my question is, do
+you agree with that? What is your
+perspective on that? And how do you think maybe
+this can be addressed? SAM ALTMAN: I don't
+agree with that. I think I used to view my
+job as a capital allocator. And now, I view my job
+as a talent allocator. So most of my day
+is spent meeting with really smart people
+and trying to convince them to work on important problems. And you know, I
+think in 2007, what everyone said is the best
+minds of our generation used to build spaceships,
+and now they're like moving numbers
+around on Wall Street. And in 2017, what people
+say is the best minds of our generation used
+to build spaceships. And now they get
+me to click on ads. And you know, there's
+always some truth to that. And there's always
+someone to pick on there. But I think OpenAI has
+some of the smartest minds in our world of
+our generation working on having AI go well. I think Helion, which is that
+fusion company I mentioned-- some of the smartest minds
+of our generation working on nuclear fusion. YC, I think, last time I
+counted funded eight companies working on a cure for cancer,
+incredibly talented people-- or cures for cancer-- cancers. I think you can
+always say there's all these people like working
+on bad stuff or stuff that doesn't matter. But you know, I
+think Google is still like a really great
+thing for the world. AUDIENCE: This is
+why we're here. SAM ALTMAN: Yeah. And I think it does matter. I think it's always easy
+to pick on people and say, you're not working
+on a cure for cancer. You know, you're
+wasting your time. But you're making
+this thing better that people use every day. And their lives would be a
+lot worse if it went away. And you're making
+it better every day. And I think it's really
+easy to pick on people and say, you know, that person's
+not spending her time right. And I think it always says
+more about the person that says that than the person
+they're pointing to. And if you're doing something
+useful for the world, if you're doing something you
+enjoy, even if you're having a small impact, but on
+a product that a lot of people really use and love, I think
+that's really valuable. And I think the people
+who say this generally have a lot of
+insecurity about how they're spending their time. AUDIENCE: So you don't
+think like Silicon Valley is avoiding the tough problems? SAM ALTMAN: I invite you to
+come sit in my office for a day and listen to the
+people coming through and what they're working on. I really don't think that, no. AUDIENCE: OK. Cool. Thank you. AUDIENCE: Hey, Sam. Seeing that you're a largely
+influential public figure, could you speak
+to the privileges that might have led to that and
+helped you with your success and how you may be
+good or bad ally? And then also, seeing that a
+lot of our consumer products are largely bias, specifically
+to the people who create them, which is largely the Silicon
+Valley engineers like myself and others in this
+room, how do you keep your ideas and thoughts
+diverse in addressing intersectional needs? SAM ALTMAN: Yeah,
+great question. I basically had like nearly
+all of the possible privileges. I had wonderful, loving parents. I grew up in a safe house. I'm a white guy. We had enough money that
+I was able to pursue the things that I was interested
+in and go to great college. And it's never
+lost on me how if I had been born a mile
+in a different place to a different family, different
+skin color, different gender, I wouldn't be where I am now. I view that as an
+obligation to try to make the world more
+just going forward. I think anyone who is really
+successful and doesn't-- I think anyone should
+try to do the best they can with whatever
+hand they're dealt. But if you're dealt, you know,
+like four aces, and you win, then I think you have
+an extra obligation to try to sort of make
+the world a little better. So I try to be really thankful
+of what everyone's done that has allowed me to do this. I also try to figure out
+how to pay that forward. And I think anyone who
+is really successful or almost anyone who
+is really successful has like privilege, luck,
+skill, and hard work. And I think people
+who try to say it's just one or just the
+other all tend to be wrong. So I'm thankful for that. And I try to pay that forward. In terms of biases
+in the product, I think this is one of the
+reasons that diverse teams are most important, the
+moral question aside. The consumer
+products, the teams, the companies that I think have
+done the best job addressing this head on have had
+a very diverse set of voices around the table. And I think that is always
+the strategy I recommend, because that's the only one
+I've seen consistently work. AUDIENCE: Cool, thank you. JORGE CUETO: We're on time now. But if you can do these last
+three questions quickly, we can get through them. SAM ALTMAN: Sure. AUDIENCE: Thank you
+for coming, Sam. My question is on
+machine learning and artificial
+intelligence companies. It seems to me that the
+scarce or valuable thing is data in those areas
+and less so the algorithm, because they're
+mostly open source. So I was wondering how you think
+about that when getting pitches from companies. SAM ALTMAN: I used
+to believe that. I now believe that it's going
+to be compute, not data. I think data is
+important, but there will be a lot of it available. And just my own
+experience with OpenAI, to really be at
+the forefront here, you just need massive
+amounts of compute. And so I used to ask
+companies how they're going to get a lot of data. Now, I ask them how they're
+going to get a lot of compute. AUDIENCE: OK. Thank you. SAM ALTMAN: Sure. AUDIENCE: Hey, Sam. Thanks for coming. I know you were
+talking about people are becoming unhappier
+and the world [INAUDIBLE] problem, all these
+kind of things that are kind of quantifiable,
+like physical needs of people. Have you or had companies
+that come to you kind of try to solve the spiritual
+needs of people? Because we can identify
+the physical needs, but what about like spiritual
+needs or research or companies? SAM ALTMAN: We have had a few. None of them have
+really worked yet. But you know, one that
+stuck out of memory was a company came
+to us and said, churches, you know,
+organized religion had this really
+important effect that was totally separate
+from the religion itself, which was this
+tight-knit community. And how do you build
+that in a world where most people or a
+declining number of people believe in religion
+and go to church? And so I think there are
+people thinking about things like that, which are sort
+of these non-obvious attacks on the problem that
+are interesting, but none that I could
+yet point to as here's this thing that's
+really worked well. AUDIENCE: Hey, Sam. So you partnered with the
+ACLU earlier this year, which you got
+mixed reactions to. I'm wondering what you learned
+from that whole experience, what successes you've
+had, and what partnerships you're looking forward
+to with other non-profits in the future? SAM ALTMAN: I was really
+excited about how that went. We had never done
+anything like that before. We often try new things. Usually, they don't work. Sometimes they do. That's something
+we would do again. We would do something
+more like that. I think there are these
+really important organizations in the world that can use our
+help to build better technology teams. And that was an
+experiment that went well and that we'd love to try again. One of our software engineers,
+[INAUDIBLE],, went there for-- I think she went for
+like eight weeks, almost the whole program, sat
+in their offices, helped them. We got a call from them
+later about how well it went, being able to help
+them, you know, expand and supplement
+their team. And you know, I think
+that's something we'd like to try again. JORGE CUETO: And one last
+question, because it's gotten so many votes. SAM ALTMAN: Sure. JORGE CUETO: Elon
+Musk recently called for preemptive AI regulation
+at the National Governors Association. As a chair of OpenAI and
+friend of Musk's, what is your opinion on this issue? And what specific actions can
+we take to minimize future risk? SAM ALTMAN: The specific
+thing I would support today is just insight. I think the government
+should understand where the edge of capabilities
+are and how it's evolving. Because I think no one,
+certainly not the government, knows what the regulation for
+AI should look like today. But I'd be in favor of starting
+that education process. JORGE CUETO: Awesome. So, yeah, that was
+our last question. SAM ALTMAN: Thank you all. JORGE CUETO: Thank you,
+everyone, for coming. [APPLAUSE] SAM ALTMAN: Thanks
+for having me. JORGE CUETO: [INAUDIBLE]
+
+
+## Sam Altman Startup School Video | Waterloo Engineering
+
+URL: https://www.youtube.com/watch?v=4SlNgM4PjvQ
+
+good afternoon good afternoon and thank you for coming to what is going to be a very special afternoon for you today we are here today to see and hear Sam Altman president of the YC group which is the parent of the world-renowned Y Combinator frankly it wouldn't matter what Sam was going to say I would want to listen but today he has promised to give us 90 minutes of startup school a program he launched earlier this year to make startup knowledge more accessible to the masses sharing knowledge that's Sam's thing let me tell you a little bit about Sam although I'm sure most of you know a lot about Sam already he's become a legend in Silicon Valley despite his young age but we know that age is just a number is what you do with your knowledge to improve human lives that really count Sam was just 19 when he co-founded his first startup company looked which was acquired in 2012 by green dot for over 43 million dollars well they turn around and name in the chief technology officer and later to its board of directors through the next five years he co-founded hydrogen capital served as the Acting CEO of Reddit and the chairman of the board of two nuclear companies I met Sam in 2014 and I think it's about the time that has just been named president of Y Combinator or YC perhaps the most prestigious startup accelerator in the world in 2015 Sam was named the top investor under 30 by Forbes in 2016 he co-founded open AI a non-profit research company established the sphere development of safe artificial intelligence for the benefit of humanity today Sam Altman for the most influential figures in the Silicon Valley and a North American technology sector the startup school series sounds way of bringing essential and free startup knowledge to more people if you have an open internet connection you can learn from the experts by watching this carefully curated program the knowledge gained a start-up schools avail invaluable as it is participating as it is in participating in YC itself in fact more than a few of our Waterloo engineering students and alum have used this participation in YC as a springboard success including the founders of thalmic labs vidyard pebble and buffer box Sam has had a huge impact in the Waterloo Region and we deeply appreciate his support I'm also delighted to share with you that Sam is receiving an honorary degree of engineering degree tomorrow at the convocation during the Faculty of engineering afternoon ceremony where he will also give an address the convocation is livestream so please watch for it he is an intellectual leader was inspired the world and inspired us we are very proud to have him as an alumnus now please join me to welcome mr. Sam Thank You Dean for that lovely introduction it's really nice to be back here I remember the first time I came to Waterloo I felt like I really would have loved to go to school here the thing that stuck out the most is that unlike where I went to school I had to find a group of people who are interested in building and creating new technology and not just sort of going to class all day everyone here was like that and I really love that and that spirit has been amazing I think I'm pretty sure this is accurate I can't think of anything that even come close I believe there are more Y Combinator alum companies within a kilometer of velocity than anywhere else in the world outside of the Bay Area so this is a special place to us and it's always nice to be back this also yeah this is the first time I've ever been here in this summer and that is an extra special treatment that's been great so I'm happy to be doing this talk today because this is this is the last day of startup school so we just finished we advise 3,000 startups at once online sort of a crazy experiment and worked really really well I have given talks like this many times I have the most fun when it's mostly me answering questions so I will talk but please interrupt anytime you'd like I'm happy to go in any direction whatever is most useful I'd much rather be interrupted if I'm boring you or telling you something that is not helpful then I would to sort of waste your time on something you don't want to hear about thank you very much so this is great I had a late flight last night so so I wanted to talk about the question that I usually get when I'm anywhere other than Silicon Valley or maybe a little bit less in Waterloo than in most places which is what makes Silicon Valley special why how can we be more like Silicon Valley what do we need to do and first of all I think the most important thing is to not feel like you are any less impressive than people in Silicon Valley I think people handicap themselves a lot by saying that well you know I'm gonna grade on a curve and I need a few extra strokes in the golf game because I haven't I'm not Silicon Valley completely wrong obviously talent is is equally distributed around the world there may be more access to capital in Silicon Valley but everything else is basically harder it's harder to find office space it's harder to recruit and retain engineers so I think the number one piece of advice that I always give people is get out of your own head about this but but here are the things that I think are Admiral but Silicon Valley many many things we do wrong here are some of the things I think we do well and are worth trying to emulate one is there is there is just a relentless belief in the future that there's going to be a future that things are going to change the future is going to be better that it's okay to say that the future is gonna be better it's okay to have strong ideas one of the hard things if you are trying to build a really successful company you kind of have to live in the future Alan Kay talks about how he tries to mentally live 30 years in the future but that's a little bit too aggressive so he tries to build the future that's 15 years out 15 years is a long time technology trends are these exponential curves it's really easy to be building the future be correct but seem seem kind of very crazy very out there very focused on the wrong things in the present and one of the challenges of this is if you're going to have this relentless belief in the future if you're really going to truly think about the world thirty years out and try and then get to work on building the world that's 15 years out people are going to mock you and all all humans basically have this evolutionary drive not to like me and may sum up not to like me and muck you know you want to fit in with your group and one of the things that really works about Silicon Valley and one of the things that works about Waterloo too is that there is enough critical mass of people they do believe in the future that you can find people who want monkey you can find people who think it's ok to be ambitious we think it's ok to be working on the problems of tomorrow we think it's ok to be trying these things that sound like they're not going to work today close to that is just you want to have some people and I have found a group over the last decade plus of people like this for me but I I have people that I can call up you know at 11 o'clock on a Friday night from a bar with a really crazy idea that sounds totally wild and completely nonsensical and they will at least humor me they will not immediately say that's dumb they will say well let's think about how that could be good or well that sounds really bad but maybe it's good for this reason and most of the time they're just bad ideas but every once in a while they're really really good and the problem is most people just kill all of their good ideas I don't know what the Canadian phrase for this is interestingly in the u.s. we have no such phrase but most countries do I picked one from Australia called Paul poppy syndrome but this idea where if you try to be too ambitious people try to cut you down is there Canadian phrase for this what is it you can feel it so I think it's really interesting that there is no there's no American phrase for this that it's at least popular and it's good that there's not an obvious one in Canada either but I think it's really important to find a group of people who won't try to cut you down for saying like I'm going to go build this giant company again another really good thing about Waterloo density really matters density is really really important trying to be around you know a lot of other people working on startups in close physical and mental proximity is really important and then the other thing that I think we have for all of the cultural problems in Silicon Valley we have a very good culture of paying it forward so people help you and that you're successful you are expected to pay it forward and that's been great to see at just among the YC companies that I know of in Waterloo that there's a real culture of that and I know a bunch of YC alums are running many of the startup related orgs and starting a new one and that happens in Silicon Valley as well and I think that's that's a really good sign so another question is that we get all the time and that I have spent the last ten years of my life trying to figure out is what makes really great founders special there are two phrases that kind of come to mind if I were trying to if I were trying to like pick what our top ten most successful founders would have said about themselves when we were interviewing them at YC I always figure it out and I never give up would have been high on the list and everyone thinks the thing that really matters is how smart they are or their domain expertise or their network or their connections it really is this kind of a personality trait people have different phrases for that determination relentlessly resourceful as one that Paul Graham uses but that spirit is the most important factor I think in successful founders you need to have everything else but a lot of people have everything else this I think is the kind of the rare and the limiting trait the good news about this is I think people can kind of learn it people don't try too often but I think this is possible where if you apply yourself to getting better in this way and the way you do for anything else I think people make huge strides this is not this is not something that if you're not born with it there's no chance three three things that we have observed about how successful founders get things done focus self belief and personal connections these are this actually started some in Charlie Rose said that he had observed that the way things people got the way people got things done in the world was a combination of focus and personal connections and then for startups I think it's really important to add this you actually have to believe in yourself you actually have to believe you might do it but these three things we've seen again and again and in fact if I were looking for a co-founder I would look for a lot of that like is this this someone have a relentless focus are they just going to get this one thing done and keep their blinders on not get distracted by shiny objects along the way do they actually believe that this is possible because momentum is this crazily self-fulfilling prophecy and can they form the personal connections that it takes to be successful will they be able to recruit and retain a world-class team will they be able to sell the product will they be able to raise money will they be able to talk to the press the ability to form these personal connections is super important another thing that I did not used to believe was this important and now I do is clear communication and vision and thought is part of a really clear communication almost all of the best startups that we have ever been involved with from the very first timing methods founders they were able to very concisely and clearly communicate what they were doing in like 25 words and I don't know why this is so important it may be that you need this to spread the message but I can certainly say that founders who aren't good at this don't really go on to be successful founders that don't get good at clear concise communication really struggle and you can you can prove this to yourself quickly by just looking at the founders of really successful companies they're all good at this so I think this is an area to invest in and get better in if you have those things then one thing you can do is attract great people to work on the company with you which is hard and important it's really really hard to recruit xx employee for a start-up one thing that I always tell people is it is easier to start a hard startup than it is to start an easy startup and the reason is you need a startup that is going to be inspiring you need to startup the people are going to want to help you with and if you are another startup that kind of fades into the noise and no one really cares that much about maybe a fine business but it's just not exciting it doesn't no one wants to contribute their energy to it it's really it's really hard recruiting that xx employee is really hard you need an exciting vision and you need to be good at communication and personal relationships and then also founders just get a huge amount of work done themselves so in the early days especially you kind of got to do everything and there's a lot to do and so people that have this sort of like focus and maniacal productivity is really important the thing that people always want to talk to me about though is none of those things people always want to talk about the idea the idea is important for sure but there are a lot of good ideas in the world there are far fewer people that are willing to put in the effort that it takes over years of decades to build a great company then there are people have great ideas that said starting a startup with a bad idea is also bad so I'm happy to talk about this and about how to have good ideas but but this is always what people want to talk about a lot of people think if they could just come up with a good idea then they can start a really successful company we've run this experiment at YC we funded 21 companies where the founders seemed really good that they didn't have an idea all 21 failed in the first year by far the worst worst external we'd ever run it turns out that good founders didn't have a lot of good ideas and also good ideas without real commitment behind them are just tough so wait to have a good idea before you start a startup if you start a startup without a good idea and you just kind of cast around for one you'll be under pressure to make something up it won't work that well and startups the very best startups are all started because someone believes so passionately in an idea and they believe that a startup is the best way to make that happen one of the things that is really hard about good ideas is that original thought is really hard most people just copy somebody else's thoughts most people do what somebody else is doing and this is disastrous because if you have one idea that starts to work and you have 10,000 clones that follow it none of you are going to be successful and the person that started first that you're copied is very likely to win you know in the year after Facebook started there were well over a thousand social networks that started in the year after Instagram started there were well over a thousand photo sharing apps it started we have not seen the same snapchat cloning race I'm not sure why but you want to do something that is new and different you want to think of an idea that's not the same idea everybody else is working on um either year that I joined the board of Helion which is a nuclear fusion company according to somebody's count there were 10,000 photos startups of some sort or others started that year and one nuclear fusion start-up started which seems a little bit off to me but I think most people just do what everybody else is doing right then noticing problems in your own life is certainly a good way to do this it's not true that all successful startups are started to solve a problem that the founders have themselves that is a very high percentage if you really go back and think about the transformational companies most of them start with someone solving their own problem and then there's this idea of a great wave which is that another thing you notice if you go back and look at all the really successful companies is there was this massive wave of technology coming you could see it in the distance and you knew it was going to just like crash over the shore and through the city and you got out there early on your surfboard so I think it's really hard to create a technology wave as a startup that takes too much too many resources you can't do that but what you can do is notice that a wave is coming and university students are particularly good at this you can notice that a technological wave is coming and while other people still think it's a toy are not going to matter you can really get conviction behind it and serve somebody else's wave and this by the way I think is the reason that great company there tends to be these clusters in time when a lot of great companies started so you know when the the internet wave happened in the mid to late 90s you had a huge cluster of companies that are now very large Amazon Google Yahoo I guess others and and then when the mobile wave happened after the iPhone came out 2007-2008 you had this other big wave of uber Airbnb snapchat Instagram whatsapp in this short period of time right after this this new wave started and so very good question think about now your Facebook I would say kind of was the one that straddled both they did really well on the internet and then even better on mobile and a really good question asked is what is the way that's starting right now and what will be you know where is the cluster of companies because we're about due for another one where is that going to be another question that people come up with all the asked all the time is about co-founders and how to find them we do have a significant preference for co-founders I think this is borne out in the data we are very happy to fund single founder companies and I would guess you know on the order of 10% of the companies we funder single founder yes I don't answer and I'll tell you why I am equally likely to be right as wrong but because you might listen to me I could set you down like a terrible career trajectory and I would feel very irresponsible if that happened so you should not start the startup I want to start you should start to start if you want to start and you should trust your own convictions you look younger than I am you're more likely to be right that's sort of been the history of Technology but I mean one that I am so sure I'm right about that I'm willing to say is I do think machine learning applied to every vertical is as close to a guaranteed shot as you can have right now in startups the problem is a lot of other people think that too so it's brutally competitive but there are going to be you know 100 million dollar companies that get started around now applying a different verticals so that's one that I that's one I feel confident enough about to say but you know if you think it's Bitcoin or VR or synthetic biology then you should bet on that so you know Amazon I think was basically a solo single founder company and obviously that's been fantastic it's clearly possible and it is certainly a lot better to be a solo founder than to have a bad co-founder I actually was dealing with this this morning this is about the time in a YC batch when people that kind of came together as cofounders just so that they could get into YC and told us how they knew each other for a long time and made all that stuff up this is where that all falls apart so you really do want shared history with a co-founder it is a very stressful thing it's like a relationship and if you don't have some goodwill built up in the bank it's like if you start a relationship with the most stressful bad part and you need that shared history you need to feel like you owe each other something in that way at some point the the expected value of most startups kind of dips below the x-axis and if the co-founders feel like they're friends and they owe h other something you can kind of get through it as I mentioned earlier this concept of determination hugely important and one mistake people make all the time when they select co-founders is to pick somebody who's really good at technology domain expert everything else good but not determined and that's very bad in general the hiring framework that has worked for me in my life has been to go for values first aptitude second and specific skills third and I think this is particularly true for co-founders the problem is that most people for regular hiring and especially for co-founders reverse this you know I need an engineer with a background in node and who has worked on iphone apps about the worst possible way to choose a co-founder and then you really want people who are you want founders who are humbled who are humble and not entitled companies end up being reflections of their founders the culture of the the founders set is what will the company's going to look like for a long long time and I think a very common mistake that people make is to assume that well you know this founder I saw in this movie that is probably not even that based on reality was really arrogant so that's how to be successful so that's how I'm going to come across it turns out everybody poisonous to the culture no once were quickly really bad and I have seen the reason I added to this slide is in the last year I have seen people who are kind of like more reserved like a little bit more introverted you know like closer to my side of the sort of a space kale than somebody else say you know what I need is like a really outgoing kind of arrogant co-founder because that's what success looks like and really that's just going to hurt you and it has become this meme of this thing that people are trying to select for so I mention it okay so product this is like the most important yes everything that I said before except the determination and the self belief has to be even higher the way it normally works when you have two founders is or three founders is there'll be days where like one person is kind of down and kind of wants to give up but the other person is like feeling really good and saying we're going to do this don't worry about it you pull the other person up and then the next day it reverses but the problem is if you're by yourself and you're going through the sine-wave when you're in the downs you could just end up giving up there's nobody to pull you up so we really look for people that have like incredible internal you know conviction about what they're doing it's hard though it's really hard I don't think I could do it I wouldn't try I don't think I could do it though I do yeah certainly for the first hires I mean later it may get to the point like someday you will get so big and so successful that you just need this incredibly esoteric skill and then maybe you can compromise a little bit but only a little bit the first few hires like even the first ten hires I think you want to think of those people as like almost at the co-founder bar you really want people that are going to believe in the mission that share your values and that are just super talented super high out the to do whatever they do I I have almost never gone wrong in my career hiring people who are inexperienced at a specific domain but super committed and super talented everything else they've done and trusting that you know maybe they'll be a little bit less productive for the first month but they'll come to speed quickly you know the leaders that I've hired for the different parts of my organization I've taken a bet on most of them that when they haven't had experience and it's worked out but it's that's the order I go in yes well one thing that it's kind of frustrating to some people I'm sure about the way I hire is I don't I haven't I think there are people who are really good at interviews and I've gotten a lot better throughout the YC process but I am NOT one of these people who can say I want to work with you an hour every day for the next 10 years based off of two one-hour meetings and I know there are people who do that or claim they do that and good at it but that's just not me so I really spend a lot of time like if I'm going to be hiring a direct report I'm really go spend a lot of time with them like we're going to go out for meals four or five times we're going to like you know spend many hours sitting together in the office we're really going to talk about like their life story in my life story what they want to get done in their life what I want to get done kind of like my philosophy behind Y Combinator and what I want it to be and why it matters and what they want to accomplish I hire really slowly and I try to do it gradually as well it's like if you're going to be a partner at YC we develop this process where it's basically a year-long you know first you come in and you do office hours with some companies and then if those go well companies like you if a number of partners that are sat in with you like you then we're going to make you a part time partner for six or twelve months where you're kind of like like a partner but you do it much less of your time and so we get but you're kind of like in our partner meetings and you kind of hang out and then if that goes well we're going to sort of like we have this sort of six month trial partner period we don't screw up that much once we actually make you a partner but we have a long time to get there and and we're pretty ruthless about you know if at some point it's just not feeling good even if it's someone we become friendly with which is why it's hard we just say we love you we want to help you find something else to do but probably not here so that's the thing that's works for me there are people who kind of make these one hours snap decisions we do it for YC companies we decide very quickly but most of them don't work out anyway and you know when I'm with them every day so it's different yes all the time yes this happened for sure as well but you know most of the partners at Y Combinator have not been investors before this job and I'll give you here's this specific example a couple of years ago we decide that we're going to start a growth fund although I'm an investor I am basically financially illiterate I you know like there are these people who can like build a model like you know say oh we think the company's going to do this much in 2023 and thus be aware of why and you know like I can I don't know the shortcuts in Excel so and that's ok at the stage of investing I do but it means there's a growth investor I really am well out of my league however what I do know how to do is sort of say like okay I can't build your precise model but I think this is a company that's going to be worth a lot in five or six years for these reasons and I don't exactly how much I'm exactly what price we should pay but let's take a hard look but we had never raised a growth fund we had you know we have been investing super early and now all of a sudden we're going to be investing you know 50 plus million dollars at a time at a late stage in YC companies and we had to like go off and figure out how we find professional limited partners because we need to way more money than we've ever deployed before and everyone's advice was the thing you need is to hire a growth equity finance person everyone's advice even my own partners but certainly like everyone outside they're like there's no other option no one will give you money without this you need a seasoned investor with a big track record it's a different world you need someone that's going to wear like cufflinks and suits and the whole thing and I met some of those people and a hundred percent of them failed the values test and honestly I would say hi percentage of them failed the the aptitude test as well they did have the experience but any of those people that I brought into the organization to lead this very important new group that we have was going to be a big compromise on values everyone I met thought about that thought about that I was like you know what we're not going to do this so the guy we ended up hiring for this I had never been an investor before his life at any stage he had been a CFO he was the CFO of Twitter but he had absolutely no experience as a growth investor and it was this thing that everyone said you just can't do this is the one area where you got to have an experienced person but I like any of them anything any of them weren't going to have good values alignment with what we're about as an organization so we hired someone absolutely no experience what we're doing and he's worked out fantastically well build a great team and I was able to sort of get in more junior people that specific domain experience but he understands very fundamentally what we do and why and has built a wonderful organization in service to founders in the same way that we do it at a later stage that I don't believe any of the traditional growth investors would have done when the very early stage of my career you know no one experienced or talked to me at all so at that point I had to hire an experienced people that was not a choice that was a default I think that many people who have done startups of understood what that's like you know the thing that always made me feel a little bit better about that is I was also unqualified and I was doing okay I was also you know I had no expandable or to know anything about business and know that much of my engineering I was doing okay so I was always I'm always skeptical of founders who say like I have no experience myself but I will only hire people with 20 years of experience there's some mental disconnect there so yeah I I was always willing to you know there have been tug and there have been times where really specific domain expertise about something is important you know like I wouldn't hire a non-lawyer and say okay you'd be general counsel but but in general I think taking a bet on people has paid off for me when you were saying about the process of how you select your partner at this stage when your yeah it's a great question it's definitely hard one of the best pieces of advice someone gave me when I asked that that same question I was starting my career is just be realistic that you're not going to hire that many people and that you're not going to get as much done as you'd like hold the bar super high because you're only going to get to hire three or four people anyway your networks not that big it's like really hard to get people to believe your vision you might not have that much money and so that kind of mentally freed me because I had been feeling like I had to hire a bunch of people and immediately to be taken seriously and then when someone said that's just not realistic that's not going to happen so find a few people realize it's going to take longer and get really good ones and it's better to like hire two or three great people than ten warm bodies that really freed me and I was like okay you know what like I'm not going to hit the hiring goal that the board told me to hit because I'd have to compromise to do that and I'm just going to get a few people and if they're really good people I mean maybe we get less done this year than we want to but it means we get more done next year and you know like still we're always behind a hiring plan every year YC is always behind a hiring plan it's just hard it just takes a while it never gets that much easier and then for example the story of Facebook Facebook one of the four billion dollars look a boards role is advice and consent the CEO supposed to run the company and I think if the CEO is doing a bad job that's when the board is supposed to step in the board can fire the CEO sometimes less and less but theoretically the board can fire the CEO but beyond that the CEO is supposed to make the decisions and the board is supposed to you know be a sounding board advise and consent and I don't so like do I think a board should fire a bad CEO yes and I know that's like a little bit heretical in Silicon Valley beyond that do I think the board needs to give the CEO very wide latitude to run the company yes and I think most boards do if you don't have a board though that you want advice from if you don't have a board that you intrinsically respect and want to listen to that means you have a bad board and you should fix that but I and I've had good board members I've had bad board members I have board members now but we don't we've never had a board meeting the but I like them all but I think you really want you want people who are there to support you to help guide you but will respect it it's your company you're going to make the decisions equally equally important the you do have a CEO who is going to make a lot of the day-to-day decisions but every good co-founder dynamic I have seen and by that I mean like we're all the co-founders actually stay at the company there's huge compromise and even if one person is the CEO which they are like everyone is kind of aware of what everybody else feels most strongly about and there's huge compromise because you know it's like the co-founders own the company together and they should be running it together to some degree and the whole like the dynamic you see sometimes where the relationship between co-founders starts really good but then someone kind of gets power drunk on being CEO and their investors their boards telling them it's their show the other co-founders and then kind of compromise goes out the window the other co-founders almost always leave and in all of the good long-term relationships I think there's really good compromise sometimes it's really bad and sometimes it's really good I mean there are definitely times when a co-founder should leave there are definitely times when someone is just you know burned out not enough and we had a co-founder leave and I think that was good for everybody there are also times where it would have been much better if that founding team could have stuck together and gotten long for a long period of time so I think that depends on the specifics um you know nothing lasts forever forever but if you can have like a really good co-funding team together for 10 or 20 years that's that's quite valuable all right I will keep going if people have more questions though I I would rather answer those go ahead one of the things was uh that out of the three yeah watch Brian Chesky on YouTube Brian is unbelievable at this Brian is like every time I leave Airbnb I'm over there yesterday every time I leave Airbnb I end up thinking like wow I want to go work here it's like so inspiring and he's like talk so clearly about it's like so good at making Airbnb feel important you feel important it's like politician level of skill about that you know I would just like I think I think people like genuine people and so I think if you can if you are not naturally super charismatic which definitely I am not and many other people aren't either I think you can go a really long way by just being genuine in your beliefs your intentions and also your willingness to help others I think if you just like go out of your way to help people even if there's not an immediate transactional value to you that that develops really good relationships over a long period of time but I think if so I guys many times help someone even though the kind of immediate thing I was trying to do with them didn't work out and it like has been unbelievably good for me years later when I've gotten too invested a company in a company that has now gone on to be super successful or they joined YC as a partner or something else so I think a long-term focus on hey this person seemed really great and there's not an immediate thing but I'm going to do whatever I can to help them and trust that it'll somehow lead to some value creation years down the road is good I think genuinely being excited about what you're working on and trying to get other people excited about that rather than like this fake whatever sales tactic stuff people do works really well I think learning to communicate clearly honestly is a huge part of it as well yes you know that that is the decision that founders get paid to make it's it is different in every specific case probably yes but it really depends on the specific thing Alex Schultz who works at Facebook on growth I don't this is probably isn't his original idea but he talks about this idea of the magic moment the one thing that people use a product and they love it so much but that's why they tell their friends about it Airbnb talks about not how do you get to a three or four or five star experience but how do you get to Ilyn eleven star experience like what is the most comically ridiculous thing they can imagine that they can never do but maybe they can go back from that and get you to a six star experience and that's so great that you tell your friends about this incredible trip you had on Airbnb and that's how they grow so yes I generally do think trying to figure out what is the one magic moment what is the one thing that's going to be so good about this people spontaneously tell their friends to buy it it's important but there are trade-offs and if you have this one ridiculous thing but it makes the rest of the product suck so much it's probably not worth it I do believe this though by the way that nothing but a great product will save you it's true the general class of mistake that startups that they'll make is they focus on everything but this and they do so well at everything else they do so well it fails in marketing they do so well at hiring raising money but they ignore this most essential tasks and then they feel they can't figure out why they failed and they have these sometimes fairly off-base conspiracy theories because they just can't understand so you think there must be someone out there working against them some destroyer trying to make them fail and they can't understand it hey there was just this one thing you had to do and you didn't do it a piece of advice that my partner Paul behide gives is that it is more important to have a small number of users that love you rather than a large number of users that like you a lot like you a little and I think this is one of the most important counterintuitive ideas and startups most people think that they need to get a ton of users on day one and then figure out how to increase their engagement and that actually does sound roughly right the other thing you can do of course is get at a number of users that like you would love you and then figure out how to find more of those people and the latter is the one that works almost always and it's and that's a counterintuitive and an important point yes depends on the product you know if it's an enterprise product where people are going to be paying you hundreds or thousands of dollars a year ten would be enough if it's a consumer product probably needs to be in the thousands I think one of my competitive advantages as an investor has been had a super long time horizon and most investors even though they say this don't and I think it's kind of like a human logical fallacy because these things just take a while anyway but it is hard to go into an investment saying even if things work perfectly I'm gonna be holding shares for fifteen or twenty years most people just don't like that and so I think I have kind of found a tribe of other investors that think the same way and we have been able to run the tables on these kind of companies so I think the issue is most people just no matter what they say don't honestly have a long-term time horizon yes [Music] you know this has been a problem of mine I've had a hard time throughout my entire career establishing people who really want to disagree with me a lot so I don't feel qualified to answer this but you are right to ask the question it's definitely a problem let me know if you figure it out I think it generally is useful to over communicate on these things and generally say you know person one is going to be responsible for things X Y & Z person two is responsible for things a B and C and then when we get to the big strategic disagreements of the entire business we're going to resolve in the following way so and we have a lot of rules like that in place at YC so there's like our class of things that any partner going to do by him or herself there's a class of things that you can do if you can convince any three people to go along with them there's a class of things you can do if your domains with one partner responsible for software one for recruiting one for you know finance one for legal one for operations and then there are class of things that require the entire partnership to vote as a whole and those don't come up very often because there's 18 of us and really painful to make a decision with 18 CEOs sitting around a table so we don't do those often but if we're gonna do something like raise that new growth fund that I talked about earlier like that one requires the whole partnership to get together and so we have set these frameworks and it lets us work I think we're probably the biggest venture investing partnership that I've ever heard of and I think without some rules like that it would just be uncomfortable point when you're in early-stage startup don't attack it better - what would you think better to advertise strongly that you are gonna get this top or more clear that there are III think it's always really dangerous to sort of say we could do these seventeen different things and we have no internal conviction which to do I think it is like I subscribe to this strong ideas weakly held approach of startups like there's one idea of those that I believe will be the best if I get new data Emily change my mind and I think the other extremes the extremes are both wrong and that's what I'd recommend yes you know we wonder about that I think less than people think so we have tried a number of different configurations but right now the current one is the hard tech companies they go through I see just with the software companies and they always come in and saying I can't get anything done in 90 days and they always leave saying I cannot believe how much I got done in 90 days I think too often people use hard tech as a crutch and as an excuse for why they don't have to move quickly and that's just wrong so we just sit down with them on the first day and say okay we understand you're not a pure software company but let's figure out what you can possibly get down in 90 days and that focuses people and it means they get something done and they almost always will say that was the most productive 90 days of my life so I think as a general rule the hard tech company should look more like software companies and it's generally a bad excuse when they say they can't and you know we have just had result after result after result in very different fields of people that thought they couldn't do anything on a three-month time frame being shot at how much they could get done so also on the phone recently with the company called ginkgo Bioworks they had existed for seven years before YC than they did YC and the founder said to me that if they had just done YC initially they could have compressed that initial seven years into one year and so I think you have to move fast no matter what business you're in like everyone kind of wishes they didn't have competitors that would be nice but if you're doing something interesting other really talented people are going to be trying to do the same thing and they can work smarter or faster or harder or all of those than you and you the way you beat them is to just have super talented people working on a very fast iterative cycle if I think I'm always interested in exponential curves and I'll just mention two that I think are important this first one is the idea of how quickly your product gets better so if let's say on every iteration cycle your product gets 10% better on average if your iteration cycle is a week and your competitors is three months you know you're going to leave them in the dust very quickly and the reason that I think most hard tech startups fail is their iteration cycles three months which is basically rounds to infinity and they lose and lengthen and die and the very best ones operate on the scale of software startups it's a little bit harder but they figure out a way to do it that's that's really important the other kind of exponential trend that is very related to that point and I know that this is always a little bit of a landmine to say but I'm just going to say it anyway I think you should work really hard in the beginning of your career one of the things that I know one told me and I later realized to be true is that studying and working hard it pays off like compound interest and if you do that in your late teens in early in mid 20s you have many working years ahead for the benefits of that compound interest to pay off and if you wait and do that until you're in your 50s or 60s or 70s you just have less working years left for that to pay off and so to degree you're willing to like you're say okay someone in my life I'm going to work really hard and focus on this thing I think it's good to do that as a beginning of your career and then you get the benefits of that over a long time let me just make sure I don't have anything else really important in here to say okay we can skip the rest of that go ahead sure yeah well look investors aren't totally wrong about this the momentum is really important momentum is self-sustaining and one way to have momentum is to be growing really fast another way to have momentum is just to have continual breakthroughs in the lab but that's not most hard tech startups and I have met many and been involved with some of the best one in the last few years most of them just honestly don't move that fast and yes it takes more effort to identify a fast moving company if you can't just look at a graph of daily active users but it is possible and I have found the more time I spend visiting these companies in these labs I can identify pretty quickly if it's a fast moving company or not I can usually go to one weekly research meeting and have a pretty good pretty good guess and investors are not wrong that is really important you really do need that and the question is how do you evaluate it if it's an area you're not familiar with you know I try to sit down with every hard tech startup that comes into I see at the beginning of our program and figure out what their goal for the end of the program should be and you know like there's a lot of people who are willing to engage in a genuine open brainstorm with me and come up with something that they think is a little bit too aggressive but they're willing to try and there are some people who are just like no I can't make I can't the next milestone for the next three years there's no intermediate milestone that makes any sense that's just how long it takes you don't understand science okay they always fail the you know like at one particular company was a cruise as a self-driving car company we funded in the wind them in January of 2014 this was before self-driving cars were cool this is an example of the kind of class of ideas that all investors say they don't like then three years later they're begging us to find more of them because it's the new investment thesis happens again and again in history of YC and we found this company investors all think we're crazy self-driving cars are decades away and Google's going to win this is dumb what are you doing like we just want more photo-sharing apps YC sucks and you know sat down with the standard founder had no expertise in building self-driving cars or cars of any sort there's the former co-founder of justin TV he's really smart and you know really know how to build a good company and we sat down we talked about you know what he could get done in three months and he had this idea and I was like well I don't think that's going to help you raise money I don't think that's going to build real momentum how about the other idea I had this idea that he thought was impossible and may have been right about and we compromised on was that he would have a car by demo day they could drive itself down the highway from San Francisco to Mountain View and most people would have said I can't do that he's like I'm gonna go get that done like okay I'll ride and if you do and you guys got by the did morning of demo day and had a car that drove itself autonomously was hacked up body a for with you know computers hanging out the back and but it drove itself 90 days later and he raised the money made incredible progress still it just like he they had unbelievable internal momentum every week their car was getting better on the roads and he wanted to try to raise an a round later and investors just said like well you know we're just we don't really think self-driving cars are gonna be a thing now it's maybe late 2015 let's say and no one's investing and I kept trying to help me investors no one was doing it and I was like this is so dumb I understand they don't have this graph of you know daily active users but if you go to the if you go sit in their office this is so clearly different from every other self-driving car company could raise money could raise money so finally I was like it I'm gonna write you a check so I made my biggest investment of the year in that company and then like seven months later GM acquires them giant acquisition every investor that passed within the next year with Sam like autonomies our new thing we really want wants you to be funding more self-driving car companies this is the future but but had people been willing to just do the work and look at how quickly that company was progressing even though it wasn't obvious externally from like a daily active users chart they would have invested and the problem is that most hard tech companies aren't in fact progressing quickly alright should we do the pitch practice now all right thank you all thanks very much Sam now I was watching from here and I noticed that all of you were paying attention and taking notes it never happens in my class so so Sam can I hire you to be faculty member of Waterloo engineering thank you it was wonderful and for you for paying attention there will be a quiz later okay there is more to come Sam it bracele offered to show us how he would respond to a venture capitalist venture an advisor to a real startup pitch and then provide feedback now there is no script there was no rehearsal so it is the real thing the chosen startup is a lucid and the co-founder is four note chasms a day a Waterloo and during alum and he's going to tell us or rather Sam about his company and to pitch why Sam should invest so without further ado let's get per note up here and see what happens [Applause] you are you going to vote this but I can't or you're happy okay you can join together hey actually me sit there so I can look at this life hi hi okay so why don't you just go through this and I'll probably interrupt with a lot of questions sure all right and by the way this is really hard to do and takes a lot of bravery so thank you for doing this [Music] so as lucid labs were met tech company we're trying to bring specialized care to underserved communities and potentially people who can have doctors actually examine them basically the marketizing healthcare we're looking at dermatology so skin cancer is one of the most diagnosed forms of cancer worldwide in North America so more than 80% of all cancers diagnosed our skin and one in five people in North America will be diagnosed with skin cancer and so basically the way it works out is you have a lesion on your body is either benign or malignant you go see your dermatologist they give you diagnosis of benign or malignant and everything is fine if they're diagnosed correctly but there's still all lots of issues with all the overlapping parts so if the lesion is actually benign and diagnosed as malignant and then the owner biopsies every year there's 17 million unnecessary biopsies which equals 17 billion dollars cost if the lesion is malignant and they diagnosis malignant it's a health care cost of health care to treat it and worst case scenario the lesion is malignant and diagnosed benign there's 20,000 people a year who die in North America and obviously if in the diagnosis stage at this late stage than the people you notice there's no point there's no return and the problem is this they do it with visual examination skin cancer just like any other cancer that has stages of progression and it only becomes really visible at you know stage 2 or 3 here we call it negative stage 1 and then we term the other ones as 0 negative 1 and but biopsy is the clear way of diagnosis the gold standard so there's a knee-jerk reaction for physicians to just order it and remove their responsibility and put it on somewhere else what we do is we use computational imaging so we have sensing are augmented with artificial intelligence where we can actually not necessarily replace doctors but we augment the doctors capability to be able to diagnose and provide care very high standards and we do them there's different things we do that but that's besides the point all just move on from here what we're really proud of is we can radially sequence cancer just like a genomic sequence where you can look at a sequence and say okay this clearly is this disease we can do the same with skin cancer through our computational imaging and an artificial intelligence and this is a actually our product ADA which which is performing right now it's an imager and while it gives us that ABCD metric this is the state of the art in terminology asymmetry border irregularity color diameter so how big is it and this is balloon or not again done by eye and everything just based on the physicians recall of what they saw last time you were in if the D and then the most important part is e is evolution of the ABC DS and so our product goes through does those measurements quantitatively and suggest different cases that are of similar similar diagnoses are another product we have this spectrum this is where the sequencing comes in right so this is basically work we're augmenting the dermatologist to the utmost level and would use we do some depth imaging so it's like x-ray without ionizing radiation so we can actually see into the skin and this is the first of its kind we're actually staging skin cancer as opposed to just saying if it's malignant or benign and this is the performance that we get today so on the left is what the dermatologists are capable of on the right is what we do so true positive is how good are we are actually determining what is cancer as cancer true negative is how good are we at determining what is not cancer as not cancer and then the inverse of those so as you can see where the numbers are good the the sort of the competitive landscape works out like this if you plot it on the axis of artificial intelligence and diagnostic capability where you know away from a pack there there's a lot of companies who provide telemedicine teledermatology and there's a lot of companies that just provide imaging and let the doctors make a decision and it's not really clear what they're looking at in making decisions on the North American market cap as well basically there are four hundred fifty thousand users potential users dermatologist nurse practitioners general practitioner family doctors we assumed five of these practitioners to a clinic and with a hardware and software as a service model we project the phone if it's a million dollar market cap in North America this market cap worldwide the one and a half billion dollars and that's just for skin cancer and when you go to skin disease and other conditions it's about a fifty billion dollar when you go to cosmetic dermatology who's about one hundred billion dollar market this is the team the three people on top are the co-founders and you have a co-founding team we have expertise and artificial intelligence optics and photonics and ui/ux expert as well as know you must have the business and operations currently we're working on partnerships with Toronto Western Women's College Hospital and st. Michael's Hospital all in Toronto to run a basically trial at Pei trial with this device and so that was great mmm way more went right than wrong there so I oh you could just give that presentation to investors now be fine but since we're here and there's a lot of people I'll make some suggestions it's come a long way it's really good I think the most important slide in the whole thing under the you know if you have a great product that's what you want to talk about is that you have a great product you have something that works so you have something that is better than human dermatologists in every metric so the two things like this is great and then also early on I kind of got what you did but not until here so I think this would really benefit my number one piece of advice and number of use advice from most pitches is that you need investors or anyone you're pitching this comes down to the clear communication to understand what you're doing in like the first minute and it's always tempting because it's always tempting to say well we have this really big vision you know you eventually want to build the a eye doctor for everything and you eventually want to help low income people have access to high-quality medical care by using computers and you can say that at the end of the presentation but you really just want to tell people very clearly upfront this is what we do and it's okay if this is what you do today and you're going to do a lot more later because what you do today is plenty revolutionary it's plenty big so I think the thing that would helped us the most is to add a slide here right after this one that says in one simple to understand sentence you know something like we use AI to diagnose skin cancer better than the best human doctors like that's it just tell me that and now I've got a framework for you and what you do for the rest of the presentation and then I will everything else I will be thinking of it that way if I hear that's the beginning and that that is missing I would say from 95% of presentations and it's the thing that investors want the most it's just that early on so like this slide this is what the first thing we start on you know I my mom is dermatologist I happen to know that skin cancer is working yeah it'd be great but like you know this is less important to me even if I didn't know it then knowing that you have built something that without a bio just purely visually with a computer can diagnose skin cancer better than the best human doctors that's what you should be talking about and slide to this is well this was a hard slide for me to follow I love the message which is that there's a huge error rate but you could just tell me like there's a huge error rate it would be easier and 20,000 people die a year and we spend you know almost 20 billion dollars on unnecessary medical procedures and I would have gotten it not to be less confused this one again helpful not but so early on in the presentation I would rather be hearing about how the technology actually works how well it works where you are in the process of getting it deployed like I think one thing that was missing that was important is what is the roadmap look like from here to you saving a lot of lives and saving a lot of unnecessary procedures that's all more important than this I think it's as important in a pitch what you leave out as what you say and this is valuable but it's just not as valuable as the burning questions that an investor will have so that again happen to know but even if I didn't I wouldn't be as interesting to me as you telling me okay so we have this thing here's the data that proves it works and here is basically a road map of the next two years of what we have to do to get this in the clinic and to start making revenue and to start impacting people's lives this was this is good this is where you're actually showing the product this makes it seem way more real to people and you're actually doing something but I would have this before all of that I would just say now I'm going to show you what we built but before we do that we're better than human doctors today this is not a future thing this is not a technology but this is working and then you can get into all the rest of this these slides I think are always terrible I have never seen one of these where the startup presenting is not in the upper right [Music] no-one's ever like worse on the two axes issues to show and and this one again like it's fine but I've never ever seen the slide where someone says we're a small market so I think what would be really helpful here is we have created this revolutionary technology it's going to have a huge impact and here is how we're going to get it into the ninety thousand clinics that was for me the biggest thing missing there's other things I changed the emphasis on the order but the big outstanding question me at the end of this was okay like what what do the next two years look like what does winning look like what are you going to go do now what needs to happen and I think if you reorder things to talk about what you do clearly at the beginning that it works then tell me about the product everyone understands the need and the problem and then spend the rest of the presentation with something that doesn't exist yet today which is how do you go from here to a multi-billion dollar company that impacts a lot of people and then the end then you can get into the big kind of war gonna be Dai doctor and revolutionize health care work just starting with with skin cancer that'd be fine that'd be great but again small comments super strong definitely I understood what you did and I was excited and I wanted to help and it sounded like a really good business so that's that's all great thank you [Applause] okay I always try to end early but I'll do Q&A for a little bit longer thank you very much look the one thing I liked the one thing I liked when I was in school is when talks I ended early so I could go get work done so I will I will try to end this a little early but if anyone has a question we haven't gotten to yet I'd be happy to answer it yes you know my backpack of all the otherwise I pull it out and show it to you I make a list every day of the things that I want to get done I every night before I go to bed for the next day and I have like three big ones at the top and then a long list of like 50 little ones like Hulst return and stuff and I have figured out what times a day I'm productive at different kind of tasks so like the morning is really important to me to get creative work done or to just get like high throughput work time I really have to focus and I have been in that I have had the same productivity system for 15 years and it keeps working so I don't change it well I have like I write a plan at the beginning of every year for the whole year as well but like I don't look at that as much and I have this thing every day in my face of what I'm trying to get done and I look at that all the time I mean I kind of know like what the overarching priorities that I'm trying to get done are but I believe you get there just like you're the momenta that the motto of a Blue Origin is something like step by step ferociously she's a great model for how you get things done in life and so like I have these big projects I'm trying to get done but I break them into very little pieces and every day I try and knock off a few of them there's no magic to this like there is no secret to productivity beyond like know what you want to get done relentlessly guard your time and get those things done and don't get distracted on our stuff sure one big one is technology can make the world better but it doesn't that's not the default so you need people who believe the technology can make the world better and are willing to work to in fact make the world better another is that economic growth is central to a functioning democracy and startups are one way to generate that but if you don't have that you have is very zero-sum world you see this in my country right now where people are kind of angry because we have no growth and it's just getting more and more unpleasant and I think if the thing that people in the private sector can do the most to help get the country back on track is to get economic growth back in the US we had kind of 200 years of unrivaled economic growth 100 years of territorial expansion we had a hundred years of new technology really working and people were mostly pretty happy and now we don't and because people are sensitive to relative differences in quality of life but not absolute differences if you don't feel your own life getting better every year you are understandably unhappy or if you see your neighbors if you're on the wrong side of the wealth inequality split with your neighbors you're pretty unhappy and so I think fixing this I think that I think I really do believe that economic justice is going to be one of the most important problems of our time and I'm fixing that and all the different ways we can fix that that's a very central value to me you know having the u.s. continued to survive and be what I think is the greatest country in the world is of great importance to me having the world get better every year having solving the environmental problems ending poverty these are all things I think YC can help with and that are really important to me that was totally unnecessary but thank you okay now should I open it Wow someone knows me well it's a hoodie thank you thank you all for coming to listen by the way this is been a lot of fun [Applause] actually there's no need I got every is basically the same same same talkers all my life there are socks which I never wear but thank you very much I'm gonna wear these thank you so much [Applause]
+

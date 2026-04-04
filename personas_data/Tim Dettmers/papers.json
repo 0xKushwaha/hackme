@@ -1,0 +1,62 @@
+[
+  {
+    "title": "SERA: Soft-Verified Efficient Repository Agents",
+    "year": 2026,
+    "url": "https://www.semanticscholar.org/paper/28a1e36c28afa899bcb0849c2f292ad0118ddfb0",
+    "citations": 2
+  },
+  {
+    "title": "OLMoE: Open Mixture-of-Experts Language Models",
+    "year": 2025,
+    "url": "https://www.semanticscholar.org/paper/278b2ba86def9e21c0b239474e5df3ddb7ce1ab2",
+    "citations": 0
+  },
+  {
+    "title": "Multilingual Machine Translation with Open Large Language Models at Practical Scale: An Empirical Study",
+    "year": 2025,
+    "url": "https://www.semanticscholar.org/paper/3a6edf9f8e58d5b4053e6d454112f4864c3343cb",
+    "citations": 39
+  },
+  {
+    "title": "Holistically Evaluating the Environmental Impact of Creating Language Models",
+    "year": 2025,
+    "url": "https://www.semanticscholar.org/paper/ec88e4c4051bc2fe764ef568dbe88da847c61c9a",
+    "citations": 34
+  },
+  {
+    "title": "Accessible Foundation Models: Systems, Algorithms, and Science",
+    "year": 2024,
+    "url": "https://www.semanticscholar.org/paper/0f6f40eeb45bb0c4976f23d264c939aa9aabf98a",
+    "citations": 0
+  },
+  {
+    "title": "OLMoE: Open Mixture-of-Experts Language Models",
+    "year": 2024,
+    "url": "https://www.semanticscholar.org/paper/817632c42e735911e14b89e851ceaf54ba2ad25f",
+    "citations": 193
+  },
+  {
+    "title": "Scaling Retrieval-Based Language Models with a Trillion-Token Datastore",
+    "year": 2024,
+    "url": "https://www.semanticscholar.org/paper/f25cc8cfb985d1bad1f1a070d74dd6171d2d028c",
+    "citations": 60
+  },
+  {
+    "title": "Distributed Inference and Fine-tuning of Large Language Models Over The Internet",
+    "year": 2023,
+    "url": "https://www.semanticscholar.org/paper/2b05686607991a39aead43f371fd7ea2b08195f5",
+    "citations": 80
+  },
+  {
+    "title": "MatFormer: Nested Transformer for Elastic Inference",
+    "year": 2023,
+    "url": "https://www.semanticscholar.org/paper/eac59779da7262968a9043985e7cd933c00247a5",
+    "citations": 71
+  },
+  {
+    "title": "LLMs meet Bloom’s Taxonomy: A Cognitive View on Large Language Model Evaluations",
+    "year": null,
+    "url": "https://www.semanticscholar.org/paper/0a8be60c5b0768274bb6451da47371a72bfb6830",
+    "citations": 0
+  }
+]

@@ -1,0 +1,135 @@
+[
+  {
+    "name": "stock-rnn",
+    "url": "https://github.com/lilianweng/stock-rnn",
+    "stars": 1975,
+    "description": "Predict stock market prices using RNN model with multilayer LSTM cells + optional multi-stock embeddings.",
+    "language": "Python"
+  },
+  {
+    "name": "lilianweng.github.io",
+    "url": "https://github.com/lilianweng/lilianweng.github.io",
+    "stars": 713,
+    "description": "My personal page",
+    "language": "HTML"
+  },
+  {
+    "name": "lil-log",
+    "url": "https://github.com/lilianweng/lil-log",
+    "stars": 591,
+    "description": "Lilian's Blog",
+    "language": "SCSS"
+  },
+  {
+    "name": "transformer-tensorflow",
+    "url": "https://github.com/lilianweng/transformer-tensorflow",
+    "stars": 484,
+    "description": "Implementation of Transformer Model in Tensorflow",
+    "language": "Python"
+  },
+  {
+    "name": "multi-armed-bandit",
+    "url": "https://github.com/lilianweng/multi-armed-bandit",
+    "stars": 417,
+    "description": "Play with the solutions to the multi-armed-bandit problem.",
+    "language": "Python"
+  },
+  {
+    "name": "deep-reinforcement-learning-gym",
+    "url": "https://github.com/lilianweng/deep-reinforcement-learning-gym",
+    "stars": 311,
+    "description": "Deep reinforcement learning model implementation in Tensorflow + OpenAI gym",
+    "language": "Python"
+  },
+  {
+    "name": "emoji-semantic-search",
+    "url": "https://github.com/lilianweng/emoji-semantic-search",
+    "stars": 295,
+    "description": "Search the most relevant emojis given a natural language query",
+    "language": "Python"
+  },
+  {
+    "name": "LeetcodePython",
+    "url": "https://github.com/lilianweng/LeetcodePython",
+    "stars": 144,
+    "description": "Leetcode Practice in Python",
+    "language": "Python"
+  },
+  {
+    "name": "unified-gan-tensorflow",
+    "url": "https://github.com/lilianweng/unified-gan-tensorflow",
+    "stars": 124,
+    "description": "A Tensorflow implementation of GAN, WGAN and WGAN with gradient penalty.",
+    "language": "Python"
+  },
+  {
+    "name": "generalization-experiment",
+    "url": "https://github.com/lilianweng/generalization-experiment",
+    "stars": 77,
+    "description": "TBA",
+    "language": "Python"
+  },
+  {
+    "name": "scikit-learn",
+    "url": "https://github.com/lilianweng/scikit-learn",
+    "stars": 5,
+    "description": "scikit-learn: machine learning in Python",
+    "language": "Python"
+  },
+  {
+    "name": "BagSaleDetector",
+    "url": "https://github.com/lilianweng/BagSaleDetector",
+    "stars": 5,
+    "description": "Handbag Sale Detector",
+    "language": "Python"
+  },
+  {
+    "name": "autocomplete-obsidian",
+    "url": "https://github.com/lilianweng/autocomplete-obsidian",
+    "stars": 4,
+    "description": "Obsidian plugin to provide text autocomplete",
+    "language": "Unknown"
+  },
+  {
+    "name": "datasets",
+    "url": "https://github.com/lilianweng/datasets",
+    "stars": 4,
+    "description": "A collection of datasets ready to use with TensorFlow",
+    "language": "Python"
+  },
+  {
+    "name": "k-means-clustering",
+    "url": "https://github.com/lilianweng/k-means-clustering",
+    "stars": 4,
+    "description": "Repository for my 'K-Means Clustering with Scikit-Learn' talk materials.",
+    "language": "Unknown"
+  },
+  {
+    "name": "ScholarFame",
+    "url": "https://github.com/lilianweng/ScholarFame",
+    "stars": 4,
+    "description": "Small analysis about fame and productivity of scholars",
+    "language": "Python"
+  },
+  {
+    "name": "BlankTabMultivariateTestAddon",
+    "url": "https://github.com/lilianweng/BlankTabMultivariateTestAddon",
+    "stars": 4,
+    "description": "The merged add-on of new tab page with multiple designs, used for firefox testpilot study",
+    "language": "JavaScript"
+  },
+  {
+    "name": "orrb",
+    "url": "https://github.com/lilianweng/orrb",
+    "stars": 3,
+    "description": "OpenAI Remote Rendering Backend",
+    "language": "C#"
+  },
+  {
+    "name": "tensorflow",
+    "url": "https://github.com/lilianweng/tensorflow",
+    "stars": 2,
+    "description": "An Open Source Machine Learning Framework for Everyone",
+    "language": "C++"
+  }
+]

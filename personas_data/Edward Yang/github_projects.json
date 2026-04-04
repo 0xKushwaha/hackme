@@ -1,0 +1,352 @@
+[
+  {
+    "name": "codemcp",
+    "url": "https://github.com/ezyang/codemcp",
+    "stars": 1615,
+    "description": "Coding assistant MCP for Claude Desktop",
+    "language": "Python"
+  },
+  {
+    "name": "scubaduck",
+    "url": "https://github.com/ezyang/scubaduck",
+    "stars": 54,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "cute-interactive",
+    "url": "https://github.com/ezyang/cute-interactive",
+    "stars": 49,
+    "description": "Interactive version of the CuTe layout paper",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "refined-claude-ax",
+    "url": "https://github.com/ezyang/refined-claude-ax",
+    "stars": 30,
+    "description": "UX enhancements to Claude Desktop",
+    "language": "Python"
+  },
+  {
+    "name": "ai-blindspots",
+    "url": "https://github.com/ezyang/ai-blindspots",
+    "stars": 13,
+    "description": "Blindspots in LLMs I've noticed while AI coding. Sonnet family emphasis.",
+    "language": "HTML"
+  },
+  {
+    "name": "spmd_types",
+    "url": "https://github.com/ezyang/spmd_types",
+    "stars": 8,
+    "description": "Local and global SPMD type system supporting erasure",
+    "language": "Python"
+  },
+  {
+    "name": "claude-logbook",
+    "url": "https://github.com/ezyang/claude-logbook",
+    "stars": 8,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "ghinbox",
+    "url": "https://github.com/ezyang/ghinbox",
+    "stars": 6,
+    "description": "GitHub simulator",
+    "language": "Python"
+  },
+  {
+    "name": "refined-claude",
+    "url": "https://github.com/ezyang/refined-claude",
+    "stars": 5,
+    "description": "Refined Claude as a browser extension",
+    "language": "TypeScript"
+  },
+  {
+    "name": "ezbench",
+    "url": "https://github.com/ezyang/ezbench",
+    "stars": 5,
+    "description": "Fork of Carlini's yet-another-applied-llm-benchmark for me to accumulate some of my own real world eval cases",
+    "language": "Python"
+  },
+  {
+    "name": "blog.ezyang.com",
+    "url": "https://github.com/ezyang/blog.ezyang.com",
+    "stars": 4,
+    "description": "Hugo repository for blog.ezyang.com",
+    "language": "HTML"
+  },
+  {
+    "name": "xla-redist-ref",
+    "url": "https://github.com/ezyang/xla-redist-ref",
+    "stars": 4,
+    "description": "Extract redistribution plans from XLA",
+    "language": "Python"
+  },
+  {
+    "name": "git-zap",
+    "url": "https://github.com/ezyang/git-zap",
+    "stars": 4,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "torch-profile-compare",
+    "url": "https://github.com/ezyang/torch-profile-compare",
+    "stars": 3,
+    "description": "easily compare pytorch json profiles. vibe coded",
+    "language": "Shell"
+  },
+  {
+    "name": "openxla_xla",
+    "url": "https://github.com/ezyang/openxla_xla",
+    "stars": 3,
+    "description": "A machine learning compiler for GPUs, CPUs, and ML accelerators",
+    "language": "Unknown"
+  },
+  {
+    "name": "pt2-triage",
+    "url": "https://github.com/ezyang/pt2-triage",
+    "stars": 2,
+    "description": "Claude code skills for PT2 triage",
+    "language": "Python"
+  },
+  {
+    "name": "claude-code-log",
+    "url": "https://github.com/ezyang/claude-code-log",
+    "stars": 2,
+    "description": "A Python CLI tool that converts Claude Code transcript JSONL files into readable HTML format.",
+    "language": "Unknown"
+  },
+  {
+    "name": "scubaduck-archive1",
+    "url": "https://github.com/ezyang/scubaduck-archive1",
+    "stars": 2,
+    "description": "Scuba exploration UI on top of DuckDB",
+    "language": "JavaScript"
+  },
+  {
+    "name": "pictures",
+    "url": "https://github.com/ezyang/pictures",
+    "stars": 1,
+    "description": "Xournal sources and PDFs",
+    "language": "Unknown"
+  },
+  {
+    "name": "git-deck",
+    "url": "https://github.com/ezyang/git-deck",
+    "stars": 1,
+    "description": "Easily view status of all git worktrees",
+    "language": "Shell"
+  },
+  {
+    "name": "vllm",
+    "url": "https://github.com/ezyang/vllm",
+    "stars": 1,
+    "description": "A high-throughput and memory-efficient inference and serving engine for LLMs",
+    "language": "Unknown"
+  },
+  {
+    "name": "tlparse-dump-inputs",
+    "url": "https://github.com/ezyang/tlparse-dump-inputs",
+    "stars": 1,
+    "description": "Dump an executable representation of inputs from tlparse",
+    "language": "Python"
+  },
+  {
+    "name": "codex-scraper",
+    "url": "https://github.com/ezyang/codex-scraper",
+    "stars": 1,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "verl",
+    "url": "https://github.com/ezyang/verl",
+    "stars": 1,
+    "description": "verl: Volcano Engine Reinforcement Learning for LLMs",
+    "language": "Unknown"
+  },
+  {
+    "name": "synf",
+    "url": "https://github.com/ezyang/synf",
+    "stars": 1,
+    "description": "Development tool for Model Context Protocol servers",
+    "language": "Rust"
+  },
+  {
+    "name": "axsnap",
+    "url": "https://github.com/ezyang/axsnap",
+    "stars": 1,
+    "description": "OS X Accessibility tree snapshot tool",
+    "language": "Python"
+  },
+  {
+    "name": "claude-auto-approve-osx",
+    "url": "https://github.com/ezyang/claude-auto-approve-osx",
+    "stars": 1,
+    "description": "Auto approve tool use requests in Claude Desktop on OSX",
+    "language": "Python"
+  },
+  {
+    "name": "generative-recommenders",
+    "url": "https://github.com/ezyang/generative-recommenders",
+    "stars": 1,
+    "description": "Repository hosting code used to reproduce results in \"Actions Speak Louder than Words: Trillion-Parameter Sequential Transducers for Generative Recommendations\" (https://arxiv.org/abs/2402.17152).",
+    "language": "Unknown"
+  },
+  {
+    "name": "monarch",
+    "url": "https://github.com/ezyang/monarch",
+    "stars": 0,
+    "description": "PyTorch Single Controller",
+    "language": "Unknown"
+  },
+  {
+    "name": "codex",
+    "url": "https://github.com/ezyang/codex",
+    "stars": 0,
+    "description": "Lightweight coding agent that runs in your terminal",
+    "language": "Unknown"
+  },
+  {
+    "name": "jax",
+    "url": "https://github.com/ezyang/jax",
+    "stars": 0,
+    "description": "Composable transformations of Python+NumPy programs: differentiate, vectorize, JIT to GPU/TPU, and more",
+    "language": "Unknown"
+  },
+  {
+    "name": "python-template",
+    "url": "https://github.com/ezyang/python-template",
+    "stars": 0,
+    "description": "Python template for Codex coding",
+    "language": "Shell"
+  },
+  {
+    "name": "DeepEP",
+    "url": "https://github.com/ezyang/DeepEP",
+    "stars": 0,
+    "description": "DeepEP: an efficient expert-parallel communication library",
+    "language": "Unknown"
+  },
+  {
+    "name": "tlparse-scope",
+    "url": "https://github.com/ezyang/tlparse-scope",
+    "stars": 0,
+    "description": "JSONL viewer for tlparse raw.jsonl",
+    "language": "TypeScript"
+  },
+  {
+    "name": "lintrunner",
+    "url": "https://github.com/ezyang/lintrunner",
+    "stars": 0,
+    "description": "",
+    "language": "Unknown"
+  },
+  {
+    "name": "scubaduck-prompts",
+    "url": "https://github.com/ezyang/scubaduck-prompts",
+    "stars": 0,
+    "description": "",
+    "language": "HTML"
+  },
+  {
+    "name": "playwright-mcp",
+    "url": "https://github.com/ezyang/playwright-mcp",
+    "stars": 0,
+    "description": "Playwright MCP server",
+    "language": "Unknown"
+  },
+  {
+    "name": "scubaduck-charts",
+    "url": "https://github.com/ezyang/scubaduck-charts",
+    "stars": 0,
+    "description": "",
+    "language": "Unknown"
+  },
+  {
+    "name": "scubaduck2",
+    "url": "https://github.com/ezyang/scubaduck2",
+    "stars": 0,
+    "description": "",
+    "language": "Unknown"
+  },
+  {
+    "name": "claude-mcp",
+    "url": "https://github.com/ezyang/claude-mcp",
+    "stars": 0,
+    "description": "Browser extension to enable MCP in claude.ai",
+    "language": "JavaScript"
+  },
+  {
+    "name": "refined-claude-ax-testdata",
+    "url": "https://github.com/ezyang/refined-claude-ax-testdata",
+    "stars": 0,
+    "description": "",
+    "language": "Unknown"
+  },
+  {
+    "name": "copier-uv",
+    "url": "https://github.com/ezyang/copier-uv",
+    "stars": 0,
+    "description": "Copier template for Python projects managed by uv.",
+    "language": "Unknown"
+  },
+  {
+    "name": "cookiecutter-uv",
+    "url": "https://github.com/ezyang/cookiecutter-uv",
+    "stars": 0,
+    "description": "A modern cookiecutter template for Python projects that use uv for dependency management ",
+    "language": "Unknown"
+  },
+  {
+    "name": "Zonos",
+    "url": "https://github.com/ezyang/Zonos",
+    "stars": 0,
+    "description": "Zonos-v0.1 is a leading open-weight text-to-speech model trained on more than 200k hours of varied multilingual speech, delivering expressiveness and quality on par with—or even surpassing—top TTS providers.",
+    "language": "Unknown"
+  },
+  {
+    "name": "kokoro",
+    "url": "https://github.com/ezyang/kokoro",
+    "stars": 0,
+    "description": "https://hf.co/hexgrad/Kokoro-82M",
+    "language": "Unknown"
+  },
+  {
+    "name": "tnt",
+    "url": "https://github.com/ezyang/tnt",
+    "stars": 0,
+    "description": "A lightweight library for PyTorch training tools and utilities",
+    "language": "Unknown"
+  },
+  {
+    "name": "captum",
+    "url": "https://github.com/ezyang/captum",
+    "stars": 0,
+    "description": "Model interpretability and understanding for PyTorch",
+    "language": "Unknown"
+  },
+  {
+    "name": "Ax",
+    "url": "https://github.com/ezyang/Ax",
+    "stars": 0,
+    "description": "Adaptive Experimentation Platform",
+    "language": "Unknown"
+  },
+  {
+    "name": "tlparse_reports",
+    "url": "https://github.com/ezyang/tlparse_reports",
+    "stars": 0,
+    "description": "tlparse reports",
+    "language": "HTML"
+  },
+  {
+    "name": "executorch",
+    "url": "https://github.com/ezyang/executorch",
+    "stars": 0,
+    "description": "On-device AI across mobile, embedded and edge for PyTorch",
+    "language": "Unknown"
+  }
+]

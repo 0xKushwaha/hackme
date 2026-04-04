@@ -1,0 +1,352 @@
+[
+  {
+    "name": "autoresearch",
+    "url": "https://github.com/karpathy/autoresearch",
+    "stars": 64942,
+    "description": "AI agents running research on single-GPU nanochat training automatically",
+    "language": "Python"
+  },
+  {
+    "name": "nanoGPT",
+    "url": "https://github.com/karpathy/nanoGPT",
+    "stars": 56023,
+    "description": "The simplest, fastest repository for training/finetuning medium-sized GPTs.",
+    "language": "Python"
+  },
+  {
+    "name": "nanochat",
+    "url": "https://github.com/karpathy/nanochat",
+    "stars": 50962,
+    "description": "The best ChatGPT that $100 can buy.",
+    "language": "Python"
+  },
+  {
+    "name": "LLM101n",
+    "url": "https://github.com/karpathy/LLM101n",
+    "stars": 36651,
+    "description": "LLM101n: Let's build a Storyteller",
+    "language": "Unknown"
+  },
+  {
+    "name": "llm.c",
+    "url": "https://github.com/karpathy/llm.c",
+    "stars": 29335,
+    "description": "LLM training in simple, raw C/CUDA",
+    "language": "Cuda"
+  },
+  {
+    "name": "minGPT",
+    "url": "https://github.com/karpathy/minGPT",
+    "stars": 24041,
+    "description": "A minimal PyTorch re-implementation of the OpenAI GPT (Generative Pretrained Transformer) training",
+    "language": "Python"
+  },
+  {
+    "name": "nn-zero-to-hero",
+    "url": "https://github.com/karpathy/nn-zero-to-hero",
+    "stars": 21212,
+    "description": "Neural Networks: Zero to Hero",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "llama2.c",
+    "url": "https://github.com/karpathy/llama2.c",
+    "stars": 19348,
+    "description": "Inference Llama 2 in one file of pure C",
+    "language": "C"
+  },
+  {
+    "name": "llm-council",
+    "url": "https://github.com/karpathy/llm-council",
+    "stars": 16530,
+    "description": "LLM Council works together to answer your hardest questions",
+    "language": "Python"
+  },
+  {
+    "name": "micrograd",
+    "url": "https://github.com/karpathy/micrograd",
+    "stars": 15315,
+    "description": "A tiny scalar-valued autograd engine and a neural net library on top of it with PyTorch-like API",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "char-rnn",
+    "url": "https://github.com/karpathy/char-rnn",
+    "stars": 12015,
+    "description": "Multi-layer Recurrent Neural Networks (LSTM, GRU, RNN) for character-level language models in Torch",
+    "language": "Lua"
+  },
+  {
+    "name": "minbpe",
+    "url": "https://github.com/karpathy/minbpe",
+    "stars": 10408,
+    "description": "Minimal, clean code for the Byte Pair Encoding (BPE) algorithm commonly used in LLM tokenization.",
+    "language": "Python"
+  },
+  {
+    "name": "arxiv-sanity-preserver",
+    "url": "https://github.com/karpathy/arxiv-sanity-preserver",
+    "stars": 5625,
+    "description": "Web interface for browsing, search and filtering recent arxiv submissions",
+    "language": "Python"
+  },
+  {
+    "name": "neuraltalk2",
+    "url": "https://github.com/karpathy/neuraltalk2",
+    "stars": 5579,
+    "description": "Efficient Image Captioning code in Torch, runs on GPU",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "neuraltalk",
+    "url": "https://github.com/karpathy/neuraltalk",
+    "stars": 5488,
+    "description": "NeuralTalk is a Python+numpy project for learning Multimodal Recurrent Neural Networks that describe images with sentences.",
+    "language": "Python"
+  },
+  {
+    "name": "build-nanogpt",
+    "url": "https://github.com/karpathy/build-nanogpt",
+    "stars": 4882,
+    "description": "Video+code lecture on building nanoGPT from scratch",
+    "language": "Python"
+  },
+  {
+    "name": "ng-video-lecture",
+    "url": "https://github.com/karpathy/ng-video-lecture",
+    "stars": 4619,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "makemore",
+    "url": "https://github.com/karpathy/makemore",
+    "stars": 3789,
+    "description": "An autoregressive character-level language model for making more things",
+    "language": "Python"
+  },
+  {
+    "name": "reader3",
+    "url": "https://github.com/karpathy/reader3",
+    "stars": 3424,
+    "description": "Quick illustration of how one can easily read books together with LLMs. It's great and I highly recommend it.",
+    "language": "Python"
+  },
+  {
+    "name": "rendergit",
+    "url": "https://github.com/karpathy/rendergit",
+    "stars": 2136,
+    "description": "Render any git repo into a single static HTML page for humans or LLMs",
+    "language": "Python"
+  },
+  {
+    "name": "cryptos",
+    "url": "https://github.com/karpathy/cryptos",
+    "stars": 1870,
+    "description": "Pure Python from-scratch zero-dependency implementation of Bitcoin for educational purposes",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "arxiv-sanity-lite",
+    "url": "https://github.com/karpathy/arxiv-sanity-lite",
+    "stars": 1523,
+    "description": "arxiv-sanity lite: tag arxiv papers of interest get recommendations of similar papers in a nice UI using SVMs over tfidf feature vectors based on paper abstracts.",
+    "language": "Python"
+  },
+  {
+    "name": "reinforcejs",
+    "url": "https://github.com/karpathy/reinforcejs",
+    "stars": 1452,
+    "description": "Reinforcement Learning Agents in Javascript (Dynamic Programming, Temporal Difference, Deep Q-Learning, Stochastic/Deterministic Policy Gradients)",
+    "language": "HTML"
+  },
+  {
+    "name": "jobs",
+    "url": "https://github.com/karpathy/jobs",
+    "stars": 1314,
+    "description": "A research tool for visually exploring Bureau of Labor Statistics Occupational Outlook Handbook data. This is not a report, a paper, or a serious economic publication — it is a development tool for exploring BLS data visually.",
+    "language": "HTML"
+  },
+  {
+    "name": "randomfun",
+    "url": "https://github.com/karpathy/randomfun",
+    "stars": 1158,
+    "description": "Notebooks and various random fun",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "ulogme",
+    "url": "https://github.com/karpathy/ulogme",
+    "stars": 1141,
+    "description": "Automatically collect and visualize usage statistics in Ubuntu/OSX environments.",
+    "language": "Python"
+  },
+  {
+    "name": "karpathy.github.io",
+    "url": "https://github.com/karpathy/karpathy.github.io",
+    "stars": 1022,
+    "description": "my blog",
+    "language": "CSS"
+  },
+  {
+    "name": "recurrentjs",
+    "url": "https://github.com/karpathy/recurrentjs",
+    "stars": 981,
+    "description": "Deep Recurrent Neural Networks and LSTMs in Javascript. More generally also arbitrary expression graphs with automatic differentiation.",
+    "language": "HTML"
+  },
+  {
+    "name": "pytorch-normalizing-flows",
+    "url": "https://github.com/karpathy/pytorch-normalizing-flows",
+    "stars": 913,
+    "description": "Normalizing flows in PyTorch. Current intended use is education not production.",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "tsnejs",
+    "url": "https://github.com/karpathy/tsnejs",
+    "stars": 911,
+    "description": "Implementation of t-SNE visualization algorithm in Javascript.",
+    "language": "JavaScript"
+  },
+  {
+    "name": "lecun1989-repro",
+    "url": "https://github.com/karpathy/lecun1989-repro",
+    "stars": 737,
+    "description": "Reproducing Yann LeCun 1989 paper \"Backpropagation Applied to Handwritten Zip Code Recognition\", to my knowledge the earliest real-world application of a neural net trained with backpropagation.",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "paper-notes",
+    "url": "https://github.com/karpathy/paper-notes",
+    "stars": 707,
+    "description": "Random notes on papers, likely a short-term repo.",
+    "language": "Unknown"
+  },
+  {
+    "name": "deep-vector-quantization",
+    "url": "https://github.com/karpathy/deep-vector-quantization",
+    "stars": 636,
+    "description": "VQVAEs, GumbelSoftmaxes and friends",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "pytorch-made",
+    "url": "https://github.com/karpathy/pytorch-made",
+    "stars": 593,
+    "description": "MADE (Masked Autoencoder Density Estimation) implementation in PyTorch",
+    "language": "Python"
+  },
+  {
+    "name": "hn-time-capsule",
+    "url": "https://github.com/karpathy/hn-time-capsule",
+    "stars": 590,
+    "description": "Analyzing Hacker News discussions from a decade ago in hindsight with LLMs",
+    "language": "Python"
+  },
+  {
+    "name": "rustbpe",
+    "url": "https://github.com/karpathy/rustbpe",
+    "stars": 411,
+    "description": "The missing tiktoken training code",
+    "language": "Rust"
+  },
+  {
+    "name": "covid-sanity",
+    "url": "https://github.com/karpathy/covid-sanity",
+    "stars": 390,
+    "description": "Aspires to help the influx of bioRxiv / medRxiv papers on COVID-19",
+    "language": "Python"
+  },
+  {
+    "name": "find-birds",
+    "url": "https://github.com/karpathy/find-birds",
+    "stars": 358,
+    "description": "Find people you should follow on Twitter based on who the people you follow follow",
+    "language": "Python"
+  },
+  {
+    "name": "transformers",
+    "url": "https://github.com/karpathy/transformers",
+    "stars": 201,
+    "description": "🤗 Transformers: State-of-the-art Machine Learning for Pytorch, TensorFlow, and JAX.",
+    "language": "Unknown"
+  },
+  {
+    "name": "tf-agent",
+    "url": "https://github.com/karpathy/tf-agent",
+    "stars": 143,
+    "description": "tensorflow reinforcement learning agents for OpenAI gym environments",
+    "language": "Python"
+  },
+  {
+    "name": "calorie",
+    "url": "https://github.com/karpathy/calorie",
+    "stars": 134,
+    "description": "nice and effective super simple calorie counter web app",
+    "language": "HTML"
+  },
+  {
+    "name": "examples",
+    "url": "https://github.com/karpathy/examples",
+    "stars": 134,
+    "description": "A set of examples around pytorch in Vision, Text, Reinforcement Learning, etc.",
+    "language": "Python"
+  },
+  {
+    "name": "gitstats",
+    "url": "https://github.com/karpathy/gitstats",
+    "stars": 129,
+    "description": "A lightweight/pretty visualizer for recent work on a git code base in multiple branches. Helps stay up to date with teams working on one git repo in many branches.",
+    "language": "HTML"
+  },
+  {
+    "name": "karpathy",
+    "url": "https://github.com/karpathy/karpathy",
+    "stars": 86,
+    "description": "root repo",
+    "language": "Unknown"
+  },
+  {
+    "name": "scholaroctopus",
+    "url": "https://github.com/karpathy/scholaroctopus",
+    "stars": 71,
+    "description": "A set of tools/pages that help explore academic literature",
+    "language": "Unknown"
+  },
+  {
+    "name": "cpython",
+    "url": "https://github.com/karpathy/cpython",
+    "stars": 55,
+    "description": "The Python programming language",
+    "language": "Unknown"
+  },
+  {
+    "name": "sqlitedict",
+    "url": "https://github.com/karpathy/sqlitedict",
+    "stars": 39,
+    "description": "Persistent dict, backed by sqlite3 and pickle, multithread-safe.",
+    "language": "Unknown"
+  },
+  {
+    "name": "optim",
+    "url": "https://github.com/karpathy/optim",
+    "stars": 39,
+    "description": "A numeric optimization package for Torch.",
+    "language": "Lua"
+  },
+  {
+    "name": "nn",
+    "url": "https://github.com/karpathy/nn",
+    "stars": 36,
+    "description": "",
+    "language": "Lua"
+  },
+  {
+    "name": "simple-amt",
+    "url": "https://github.com/karpathy/simple-amt",
+    "stars": 34,
+    "description": "A microframework for working with Amazon's Mechanical Turk",
+    "language": "Python"
+  }
+]

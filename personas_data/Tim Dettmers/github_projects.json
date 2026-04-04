@@ -1,0 +1,352 @@
+[
+  {
+    "name": "ConvE",
+    "url": "https://github.com/TimDettmers/ConvE",
+    "stars": 693,
+    "description": "Convolutional 2D Knowledge Graph Embeddings resources",
+    "language": "Python"
+  },
+  {
+    "name": "sparse_learning",
+    "url": "https://github.com/TimDettmers/sparse_learning",
+    "stars": 385,
+    "description": "Sparse learning library and sparse momentum resources.",
+    "language": "Python"
+  },
+  {
+    "name": "transformer-xl",
+    "url": "https://github.com/TimDettmers/transformer-xl",
+    "stars": 65,
+    "description": "",
+    "language": "Unknown"
+  },
+  {
+    "name": "carbonneutral",
+    "url": "https://github.com/TimDettmers/carbonneutral",
+    "stars": 60,
+    "description": "Resources to calculate how to become a carbon neutral lab.",
+    "language": "Python"
+  },
+  {
+    "name": "spodernet",
+    "url": "https://github.com/TimDettmers/spodernet",
+    "stars": 14,
+    "description": "NLP",
+    "language": "Python"
+  },
+  {
+    "name": "public-data",
+    "url": "https://github.com/TimDettmers/public-data",
+    "stars": 7,
+    "description": "Public data from research",
+    "language": "Cuda"
+  },
+  {
+    "name": "sched",
+    "url": "https://github.com/TimDettmers/sched",
+    "stars": 5,
+    "description": "Schedule GPU jobs over ssh.",
+    "language": "Python"
+  },
+  {
+    "name": "accelerate",
+    "url": "https://github.com/TimDettmers/accelerate",
+    "stars": 2,
+    "description": "🚀 A simple way to train and use PyTorch models with multi-GPU, TPU, mixed-precision",
+    "language": "Python"
+  },
+  {
+    "name": "CreditAssignment",
+    "url": "https://github.com/TimDettmers/CreditAssignment",
+    "stars": 2,
+    "description": "Using PageRank to solve credit assignment problems for deep learning contributions.",
+    "language": "Python"
+  },
+  {
+    "name": "AutoDL-Projects",
+    "url": "https://github.com/TimDettmers/AutoDL-Projects",
+    "stars": 1,
+    "description": "Automated deep learning algorithms implemented in PyTorch or Tensorflow.",
+    "language": "Python"
+  },
+  {
+    "name": "tracker",
+    "url": "https://github.com/TimDettmers/tracker",
+    "stars": 1,
+    "description": "Tracks time on active windows and other productivity stats.",
+    "language": "Python"
+  },
+  {
+    "name": "bashmagic",
+    "url": "https://github.com/TimDettmers/bashmagic",
+    "stars": 1,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "on-disk-hashtable",
+    "url": "https://github.com/TimDettmers/on-disk-hashtable",
+    "stars": 1,
+    "description": "On disk hashtable for efficient numerical data fetching",
+    "language": "Python"
+  },
+  {
+    "name": "cntk_tutorial",
+    "url": "https://github.com/TimDettmers/cntk_tutorial",
+    "stars": 1,
+    "description": "MNIST tutorial data + config files ",
+    "language": "Unknown"
+  },
+  {
+    "name": "vllm",
+    "url": "https://github.com/TimDettmers/vllm",
+    "stars": 0,
+    "description": "A high-throughput and memory-efficient inference and serving engine for LLMs",
+    "language": "Unknown"
+  },
+  {
+    "name": "text-generation-inference",
+    "url": "https://github.com/TimDettmers/text-generation-inference",
+    "stars": 0,
+    "description": "Large Language Model Text Generation Inference",
+    "language": "Unknown"
+  },
+  {
+    "name": "blog_posts",
+    "url": "https://github.com/TimDettmers/blog_posts",
+    "stars": 0,
+    "description": "",
+    "language": "Unknown"
+  },
+  {
+    "name": "cmu-catalyst.github.io",
+    "url": "https://github.com/TimDettmers/cmu-catalyst.github.io",
+    "stars": 0,
+    "description": "",
+    "language": "HTML"
+  },
+  {
+    "name": "sglang",
+    "url": "https://github.com/TimDettmers/sglang",
+    "stars": 0,
+    "description": "SGLang is a fast serving framework for large language models and vision language models.",
+    "language": "Unknown"
+  },
+  {
+    "name": "ScholarQABench",
+    "url": "https://github.com/TimDettmers/ScholarQABench",
+    "stars": 0,
+    "description": "This repository contains ScholarQABench data and evaluation pipeline. ",
+    "language": "Python"
+  },
+  {
+    "name": "peft",
+    "url": "https://github.com/TimDettmers/peft",
+    "stars": 0,
+    "description": "🤗 PEFT: State-of-the-art Parameter-Efficient Fine-Tuning.",
+    "language": "Unknown"
+  },
+  {
+    "name": "transformers",
+    "url": "https://github.com/TimDettmers/transformers",
+    "stars": 0,
+    "description": "🤗 Transformers: State-of-the-art Machine Learning for Pytorch, TensorFlow, and JAX.",
+    "language": "Unknown"
+  },
+  {
+    "name": "transformers_private",
+    "url": "https://github.com/TimDettmers/transformers_private",
+    "stars": 0,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "blog-1",
+    "url": "https://github.com/TimDettmers/blog-1",
+    "stars": 0,
+    "description": "Public repo for HF blog posts",
+    "language": "Unknown"
+  },
+  {
+    "name": "jiant",
+    "url": "https://github.com/TimDettmers/jiant",
+    "stars": 0,
+    "description": "jiant is an nlp toolkit",
+    "language": "Unknown"
+  },
+  {
+    "name": "DeepSpeed",
+    "url": "https://github.com/TimDettmers/DeepSpeed",
+    "stars": 0,
+    "description": "DeepSpeed is a deep learning optimization library that makes distributed training easy, efficient, and effective.",
+    "language": "Unknown"
+  },
+  {
+    "name": "fairseq",
+    "url": "https://github.com/TimDettmers/fairseq",
+    "stars": 0,
+    "description": "Facebook AI Research Sequence-to-Sequence Toolkit written in Python.",
+    "language": "Python"
+  },
+  {
+    "name": "tensor2tensor",
+    "url": "https://github.com/TimDettmers/tensor2tensor",
+    "stars": 0,
+    "description": "Library of deep learning models and datasets designed to make deep learning more accessible and accelerate ML research.",
+    "language": "Unknown"
+  },
+  {
+    "name": "rtx_benchmarks",
+    "url": "https://github.com/TimDettmers/rtx_benchmarks",
+    "stars": 0,
+    "description": "NLP Benchmarks for RTX GPUs.",
+    "language": "Python"
+  },
+  {
+    "name": "hotpot",
+    "url": "https://github.com/TimDettmers/hotpot",
+    "stars": 0,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "bibtex",
+    "url": "https://github.com/TimDettmers/bibtex",
+    "stars": 0,
+    "description": "Bibtex entries for my papers.",
+    "language": "Unknown"
+  },
+  {
+    "name": "slides",
+    "url": "https://github.com/TimDettmers/slides",
+    "stars": 0,
+    "description": "Slides from varies talks. ",
+    "language": "Unknown"
+  },
+  {
+    "name": "pytorch",
+    "url": "https://github.com/TimDettmers/pytorch",
+    "stars": 0,
+    "description": "Tensors and Dynamic neural networks in Python  with strong GPU acceleration",
+    "language": "Python"
+  },
+  {
+    "name": "DrQA",
+    "url": "https://github.com/TimDettmers/DrQA",
+    "stars": 0,
+    "description": "Reading Wikipedia to Answer Open-Domain Questions",
+    "language": "Python"
+  },
+  {
+    "name": "interactive-rule-extractor",
+    "url": "https://github.com/TimDettmers/interactive-rule-extractor",
+    "stars": 0,
+    "description": "Design extraction rule interactively on a Lucene index",
+    "language": "Python"
+  },
+  {
+    "name": "redisk",
+    "url": "https://github.com/TimDettmers/redisk",
+    "stars": 0,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "alttab-vim",
+    "url": "https://github.com/TimDettmers/alttab-vim",
+    "stars": 0,
+    "description": "Vim like selection of applications and windows for unix",
+    "language": "Python"
+  },
+  {
+    "name": "tutorials",
+    "url": "https://github.com/TimDettmers/tutorials",
+    "stars": 0,
+    "description": "",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "flashcards4all",
+    "url": "https://github.com/TimDettmers/flashcards4all",
+    "stars": 0,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "meetup",
+    "url": "https://github.com/TimDettmers/meetup",
+    "stars": 0,
+    "description": "The PyData Zurich meetup",
+    "language": "Unknown"
+  },
+  {
+    "name": "NLP",
+    "url": "https://github.com/TimDettmers/NLP",
+    "stars": 0,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "tensorflow",
+    "url": "https://github.com/TimDettmers/tensorflow",
+    "stars": 0,
+    "description": "Computation using data flow graphs for scalable machine learning",
+    "language": "C++"
+  },
+  {
+    "name": "conference_search",
+    "url": "https://github.com/TimDettmers/conference_search",
+    "stars": 0,
+    "description": "Scrape conference papers via arxiv and make them searchable.",
+    "language": "OpenEdge ABL"
+  },
+  {
+    "name": "CNTK",
+    "url": "https://github.com/TimDettmers/CNTK",
+    "stars": 0,
+    "description": "Computational Network Toolkit (CNTK)",
+    "language": "C++"
+  },
+  {
+    "name": "CSCS.Astronomy",
+    "url": "https://github.com/TimDettmers/CSCS.Astronomy",
+    "stars": 0,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "brainstorm",
+    "url": "https://github.com/TimDettmers/brainstorm",
+    "stars": 0,
+    "description": "Fast, flexible and fun neural networks.",
+    "language": "Python"
+  },
+  {
+    "name": "clusterNet2",
+    "url": "https://github.com/TimDettmers/clusterNet2",
+    "stars": 0,
+    "description": "Scientific Deep Learning and NLP software for GPU clusters",
+    "language": "C++"
+  },
+  {
+    "name": "allenAI",
+    "url": "https://github.com/TimDettmers/allenAI",
+    "stars": 0,
+    "description": "Kaggle repo for Allen AI challenge",
+    "language": "Python"
+  },
+  {
+    "name": "python-backend",
+    "url": "https://github.com/TimDettmers/python-backend",
+    "stars": 0,
+    "description": "",
+    "language": "JavaScript"
+  },
+  {
+    "name": "dlearndb",
+    "url": "https://github.com/TimDettmers/dlearndb",
+    "stars": 0,
+    "description": "Database and framework for GPU-based deep learning and machine learning.",
+    "language": "Cuda"
+  }
+]

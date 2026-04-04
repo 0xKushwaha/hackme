@@ -1,0 +1,62 @@
+[
+  {
+    "title": "FAST INCREMENTAL LEARNING FOR AUTONOMOUS GROUND NAVIGATION",
+    "year": 2024,
+    "url": "https://www.semanticscholar.org/paper/4c4d882c3e54612946d289fd159da8de98fb3200",
+    "citations": 0
+  },
+  {
+    "title": "Learning and Leveraging World Models in Visual Representation Learning",
+    "year": 2024,
+    "url": "https://www.semanticscholar.org/paper/4d1eadaa9a04e86aef2278ae13eb9fce644c9fc5",
+    "citations": 61
+  },
+  {
+    "title": "The SSL Interplay: Augmentations, Inductive Bias, and Generalization",
+    "year": 2023,
+    "url": "https://www.semanticscholar.org/paper/034081ba8bd12b9466414fce3e885451a92b075a",
+    "citations": 43
+  },
+  {
+    "title": "Minimalistic Unsupervised Representation Learning with the Sparse Manifold Transform",
+    "year": 2023,
+    "url": "https://www.semanticscholar.org/paper/0380271e23c5a3348f9f8ad1906b692b22f8b75e",
+    "citations": 6
+  },
+  {
+    "title": "Self-supervised learning of Split Invariant Equivariant representations",
+    "year": 2023,
+    "url": "https://www.semanticscholar.org/paper/10923e416d15ab36161f4ab9ad40aa15bb91f541",
+    "citations": 43
+  },
+  {
+    "title": "Fast and Exact Enumeration of Deep Networks Partitions Regions",
+    "year": 2023,
+    "url": "https://www.semanticscholar.org/paper/132606b0fc37bd2a9f50d3199f29b8b2defbcb93",
+    "citations": 5
+  },
+  {
+    "title": "Active Self-Supervised Learning: A Few Low-Cost Relationships Are All You Need",
+    "year": 2023,
+    "url": "https://www.semanticscholar.org/paper/138fa5f64fe54376022998fe553b6156a93ff19e",
+    "citations": 14
+  },
+  {
+    "title": "An Information-Theoretic Perspective on Variance-Invariance-Covariance Regularization",
+    "year": 2023,
+    "url": "https://www.semanticscholar.org/paper/1ea4f4dcedbbe6d10aad30c3cb02fe2b0572b090",
+    "citations": 31
+  },
+  {
+    "title": "Augmented Language Models: a Survey",
+    "year": 2023,
+    "url": "https://www.semanticscholar.org/paper/2029349c55c1dba3493c5b3bd25152f18ba21ae2",
+    "citations": 528
+  },
+  {
+    "title": "Harnessing Explanations: LLM-to-LM Interpreter for Enhanced Text-Attributed Graph Representation Learning",
+    "year": 2023,
+    "url": "https://www.semanticscholar.org/paper/2d2b05f0969568ac3fd3c2cca5df04c4136c5416",
+    "citations": 141
+  }
+]

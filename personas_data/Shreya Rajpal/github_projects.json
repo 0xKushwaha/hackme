@@ -1,0 +1,128 @@
+[
+  {
+    "name": "guardsql",
+    "url": "https://github.com/ShreyaR/guardsql",
+    "stars": 6,
+    "description": "text-2-sql with Guardrails and DeepLake",
+    "language": "Python"
+  },
+  {
+    "name": "langchain-guardrails-int",
+    "url": "https://github.com/ShreyaR/langchain-guardrails-int",
+    "stars": 2,
+    "description": "⚡ Building applications with LLMs through composability ⚡",
+    "language": "Python"
+  },
+  {
+    "name": "openinference",
+    "url": "https://github.com/ShreyaR/openinference",
+    "stars": 0,
+    "description": "Auto-Instrumentation for AI Observability",
+    "language": "Unknown"
+  },
+  {
+    "name": "docs",
+    "url": "https://github.com/ShreyaR/docs",
+    "stars": 0,
+    "description": "",
+    "language": "MDX"
+  },
+  {
+    "name": "manifest",
+    "url": "https://github.com/ShreyaR/manifest",
+    "stars": 0,
+    "description": "Prompt programming with FMs.",
+    "language": "Unknown"
+  },
+  {
+    "name": "applied-ai-engineering",
+    "url": "https://github.com/ShreyaR/applied-ai-engineering",
+    "stars": 0,
+    "description": "Demos of tools used in AI engineering",
+    "language": "Unknown"
+  },
+  {
+    "name": "llama_index",
+    "url": "https://github.com/ShreyaR/llama_index",
+    "stars": 0,
+    "description": "LlamaIndex (GPT Index) is a project that provides a central interface to connect your LLM's with external data.",
+    "language": "Python"
+  },
+  {
+    "name": "great_expectations",
+    "url": "https://github.com/ShreyaR/great_expectations",
+    "stars": 0,
+    "description": "Always know what to expect from your data.",
+    "language": "Unknown"
+  },
+  {
+    "name": "hugo-theme-codex",
+    "url": "https://github.com/ShreyaR/hugo-theme-codex",
+    "stars": 0,
+    "description": "A minimal blog theme for Hugo  🍜",
+    "language": "CSS"
+  },
+  {
+    "name": "ShreyaR.github.io",
+    "url": "https://github.com/ShreyaR/ShreyaR.github.io",
+    "stars": 0,
+    "description": "",
+    "language": "HTML"
+  },
+  {
+    "name": "ClothingCompatibility",
+    "url": "https://github.com/ShreyaR/ClothingCompatibility",
+    "stars": 0,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "WorkerPoolSelection",
+    "url": "https://github.com/ShreyaR/WorkerPoolSelection",
+    "stars": 0,
+    "description": "",
+    "language": "C++"
+  },
+  {
+    "name": "DecisionTrees",
+    "url": "https://github.com/ShreyaR/DecisionTrees",
+    "stars": 0,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "POS_NER_Tagging",
+    "url": "https://github.com/ShreyaR/POS_NER_Tagging",
+    "stars": 0,
+    "description": "",
+    "language": "Unknown"
+  },
+  {
+    "name": "Viterbi",
+    "url": "https://github.com/ShreyaR/Viterbi",
+    "stars": 0,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "LoopyBPCTMP",
+    "url": "https://github.com/ShreyaR/LoopyBPCTMP",
+    "stars": 0,
+    "description": "Loopy BP and Clique Tree Message Passing",
+    "language": "Python"
+  },
+  {
+    "name": "GibbsSampling",
+    "url": "https://github.com/ShreyaR/GibbsSampling",
+    "stars": 0,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "PerceptionGraphs",
+    "url": "https://github.com/ShreyaR/PerceptionGraphs",
+    "stars": 0,
+    "description": "",
+    "language": "Python"
+  }
+]

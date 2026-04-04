@@ -1,0 +1,352 @@
+[
+  {
+    "name": "LLMs-from-scratch",
+    "url": "https://github.com/rasbt/LLMs-from-scratch",
+    "stars": 89910,
+    "description": "Implement a ChatGPT-like LLM in PyTorch from scratch, step by step",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "reasoning-from-scratch",
+    "url": "https://github.com/rasbt/reasoning-from-scratch",
+    "stars": 3976,
+    "description": "Implement a reasoning LLM in PyTorch from scratch, step by step",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "LLM-workshop-2024",
+    "url": "https://github.com/rasbt/LLM-workshop-2024",
+    "stars": 1081,
+    "description": "A 4-hour coding workshop to understand how LLMs are implemented and used",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "llm-architecture-gallery",
+    "url": "https://github.com/rasbt/llm-architecture-gallery",
+    "stars": 985,
+    "description": "LLM Architecture Gallery source data",
+    "language": "Unknown"
+  },
+  {
+    "name": "MachineLearning-QandAI-book",
+    "url": "https://github.com/rasbt/MachineLearning-QandAI-book",
+    "stars": 717,
+    "description": "Machine Learning Q and AI book",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "scipy2023-deeplearning",
+    "url": "https://github.com/rasbt/scipy2023-deeplearning",
+    "stars": 601,
+    "description": "",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "pycon2024",
+    "url": "https://github.com/rasbt/pycon2024",
+    "stars": 247,
+    "description": "Tutorial Materials for \"The Fundamentals of Modern Deep Learning with PyTorch\" workshop at PyCon 2024",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "dora-from-scratch",
+    "url": "https://github.com/rasbt/dora-from-scratch",
+    "stars": 219,
+    "description": "LoRA and DoRA from Scratch Implementations",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "LLM-finetuning-scripts",
+    "url": "https://github.com/rasbt/LLM-finetuning-scripts",
+    "stars": 219,
+    "description": "",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "RAGs",
+    "url": "https://github.com/rasbt/RAGs",
+    "stars": 150,
+    "description": "RAGs: Simple implementations of Retrieval Augmented Generation (RAG) Systems",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "cvpr2023",
+    "url": "https://github.com/rasbt/cvpr2023",
+    "stars": 131,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "faster-pytorch-blog",
+    "url": "https://github.com/rasbt/faster-pytorch-blog",
+    "stars": 128,
+    "description": "Outlining techniques for improving the training performance of your PyTorch model without compromising its accuracy ",
+    "language": "Python"
+  },
+  {
+    "name": "pytorch-memory-optim",
+    "url": "https://github.com/rasbt/pytorch-memory-optim",
+    "stars": 92,
+    "description": "This code repository contains the code used for my \"Optimizing Memory Usage for Training LLMs and Vision Transformers in PyTorch\" blog post.",
+    "language": "Python"
+  },
+  {
+    "name": "nn_plus_gzip",
+    "url": "https://github.com/rasbt/nn_plus_gzip",
+    "stars": 57,
+    "description": "Gzip and nearest neighbors for text classification",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "mini-coding-agent",
+    "url": "https://github.com/rasbt/mini-coding-agent",
+    "stars": 52,
+    "description": "Minimal and readable coding agent harness implementation in Python to explain the core components of coding agents.",
+    "language": "Python"
+  },
+  {
+    "name": "courses",
+    "url": "https://github.com/rasbt/courses",
+    "stars": 51,
+    "description": "This repository is a curated collection of links to various courses and resources about Artificial Intelligence (AI)",
+    "language": "Unknown"
+  },
+  {
+    "name": "blog-finetuning-llama-adapters",
+    "url": "https://github.com/rasbt/blog-finetuning-llama-adapters",
+    "stars": 48,
+    "description": "Supplementary material for \"Understanding Parameter-Efficient Finetuning of Large Language Models: From Prefix Tuning to Adapters\"",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "build-your-own-x",
+    "url": "https://github.com/rasbt/build-your-own-x",
+    "stars": 44,
+    "description": "Master programming by recreating your favorite technologies from scratch.",
+    "language": "Unknown"
+  },
+  {
+    "name": "gradient-accumulation-blog",
+    "url": "https://github.com/rasbt/gradient-accumulation-blog",
+    "stars": 31,
+    "description": "Finetuning BLOOM on a single GPU using gradient-accumulation",
+    "language": "Python"
+  },
+  {
+    "name": "comparing-automatic-augmentation-blog",
+    "url": "https://github.com/rasbt/comparing-automatic-augmentation-blog",
+    "stars": 31,
+    "description": "Comparing four automatic image augmentation techniques in PyTorch: AutoAugment, RandAugment, AugMix, and TrivialAugment",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "posit2023-python-ml",
+    "url": "https://github.com/rasbt/posit2023-python-ml",
+    "stars": 30,
+    "description": "Workshop materials for posit::conf(2023)",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "low-rank-adaptation-blog",
+    "url": "https://github.com/rasbt/low-rank-adaptation-blog",
+    "stars": 28,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "pytorch-fabric-demo",
+    "url": "https://github.com/rasbt/pytorch-fabric-demo",
+    "stars": 27,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "scipy2022-talk",
+    "url": "https://github.com/rasbt/scipy2022-talk",
+    "stars": 26,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "ViT-finetuning-scripts",
+    "url": "https://github.com/rasbt/ViT-finetuning-scripts",
+    "stars": 25,
+    "description": "Vision transformer finetuning scripts",
+    "language": "Python"
+  },
+  {
+    "name": "build-nanogpt",
+    "url": "https://github.com/rasbt/build-nanogpt",
+    "stars": 22,
+    "description": "Video+code lecture on building nanoGPT from scratch",
+    "language": "Unknown"
+  },
+  {
+    "name": "gpt-2",
+    "url": "https://github.com/rasbt/gpt-2",
+    "stars": 16,
+    "description": "Code for the paper \"Language Models are Unsupervised Multitask Learners\"",
+    "language": "Unknown"
+  },
+  {
+    "name": "litdata",
+    "url": "https://github.com/rasbt/litdata",
+    "stars": 16,
+    "description": "Streamline data pipelines for AI. Process datasets across 1000s of machines, and optimize data for blazing fast model training.",
+    "language": "Unknown"
+  },
+  {
+    "name": "try-lion-optimizer",
+    "url": "https://github.com/rasbt/try-lion-optimizer",
+    "stars": 14,
+    "description": "",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "macos-pdf-splitter",
+    "url": "https://github.com/rasbt/macos-pdf-splitter",
+    "stars": 13,
+    "description": "Native macOS app for splitting and converting PDF figures",
+    "language": "Swift"
+  },
+  {
+    "name": "gpt-neox",
+    "url": "https://github.com/rasbt/gpt-neox",
+    "stars": 10,
+    "description": "An implementation of model parallel autoregressive transformers on GPUs, based on the Megatron and DeepSpeed libraries",
+    "language": "Unknown"
+  },
+  {
+    "name": "pytorch-lightning",
+    "url": "https://github.com/rasbt/pytorch-lightning",
+    "stars": 10,
+    "description": "Deep learning framework to train, deploy, and ship AI products Lightning fast.",
+    "language": "Python"
+  },
+  {
+    "name": "math_full_minus_math500",
+    "url": "https://github.com/rasbt/math_full_minus_math500",
+    "stars": 8,
+    "description": "The MATH training dataset without MATH-500 test portion",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "LitServe",
+    "url": "https://github.com/rasbt/LitServe",
+    "stars": 8,
+    "description": "Deploy AI models at scale. High-throughput serving engine for AI/ML models that uses the latest state-of-the-art model deployment techniques.",
+    "language": "Unknown"
+  },
+  {
+    "name": "neurips_llm_efficiency_challenge",
+    "url": "https://github.com/rasbt/neurips_llm_efficiency_challenge",
+    "stars": 8,
+    "description": "NeurIPS Large Language Model Efficiency Challenge:  1 LLM + 1GPU + 1Day",
+    "language": "Python"
+  },
+  {
+    "name": "bitsandbytes",
+    "url": "https://github.com/rasbt/bitsandbytes",
+    "stars": 7,
+    "description": "8-bit CUDA functions for PyTorch",
+    "language": "Python"
+  },
+  {
+    "name": "whisper",
+    "url": "https://github.com/rasbt/whisper",
+    "stars": 7,
+    "description": "",
+    "language": "Unknown"
+  },
+  {
+    "name": "ord-torchhub",
+    "url": "https://github.com/rasbt/ord-torchhub",
+    "stars": 7,
+    "description": "Ordinal Regression PyTorch Hub",
+    "language": "Python"
+  },
+  {
+    "name": "test-github-image-rendering",
+    "url": "https://github.com/rasbt/test-github-image-rendering",
+    "stars": 6,
+    "description": "Debug GitHub rendering issues",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "axolotl",
+    "url": "https://github.com/rasbt/axolotl",
+    "stars": 6,
+    "description": "Go ahead and axolotl questions",
+    "language": "Unknown"
+  },
+  {
+    "name": "tuning_playbook",
+    "url": "https://github.com/rasbt/tuning_playbook",
+    "stars": 6,
+    "description": "A playbook for systematically maximizing the performance of deep learning models.",
+    "language": "Unknown"
+  },
+  {
+    "name": "dora",
+    "url": "https://github.com/rasbt/dora",
+    "stars": 5,
+    "description": "Implementation of DoRA",
+    "language": "Unknown"
+  },
+  {
+    "name": "pytorch",
+    "url": "https://github.com/rasbt/pytorch",
+    "stars": 5,
+    "description": "Tensors and Dynamic neural networks in Python with strong GPU acceleration",
+    "language": "Unknown"
+  },
+  {
+    "name": "CTGAN",
+    "url": "https://github.com/rasbt/CTGAN",
+    "stars": 5,
+    "description": "Conditional GAN for generating synthetic tabular data.",
+    "language": "Unknown"
+  },
+  {
+    "name": "lion-pytorch",
+    "url": "https://github.com/rasbt/lion-pytorch",
+    "stars": 4,
+    "description": "🦁 Lion, new optimizer discovered by Google Brain using genetic algorithms that is purportedly better than Adam(w), in Pytorch",
+    "language": "Unknown"
+  },
+  {
+    "name": "bookgiveaway-2022-wordcloud",
+    "url": "https://github.com/rasbt/bookgiveaway-2022-wordcloud",
+    "stars": 4,
+    "description": "Word cloud from the results of the book-giveaway",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "tiktoken",
+    "url": "https://github.com/rasbt/tiktoken",
+    "stars": 3,
+    "description": "tiktoken is a fast BPE tokeniser for use with OpenAI's models.",
+    "language": "Unknown"
+  },
+  {
+    "name": "llm-efficiency-challenge.github.io",
+    "url": "https://github.com/rasbt/llm-efficiency-challenge.github.io",
+    "stars": 3,
+    "description": "Website for NeurIPS Large Language Model Efficiency Challenge: 1 LLM + 1 GPU + 1 Day",
+    "language": "Unknown"
+  },
+  {
+    "name": "lit-llama",
+    "url": "https://github.com/rasbt/lit-llama",
+    "stars": 3,
+    "description": "Implementation of the LLaMA language model based on nanoGPT. Supports flash attention, quantization, LoRA fine-tuning, pre-training. Apache 2.0-licensed.",
+    "language": "Python"
+  },
+  {
+    "name": "fun_with_git-1",
+    "url": "https://github.com/rasbt/fun_with_git-1",
+    "stars": 2,
+    "description": "",
+    "language": "Unknown"
+  }
+]

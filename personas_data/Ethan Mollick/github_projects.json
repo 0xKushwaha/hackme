@@ -1,0 +1,107 @@
+[
+  {
+    "name": "library-of-babel",
+    "url": "https://github.com/emollick/library-of-babel",
+    "stars": 13,
+    "description": "A 3D immersive recreation of Jorge Luis Borges's Library of Babel. Walk through infinite hexagonal rooms, read deterministic books, and search for any text.",
+    "language": "HTML"
+  },
+  {
+    "name": "simrefine_reconstruct",
+    "url": "https://github.com/emollick/simrefine_reconstruct",
+    "stars": 2,
+    "description": "",
+    "language": "JavaScript"
+  },
+  {
+    "name": "lighthouse-atlas",
+    "url": "https://github.com/emollick/lighthouse-atlas",
+    "stars": 1,
+    "description": "Interactive map of 23,217 lighthouses across North America, Europe & the Mediterranean — WebGL-rendered with accurate colors, flash patterns, and visibility ranges",
+    "language": "JavaScript"
+  },
+  {
+    "name": "so-much-depends",
+    "url": "https://github.com/emollick/so-much-depends",
+    "stars": 0,
+    "description": "A browser-based horror game inspired by William Carlos Williams' poetry. Play at https://so-much-depends.netlify.app",
+    "language": "HTML"
+  },
+  {
+    "name": "grid-rogue",
+    "url": "https://github.com/emollick/grid-rogue",
+    "stars": 0,
+    "description": "A roguelike where combat is tic-tac-toe against an optimal AI. Use spells to break the stalemate!",
+    "language": "HTML"
+  },
+  {
+    "name": "socfight",
+    "url": "https://github.com/emollick/socfight",
+    "stars": 0,
+    "description": "A browser-based 2D fighting game featuring classical sociologists with moves themed around their theories",
+    "language": "JavaScript"
+  },
+  {
+    "name": "nexus-jira-apocalypse",
+    "url": "https://github.com/emollick/nexus-jira-apocalypse",
+    "stars": 0,
+    "description": "A cosmic horror management game where you prevent the apocalypse through Jira tickets",
+    "language": "TypeScript"
+  },
+  {
+    "name": "refinerytest",
+    "url": "https://github.com/emollick/refinerytest",
+    "stars": 0,
+    "description": "",
+    "language": "JavaScript"
+  },
+  {
+    "name": "Superhero",
+    "url": "https://github.com/emollick/Superhero",
+    "stars": 0,
+    "description": "",
+    "language": "HTML"
+  },
+  {
+    "name": "3Dmusic",
+    "url": "https://github.com/emollick/3Dmusic",
+    "stars": 0,
+    "description": "Songs of Summer",
+    "language": "HTML"
+  },
+  {
+    "name": "flightmap",
+    "url": "https://github.com/emollick/flightmap",
+    "stars": 0,
+    "description": "GPT created flgihtmap",
+    "language": "HTML"
+  },
+  {
+    "name": "pitchtutor",
+    "url": "https://github.com/emollick/pitchtutor",
+    "stars": 0,
+    "description": "",
+    "language": "HTML"
+  },
+  {
+    "name": "GPTHamlet",
+    "url": "https://github.com/emollick/GPTHamlet",
+    "stars": 0,
+    "description": "",
+    "language": "HTML"
+  },
+  {
+    "name": "ShipSystem",
+    "url": "https://github.com/emollick/ShipSystem",
+    "stars": 0,
+    "description": "",
+    "language": "JavaScript"
+  },
+  {
+    "name": "SaturnParable",
+    "url": "https://github.com/emollick/SaturnParable",
+    "stars": 0,
+    "description": "",
+    "language": "Unknown"
+  }
+]

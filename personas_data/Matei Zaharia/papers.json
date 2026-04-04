@@ -1,0 +1,62 @@
+[
+  {
+    "title": "MoE-Lightning: High-Throughput MoE Inference on Memory-constrained GPUs",
+    "year": 2024,
+    "url": "https://www.semanticscholar.org/paper/07f1fbd2a036d3e75a9fb00b30a413981b7ff17e",
+    "citations": 54
+  },
+  {
+    "title": "Optimizing LLM Queries in Relational Data Analytics Workloads",
+    "year": 2024,
+    "url": "https://www.semanticscholar.org/paper/7226e0479d16203abd18c5c5c1c3f1980ef112c1",
+    "citations": 25
+  },
+  {
+    "title": "RAFT: Adapting Language Model to Domain Specific RAG",
+    "year": 2024,
+    "url": "https://www.semanticscholar.org/paper/fdefb6a9b51c742d71740d25a76973116a2e0893",
+    "citations": 329
+  },
+  {
+    "title": "Accelerating Aggregation Queries on Unstructured Streams of Data",
+    "year": 2023,
+    "url": "https://www.semanticscholar.org/paper/08b362cb20662dd83e8527c6d8dab5f2e54ebe23",
+    "citations": 10
+  },
+  {
+    "title": "Exploiting Programmatic Behavior of LLMs: Dual-Use Through Standard Security Attacks",
+    "year": 2023,
+    "url": "https://www.semanticscholar.org/paper/0cf694b8f85ab2e11d45595de211a15cfbadcd22",
+    "citations": 355
+  },
+  {
+    "title": "Congestion Control Safety via Comparative Statics",
+    "year": 2023,
+    "url": "https://www.semanticscholar.org/paper/2c521a630aa5207ffab1e738d1e16ae07e2b2766",
+    "citations": 1
+  },
+  {
+    "title": "Analyzing and Comparing Lakehouse Storage Systems",
+    "year": 2023,
+    "url": "https://www.semanticscholar.org/paper/52a02a99c5bb79a7e4ebddd8fa9867e22aff6c97",
+    "citations": 31
+  },
+  {
+    "title": "FrugalGPT: How to Use Large Language Models While Reducing Cost and Improving Performance",
+    "year": 2023,
+    "url": "https://www.semanticscholar.org/paper/585f8b9725f5f5e5495c3508d39f70d1c053e190",
+    "citations": 519
+  },
+  {
+    "title": "Implementing block-sparse matrix multiplication kernels using Triton",
+    "year": 2023,
+    "url": "https://www.semanticscholar.org/paper/8e105628fe6d1454cb3bbb563448e74488ff4b2a",
+    "citations": 2
+  },
+  {
+    "title": "Epoxy: ACID Transactions Across Diverse Data Stores",
+    "year": 2023,
+    "url": "https://www.semanticscholar.org/paper/a9f671afcede538be94353a9487921cdbdee2578",
+    "citations": 16
+  }
+]

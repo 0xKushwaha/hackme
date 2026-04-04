@@ -1,0 +1,212 @@
+[
+  {
+    "name": "ecco",
+    "url": "https://github.com/jalammar/ecco",
+    "stars": 2091,
+    "description": "Explain, analyze, and visualize NLP language models. Ecco creates interactive visualizations directly in Jupyter notebooks explaining the behavior of Transformer-based language models (like GPT2, BERT, RoBERTA, T5, and T0).",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "jalammar.github.io",
+    "url": "https://github.com/jalammar/jalammar.github.io",
+    "stars": 866,
+    "description": "Build a Jekyll blog in minutes, without touching the command line.",
+    "language": "HTML"
+  },
+  {
+    "name": "simpleTensorFlowClassificationExample",
+    "url": "https://github.com/jalammar/simpleTensorFlowClassificationExample",
+    "stars": 99,
+    "description": "SImple notebook and dataset to demonstrate classification in TensorFlow",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "deep-learning",
+    "url": "https://github.com/jalammar/deep-learning",
+    "stars": 51,
+    "description": "Repo for the Deep Learning Nanodegree Foundations program.",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "pandas-intro",
+    "url": "https://github.com/jalammar/pandas-intro",
+    "stars": 44,
+    "description": "Basic notebook introducing pandas functionality",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "embeddings",
+    "url": "https://github.com/jalammar/embeddings",
+    "stars": 16,
+    "description": "",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "eccojs",
+    "url": "https://github.com/jalammar/eccojs",
+    "stars": 8,
+    "description": "Visualization components for ecco.ml",
+    "language": "JavaScript"
+  },
+  {
+    "name": "tf-stanford-tutorials",
+    "url": "https://github.com/jalammar/tf-stanford-tutorials",
+    "stars": 7,
+    "description": "This repository contains code examples for the course CS 20SI: TensorFlow for Deep Learning Research. ",
+    "language": "Python"
+  },
+  {
+    "name": "dspy",
+    "url": "https://github.com/jalammar/dspy",
+    "stars": 6,
+    "description": "Stanford DSPy: The framework for programming—not prompting—foundation models",
+    "language": "Python"
+  },
+  {
+    "name": "nmt",
+    "url": "https://github.com/jalammar/nmt",
+    "stars": 6,
+    "description": "TensorFlow Neural Machine Translation Tutorial",
+    "language": "Python"
+  },
+  {
+    "name": "Text-Summarization-with-Amazon-Reviews",
+    "url": "https://github.com/jalammar/Text-Summarization-with-Amazon-Reviews",
+    "stars": 6,
+    "description": "A seq2seq model that can generate summaries from fine food reviews on Amazon.",
+    "language": "HTML"
+  },
+  {
+    "name": "ml",
+    "url": "https://github.com/jalammar/ml",
+    "stars": 5,
+    "description": "",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "matplotlib",
+    "url": "https://github.com/jalammar/matplotlib",
+    "stars": 5,
+    "description": "matplotlib: plotting with Python",
+    "language": "Python"
+  },
+  {
+    "name": "SWE-agent",
+    "url": "https://github.com/jalammar/SWE-agent",
+    "stars": 4,
+    "description": "SWE-agent takes a GitHub issue and tries to automatically fix it, using GPT-4, or your LM of choice. It solves 12.29% of bugs in the SWE-bench evaluation set and takes just 1.5 minutes to run.",
+    "language": "Python"
+  },
+  {
+    "name": "pandas",
+    "url": "https://github.com/jalammar/pandas",
+    "stars": 3,
+    "description": "Flexible and powerful data analysis / manipulation library for Python, providing labeled data structures similar to R data.frame objects, statistical functions, and much more",
+    "language": "Python"
+  },
+  {
+    "name": "trax",
+    "url": "https://github.com/jalammar/trax",
+    "stars": 2,
+    "description": "Trax — Deep Learning with Clear Code and Speed",
+    "language": "Python"
+  },
+  {
+    "name": "tensorflow",
+    "url": "https://github.com/jalammar/tensorflow",
+    "stars": 2,
+    "description": " Open source software library for numerical computation using data flow graphs.",
+    "language": "C++"
+  },
+  {
+    "name": "NanodegreeProject",
+    "url": "https://github.com/jalammar/NanodegreeProject",
+    "stars": 2,
+    "description": "",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "verl",
+    "url": "https://github.com/jalammar/verl",
+    "stars": 1,
+    "description": "verl: Volcano Engine Reinforcement Learning for LLMs",
+    "language": "Unknown"
+  },
+  {
+    "name": "VisEval",
+    "url": "https://github.com/jalammar/VisEval",
+    "stars": 1,
+    "description": "",
+    "language": "Unknown"
+  },
+  {
+    "name": "pretty-midi",
+    "url": "https://github.com/jalammar/pretty-midi",
+    "stars": 1,
+    "description": "Utility functions for handling MIDI data in a nice/intuitive way.",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "checkout-one-time-payments",
+    "url": "https://github.com/jalammar/checkout-one-time-payments",
+    "stars": 1,
+    "description": "Use Checkout to quickly collect one-time payments.",
+    "language": "Unknown"
+  },
+  {
+    "name": "WhaleFM",
+    "url": "https://github.com/jalammar/WhaleFM",
+    "stars": 1,
+    "description": "Whale FM archive, data",
+    "language": "Unknown"
+  },
+  {
+    "name": "aider-swe-bench",
+    "url": "https://github.com/jalammar/aider-swe-bench",
+    "stars": 0,
+    "description": "Harness used to benchmark aider against SWE Bench benchmarks",
+    "language": "Unknown"
+  },
+  {
+    "name": "aider",
+    "url": "https://github.com/jalammar/aider",
+    "stars": 0,
+    "description": "aider is AI pair programming in your terminal",
+    "language": "Unknown"
+  },
+  {
+    "name": "litellm",
+    "url": "https://github.com/jalammar/litellm",
+    "stars": 0,
+    "description": "Python SDK, Proxy Server to call 100+ LLM APIs using the OpenAI format - [Bedrock, Azure, OpenAI, VertexAI, Cohere, Anthropic, Sagemaker, HuggingFace, Replicate, Groq]",
+    "language": "Unknown"
+  },
+  {
+    "name": "ecosystem-graphs",
+    "url": "https://github.com/jalammar/ecosystem-graphs",
+    "stars": 0,
+    "description": "",
+    "language": "JavaScript"
+  },
+  {
+    "name": "ecco-feedstock",
+    "url": "https://github.com/jalammar/ecco-feedstock",
+    "stars": 0,
+    "description": "A conda-smithy repository for ecco.",
+    "language": "Unknown"
+  },
+  {
+    "name": "checklist",
+    "url": "https://github.com/jalammar/checklist",
+    "stars": 0,
+    "description": "Beyond Accuracy: Behavioral Testing of NLP models with CheckList",
+    "language": "Unknown"
+  },
+  {
+    "name": "p1-movieDB",
+    "url": "https://github.com/jalammar/p1-movieDB",
+    "stars": 0,
+    "description": "",
+    "language": "Java"
+  }
+]

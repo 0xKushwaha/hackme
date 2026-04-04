@@ -1,0 +1,114 @@
+[
+  {
+    "name": "deep-learning-with-python-notebooks",
+    "url": "https://github.com/fchollet/deep-learning-with-python-notebooks",
+    "stars": 20021,
+    "description": "Jupyter notebooks for the code samples of the book \"Deep Learning with Python\"",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "deep-learning-models",
+    "url": "https://github.com/fchollet/deep-learning-models",
+    "stars": 7352,
+    "description": "Keras code and weights files for popular deep learning models.",
+    "language": "Python"
+  },
+  {
+    "name": "ARC-AGI",
+    "url": "https://github.com/fchollet/ARC-AGI",
+    "stars": 4738,
+    "description": "The Abstraction and Reasoning Corpus",
+    "language": "JavaScript"
+  },
+  {
+    "name": "keras-resources",
+    "url": "https://github.com/fchollet/keras-resources",
+    "stars": 3264,
+    "description": "Directory of tutorials and open-source code repositories for working with Keras, the Python deep learning library",
+    "language": "Unknown"
+  },
+  {
+    "name": "hualos",
+    "url": "https://github.com/fchollet/hualos",
+    "stars": 365,
+    "description": "Keras Total Visualization project",
+    "language": "Python"
+  },
+  {
+    "name": "stable-diffusion-tensorflow",
+    "url": "https://github.com/fchollet/stable-diffusion-tensorflow",
+    "stars": 323,
+    "description": "TensorFlow/Keras port of Stable Diffusion",
+    "language": "Python"
+  },
+  {
+    "name": "keras-blog",
+    "url": "https://github.com/fchollet/keras-blog",
+    "stars": 136,
+    "description": "Blog with Keras news, tutorials, and demos.",
+    "language": "HTML"
+  },
+  {
+    "name": "nelder-mead",
+    "url": "https://github.com/fchollet/nelder-mead",
+    "stars": 131,
+    "description": "Pure Python/Numpy implementation of the Nelder-Mead algorithm.",
+    "language": "Python"
+  },
+  {
+    "name": "namex",
+    "url": "https://github.com/fchollet/namex",
+    "stars": 59,
+    "description": "Clean up the public namespace of your package!",
+    "language": "Python"
+  },
+  {
+    "name": "tensorflow",
+    "url": "https://github.com/fchollet/tensorflow",
+    "stars": 33,
+    "description": "An Open Source Machine Learning Framework for Everyone",
+    "language": "Unknown"
+  },
+  {
+    "name": "tensorboard",
+    "url": "https://github.com/fchollet/tensorboard",
+    "stars": 12,
+    "description": "TensorFlow's Visualization Toolkit",
+    "language": "Python"
+  },
+  {
+    "name": "umap",
+    "url": "https://github.com/fchollet/umap",
+    "stars": 9,
+    "description": "Uniform Manifold Approximation and Projection",
+    "language": "Python"
+  },
+  {
+    "name": "keras-nlp",
+    "url": "https://github.com/fchollet/keras-nlp",
+    "stars": 8,
+    "description": "Modular Natural Language Processing workflows with Keras",
+    "language": "Python"
+  },
+  {
+    "name": "community",
+    "url": "https://github.com/fchollet/community",
+    "stars": 8,
+    "description": "Stores documents used by the TensorFlow developer community",
+    "language": "Unknown"
+  },
+  {
+    "name": "keras-cv",
+    "url": "https://github.com/fchollet/keras-cv",
+    "stars": 7,
+    "description": "Industry-strength Computer Vision workflows with Keras",
+    "language": "Python"
+  },
+  {
+    "name": "black",
+    "url": "https://github.com/fchollet/black",
+    "stars": 3,
+    "description": "The uncompromising Python code formatter",
+    "language": "Unknown"
+  }
+]

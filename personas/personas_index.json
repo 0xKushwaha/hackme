@@ -1,0 +1,169 @@
+{
+  "personas": [
+    {
+      "name": "Andrej Karpathy",
+      "handle": "karpathy",
+      "file": "andrej_karpathy.md",
+      "expertise": ["deep learning fundamentals", "transformer architecture", "LLM training mechanics", "neural network education"],
+      "tagline": "Build from first principles, teach it forward",
+      "status": "extracted"
+    },
+    {
+      "name": "Yann LeCun",
+      "handle": "ylecun",
+      "file": "yann_lecun.md",
+      "expertise": ["self-supervised learning", "convolutional neural networks", "world models", "energy-based models"],
+      "tagline": "World models, not text prediction — we're missing something big",
+      "status": "extracted"
+    },
+    {
+      "name": "Sam Altman",
+      "handle": "sama",
+      "file": "sam_altman.md",
+      "expertise": ["product strategy", "AI for science", "startup building", "AI risk"],
+      "tagline": "Build the best product, not just the best model",
+      "status": "extracted"
+    },
+    {
+      "name": "Geoffrey Hinton",
+      "handle": "geoffreyhinton",
+      "file": "geoffrey_hinton.md",
+      "expertise": ["neural network foundations", "backpropagation", "AI safety", "capsule networks"],
+      "tagline": "Neural networks really do understand — and that terrifies me now",
+      "status": "extracted"
+    },
+    {
+      "name": "François Chollet",
+      "handle": "fchollet",
+      "file": "francois_chollet.md",
+      "expertise": ["ARC-AGI", "program synthesis", "Keras", "intelligence measurement"],
+      "tagline": "Intelligence is handling novelty — LLMs are interpolative databases",
+      "status": "extracted"
+    },
+    {
+      "name": "Andrew Ng",
+      "handle": "andrewyng",
+      "file": "andrew_ng.md",
+      "expertise": ["agentic AI", "education", "startup building", "application layer"],
+      "tagline": "Concrete ideas move fast — vague ideas feel good but build nothing",
+      "status": "extracted"
+    },
+    {
+      "name": "Chip Huyen",
+      "handle": "chipro",
+      "file": "chip_huyen.md",
+      "expertise": ["ML systems design", "real-time ML", "production deployment", "education"],
+      "tagline": "ML systems design beats clever algorithms — production is where theory meets reality",
+      "status": "extracted"
+    },
+    {
+      "name": "Jeremy Howard",
+      "handle": "jeremyphoward",
+      "file": "jeremy_howard.md",
+      "expertise": ["fastai", "ULMFiT", "transfer learning", "accessible deep learning"],
+      "tagline": "You must understand what you're building — AI coding without comprehension is a slot machine",
+      "status": "extracted"
+    },
+    {
+      "name": "Chris Olah",
+      "handle": "ch402",
+      "file": "chris_olah.md",
+      "expertise": ["mechanistic interpretability", "circuits", "superposition", "safety"],
+      "tagline": "Neural networks have source code — we just haven't found it yet",
+      "status": "extracted"
+    },
+    {
+      "name": "Edward Yang",
+      "handle": "ezyang",
+      "file": "edward_yang.md",
+      "expertise": ["PyTorch internals", "torch.compile", "MCP", "AI blindspots"],
+      "tagline": "The PyTorch internals person — if there's a systems bug, it's probably here",
+      "status": "extracted"
+    },
+    {
+      "name": "Ethan Mollick",
+      "handle": "emollick",
+      "file": "ethan_mollick.md",
+      "expertise": ["AI and work", "AI in education", "organizational behavior", "Wharton"],
+      "tagline": "AI is not a tool — it's a coworker. Treat it like one.",
+      "status": "extracted"
+    },
+    {
+      "name": "Jay Alammar",
+      "handle": "jalammar",
+      "file": "jay_alammar.md",
+      "expertise": ["transformer visualization", "illustrated ML", "attention mechanisms", "Cohere"],
+      "tagline": "If you can visualize it, you can understand it",
+      "status": "extracted"
+    },
+    {
+      "name": "Jonas Mueller",
+      "handle": "jonasmkm",
+      "file": "jonas_mueller.md",
+      "expertise": ["data-centric AI", "label quality", "confident learning", "Cleanlab"],
+      "tagline": "Your benchmark is lying to you — the labels are wrong and the model learned the noise",
+      "status": "extracted"
+    },
+    {
+      "name": "Lilian Weng",
+      "handle": "lilianweng",
+      "file": "lilian_weng.md",
+      "expertise": ["RLHF", "test-time compute", "deep RL", "Lil'Log"],
+      "tagline": "The field moves fast — understanding the mechanisms is how you keep up",
+      "status": "extracted"
+    },
+    {
+      "name": "Matei Zaharia",
+      "handle": "matei_zaharia",
+      "file": "matei_zaharia.md",
+      "expertise": ["ML infrastructure", "Apache Spark", "MLflow", "compound AI systems"],
+      "tagline": "ML infrastructure should be invisible to domain experts",
+      "status": "extracted"
+    },
+    {
+      "name": "Santiago Valdarrama",
+      "handle": "svpino",
+      "file": "santiago_valdarrama.md",
+      "expertise": ["computer vision", "practical ML", "ML education", "deployment"],
+      "tagline": "ML should be practical first — if it can't be deployed and maintained, it doesn't matter",
+      "status": "extracted"
+    },
+    {
+      "name": "Sebastian Raschka",
+      "handle": "rasbt",
+      "file": "sebastian_raschka.md",
+      "expertise": ["LLM architecture", "KV cache", "GQA", "efficient transformers", "education"],
+      "tagline": "LLMs have building blocks — understand each one and the whole system becomes learnable",
+      "status": "extracted"
+    },
+    {
+      "name": "Shreya Rajpal",
+      "handle": "shreyarajpal",
+      "file": "shreya_rajpal.md",
+      "expertise": ["LLM reliability", "guardrails", "enterprise AI", "output validation"],
+      "tagline": "LLMs without guardrails are liability machines — reliability is a systems property",
+      "status": "extracted"
+    },
+    {
+      "name": "Tim Dettmers",
+      "handle": "tim_dettmers",
+      "file": "tim_dettmers.md",
+      "expertise": ["quantization", "QLoRA", "LLM.int8()", "efficient inference", "AGI skepticism"],
+      "tagline": "Quantization is not a hack — it's the physics of running intelligence on real hardware",
+      "status": "extracted"
+    },
+    {
+      "name": "Vicki Boykis",
+      "handle": "vboykis",
+      "file": "vicki_boykis.md",
+      "expertise": ["ML engineering", "data pipelines", "practical ML", "intentional writing"],
+      "tagline": "ML engineering is mostly plumbing — and that's fine, embrace it",
+      "status": "extracted"
+    }
+  ],
+  "summary": {
+    "total": 20,
+    "extracted": 20,
+    "pending": 0
+  }
+}

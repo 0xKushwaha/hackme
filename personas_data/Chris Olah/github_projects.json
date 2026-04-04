@@ -1,0 +1,352 @@
+[
+  {
+    "name": "colah.github.io",
+    "url": "https://github.com/colah/colah.github.io",
+    "stars": 843,
+    "description": "",
+    "language": "HTML"
+  },
+  {
+    "name": "Conv-Nets-Series",
+    "url": "https://github.com/colah/Conv-Nets-Series",
+    "stars": 209,
+    "description": "A series of blog posts on convolutional neural networks and their generalizations.",
+    "language": "Unknown"
+  },
+  {
+    "name": "Visualizing-Deep-Learning",
+    "url": "https://github.com/colah/Visualizing-Deep-Learning",
+    "stars": 163,
+    "description": "A series of blog posts on visualizing deep learning.",
+    "language": "JavaScript"
+  },
+  {
+    "name": "NN-Topology-Post",
+    "url": "https://github.com/colah/NN-Topology-Post",
+    "stars": 102,
+    "description": "A blog post exploring a connection between neural networks and topology",
+    "language": "Unknown"
+  },
+  {
+    "name": "HaskSymb",
+    "url": "https://github.com/colah/HaskSymb",
+    "stars": 73,
+    "description": "An Experiment in Haskell Symbolic Algebra",
+    "language": "Haskell"
+  },
+  {
+    "name": "NLP-RNNs-Representations-Post",
+    "url": "https://github.com/colah/NLP-RNNs-Representations-Post",
+    "stars": 42,
+    "description": "A blog post using word embeddings and RNNs to explain representations.",
+    "language": "Unknown"
+  },
+  {
+    "name": "colah-essays",
+    "url": "https://github.com/colah/colah-essays",
+    "stars": 33,
+    "description": "A place for me to keep essays/papers I'm working on...",
+    "language": "Unknown"
+  },
+  {
+    "name": "Motivated-Topology",
+    "url": "https://github.com/colah/Motivated-Topology",
+    "stars": 31,
+    "description": "A topology textbook with a hubristic title",
+    "language": "TeX"
+  },
+  {
+    "name": "Visualizing-Representations",
+    "url": "https://github.com/colah/Visualizing-Representations",
+    "stars": 21,
+    "description": "",
+    "language": "JavaScript"
+  },
+  {
+    "name": "ByronTrialNotes",
+    "url": "https://github.com/colah/ByronTrialNotes",
+    "stars": 19,
+    "description": "Notes from the trial of Byron Sonne",
+    "language": "Unknown"
+  },
+  {
+    "name": "implicitcad.org",
+    "url": "https://github.com/colah/implicitcad.org",
+    "stars": 15,
+    "description": "Website for ImplicitCAD",
+    "language": "JavaScript"
+  },
+  {
+    "name": "data",
+    "url": "https://github.com/colah/data",
+    "stars": 14,
+    "description": "package manager for datasets",
+    "language": "Python"
+  },
+  {
+    "name": "surfcad",
+    "url": "https://github.com/colah/surfcad",
+    "stars": 12,
+    "description": "Surface-Oriented CAD Library for Python",
+    "language": "Python"
+  },
+  {
+    "name": "colah-blog",
+    "url": "https://github.com/colah/colah-blog",
+    "stars": 10,
+    "description": "Source for Lambda Oinks blog. Made with Hakyll and Bootstrap.",
+    "language": "JavaScript"
+  },
+  {
+    "name": "lucid",
+    "url": "https://github.com/colah/lucid",
+    "stars": 9,
+    "description": "A collection of infrastructure and tools for research in neural network interpretability.",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "Fanfiction-Graphs-Post",
+    "url": "https://github.com/colah/Fanfiction-Graphs-Post",
+    "stars": 9,
+    "description": "A blog post on analyzing fanfiction through graphs!",
+    "language": "JavaScript"
+  },
+  {
+    "name": "ldnsx",
+    "url": "https://github.com/colah/ldnsx",
+    "stars": 9,
+    "description": "A python ldns API for human beings",
+    "language": "Python"
+  },
+  {
+    "name": "ucalc",
+    "url": "https://github.com/colah/ucalc",
+    "stars": 9,
+    "description": "A Unicode Calculator",
+    "language": "Haskell"
+  },
+  {
+    "name": "openscad",
+    "url": "https://github.com/colah/openscad",
+    "stars": 9,
+    "description": "OpenSCAD - The Programmers Solid 3D CAD Modeller  ",
+    "language": "C++"
+  },
+  {
+    "name": "NN-Group-1-Code",
+    "url": "https://github.com/colah/NN-Group-1-Code",
+    "stars": 8,
+    "description": "Code for a discussion group I'm running",
+    "language": "Python"
+  },
+  {
+    "name": "nnftd",
+    "url": "https://github.com/colah/nnftd",
+    "stars": 8,
+    "description": "Code samples for my book \"Neural networks for the determined\"",
+    "language": "Python"
+  },
+  {
+    "name": "Haskell-Re-Syntaxed",
+    "url": "https://github.com/colah/Haskell-Re-Syntaxed",
+    "stars": 6,
+    "description": "Let's brainstorm about syntactic improvements for Haskell!!",
+    "language": "Haskell"
+  },
+  {
+    "name": "FormatParser",
+    "url": "https://github.com/colah/FormatParser",
+    "stars": 5,
+    "description": "Like Parsec, but two-way! (Experimental!)",
+    "language": "Haskell"
+  },
+  {
+    "name": "Printable-Vacuum-Cleaner",
+    "url": "https://github.com/colah/Printable-Vacuum-Cleaner",
+    "stars": 5,
+    "description": "A Hand Held 3D printable vacuum cleaner!",
+    "language": "Unknown"
+  },
+  {
+    "name": "DL-Types-FP-posts",
+    "url": "https://github.com/colah/DL-Types-FP-posts",
+    "stars": 4,
+    "description": "Blog post exploring connection between Deep Learning, Types and Functional Programming",
+    "language": "Unknown"
+  },
+  {
+    "name": "Higher-Order-Constraints",
+    "url": "https://github.com/colah/Higher-Order-Constraints",
+    "stars": 4,
+    "description": "An experiment in higher order type constraints",
+    "language": "Haskell"
+  },
+  {
+    "name": "gym",
+    "url": "https://github.com/colah/gym",
+    "stars": 3,
+    "description": "A toolkit for developing and comparing reinforcement learning algorithms.",
+    "language": "Python"
+  },
+  {
+    "name": "LabeledTensor",
+    "url": "https://github.com/colah/LabeledTensor",
+    "stars": 3,
+    "description": "Experiment with improving NumPy syntax",
+    "language": "Python"
+  },
+  {
+    "name": "group-conv-post",
+    "url": "https://github.com/colah/group-conv-post",
+    "stars": 3,
+    "description": "",
+    "language": "Unknown"
+  },
+  {
+    "name": "Pattern-Power",
+    "url": "https://github.com/colah/Pattern-Power",
+    "stars": 3,
+    "description": "Pattern matching + Template Haskell + Awesome",
+    "language": "Haskell"
+  },
+  {
+    "name": "Legal-Man-Pages",
+    "url": "https://github.com/colah/Legal-Man-Pages",
+    "stars": 3,
+    "description": "Legal documents as Unix man pages",
+    "language": "Unknown"
+  },
+  {
+    "name": "Hacklab-Logo-3D",
+    "url": "https://github.com/colah/Hacklab-Logo-3D",
+    "stars": 3,
+    "description": "Openscad 3D implementation of the hacklab logo.",
+    "language": "Unknown"
+  },
+  {
+    "name": "colah.github.com",
+    "url": "https://github.com/colah/colah.github.com",
+    "stars": 3,
+    "description": "",
+    "language": "Unknown"
+  },
+  {
+    "name": "toolhead-lib",
+    "url": "https://github.com/colah/toolhead-lib",
+    "stars": 3,
+    "description": "A library for microcontroller toolhead control, heater feedback loops and temperature sensors.",
+    "language": "C"
+  },
+  {
+    "name": "Printable-Morse-Key",
+    "url": "https://github.com/colah/Printable-Morse-Key",
+    "stars": 3,
+    "description": "A 3D printable morse paddle key.",
+    "language": "Unknown"
+  },
+  {
+    "name": "Gathered-Correspondences",
+    "url": "https://github.com/colah/Gathered-Correspondences",
+    "stars": 2,
+    "description": "Email exchanges",
+    "language": "Unknown"
+  },
+  {
+    "name": "Printrun",
+    "url": "https://github.com/colah/Printrun",
+    "stars": 2,
+    "description": "Pronterface, Pronsole, and Printcore - Pure Python 3d printing host software",
+    "language": "Python"
+  },
+  {
+    "name": "Control.Monad.State.Sugar",
+    "url": "https://github.com/colah/Control.Monad.State.Sugar",
+    "stars": 2,
+    "description": "Syntactic sugar for the state monad.",
+    "language": "Haskell"
+  },
+  {
+    "name": "Python-Unicode-XCompose-Script",
+    "url": "https://github.com/colah/Python-Unicode-XCompose-Script",
+    "stars": 2,
+    "description": "Some handy unicode tables and a script to generate XCompose files.",
+    "language": "Python"
+  },
+  {
+    "name": "xcompose",
+    "url": "https://github.com/colah/xcompose",
+    "stars": 2,
+    "description": "for sharing .XCompose keybindings",
+    "language": "Python"
+  },
+  {
+    "name": "svelte",
+    "url": "https://github.com/colah/svelte",
+    "stars": 1,
+    "description": "Cybernetically enhanced web apps",
+    "language": "TypeScript"
+  },
+  {
+    "name": "post--momentum",
+    "url": "https://github.com/colah/post--momentum",
+    "stars": 1,
+    "description": "Momentum",
+    "language": "JavaScript"
+  },
+  {
+    "name": "Representations-Types",
+    "url": "https://github.com/colah/Representations-Types",
+    "stars": 1,
+    "description": "",
+    "language": "Unknown"
+  },
+  {
+    "name": "colah-blog-posts",
+    "url": "https://github.com/colah/colah-blog-posts",
+    "stars": 1,
+    "description": "Blog posts for colah-blog",
+    "language": "Unknown"
+  },
+  {
+    "name": "nnlsv",
+    "url": "https://github.com/colah/nnlsv",
+    "stars": 1,
+    "description": "Paper by @colah and @mnielsen on visualizing the behaviour of large numbers of neural nets",
+    "language": "TeX"
+  },
+  {
+    "name": "ynasser.github.io",
+    "url": "https://github.com/colah/ynasser.github.io",
+    "stars": 0,
+    "description": "",
+    "language": "HTML"
+  },
+  {
+    "name": "gabgoh.github.io",
+    "url": "https://github.com/colah/gabgoh.github.io",
+    "stars": 0,
+    "description": "Homepage",
+    "language": "HTML"
+  },
+  {
+    "name": "Theano",
+    "url": "https://github.com/colah/Theano",
+    "stars": 0,
+    "description": "Optimizing GPU-meta-programming code generating array oriented optimizing math compiler in Python",
+    "language": "Python"
+  },
+  {
+    "name": "tegh",
+    "url": "https://github.com/colah/tegh",
+    "stars": 0,
+    "description": "Tegh (Tea, Earl Grey, Hot): A command line client for Prontserve. Because replicators, that's why.",
+    "language": "CoffeeScript"
+  },
+  {
+    "name": "hacklab-bylaws",
+    "url": "https://github.com/colah/hacklab-bylaws",
+    "stars": 0,
+    "description": "The Bylaws of Hacklab Toronto Club Inc.",
+    "language": "Unknown"
+  }
+]

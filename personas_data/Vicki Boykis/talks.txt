@@ -1,0 +1,941 @@
+## Vicki Boykis | Your public garden | RStudio
+
+URL: https://www.youtube.com/watch?v=E5ERSfydB30
+
+VICKI BOYKIS: Hi,
+I'm Vicki Boykis. I'm a Machine Learning Engineer
+at Automatic, the company behind Wordpress.com. But today I don't want to talk
+about machine learning or data. What I do want to talk about
+is building a digital garden. And I want to
+explain why this is important by talking a
+little bit about what my daily routine looks like in
+the longest year of our lives in 2020. And I'm hoping that,
+as a data scientist, it extrapolates and
+generalizes to what everybody's
+environment looks like, and what we can do
+about some of that. So my day usually starts around
+3 o'clock in the morning. That's when my
+youngest son wakes up. He's very little so I usually
+have to put him back to bed and wait on him to settle down. And while I'm doing that,
+I do my favorite activity, which is doom-scrolling
+through Twitter. Nothing's really
+changed on Twitter since the last time I read it
+maybe three or four hours ago. But it always makes me feel
+worse coming away from it than I do going into it. And so I'm filled with this
+endless anxiety of news items that have happened. So then he settles back down. I go back to sleep. But in the meantime, I'm
+woken up around 4 o'clock in the morning by a text
+message from my state, which is an alert to be
+careful of COVID, for the hospital
+restrictions, to keep masking, and to be aware that the rates
+in our area are on the rise. This is kind of
+helpful information, but not really, because
+it also makes me feel more anxious than relieved. And it brings me more
+questions than answers, really. For example, when's
+the next time I'll get to see my
+elderly relatives? Will school stay open for
+the next couple weeks or so? How are we doing as a country? And when will it get better? And, of course, none
+of us can answer that. So I'm left feeling
+even more anxious. Of course, by the time
+all of that's over, I go to the numbers. I look at the COVID
+Tracking Project, which is a really wonderful
+project put together by a group that tracks
+totals across each state. Although it doesn't make
+me feel any better either, even though there's
+very good information. Because the COVID rates are
+on the rise, it's exponential, and it doesn't seem to
+be ending any time soon. So by the time that's all over,
+it's usually around 7 o'clock in the morning, which is when
+my older child, my daughter, wakes up. And she also has a lot
+of pings and needs. Usually hers are more like,
+what do hippopotamuses eat? And, what are the
+phases of the moon? So I help her get
+ready and get dressed. And then we go
+downstairs to breakfast. "Breakfast," I use
+the term very loosely. Because as a family
+with small kids, it's just pretty much chaos. So during that time,
+I get some time to catch up on what's
+been going on at work. I usually don't have
+99 Slack notifications, but since we do work in a
+distributed, remote, and asynchronous way,
+there's usually someone working all around the
+world, even when I'm asleep. So there's definitely writing
+and reading to catch up on. So when that's all over, I go
+to my favorite part of Twitter to catch up on, which
+is Data Twitter. And it seems like
+overnight there have been 5 million more data
+analyses published, 10 million more new deep learning
+frameworks, and 50 million more data controversies. And it's a lot to keep up with. And I feel like I never can. So it all adds to the
+compounding anxiety of the things that I have
+to keep up with in 2020. So after being
+pinged all morning and exposed to the
+stressful world of 2020 during COVID, and the
+amplification of that world in my digital media,
+I start hearing not the individual noise, but
+the steady stream of radio KFKD. Radio KFKD is a concept
+Anne Lamott talks about in her wonderful book
+about the creative process, Bird by Bird. Lamott says that KFKD plays
+for all creative people. She says there's two speakers. The left is the
+noise that you hear when you think you're
+better than everybody else. And the right is the noise
+when you think you're worse than everybody else. And I count data professionals,
+data professionals within creative people too. Because we have a
+lot of technical work that we have to do, and a lot
+of very judgmental-based work that is more of an art
+form than a science. Today we're living in radio
+KFKD, but over top of that is the pandemic. So it's what I like
+to call radio 2020. The right speaker's
+everything we've mentioned-- the noise of
+other people's perfection on social media, the
+noise of controversy, of amplified fears, of
+heightened everything, a platform that
+is constantly on, and a Black Mirror that reflects
+our worst fears and beliefs. The left speaker is all
+the news we're constantly processing about living
+in uncertain times. And over top of all of that
+is the never-ending static of the pandemic that
+won't end, fears for us and our loved ones,
+constant restrictions, and, when we need it
+the most, isolation. Being isolated is hard
+enough as a human. Being isolated and bombarded
+by the radio of 2020, the noise of click-bate
+doom-scrolling, constantly being surrounded
+by information that is largely negative, is impossible. So what can we do
+about all of this? While we can't really
+change our physical space, we can't change the state
+of the world right now, we can't change the
+people that rely on us, we can't change the human
+interactions that we have. What we can change
+is the digital world that we operate in. And so I want to
+talk a little bit about what the aspects of
+that digital world are, and how we can change it. Why is radio 2020 so
+good at derailing us? And why is it constantly
+creating noise for us? There's three reasons. First of all is that
+online, it's noisy. And this has been the case
+since even before 2020. In a conference that I attended
+and spoke at, SkepTech, several years ago, one of the
+speakers that really stood out to me was Natasha Dow
+Sch��ll, who is a sociologist and professor at
+New York University. And she wrote a called,
+Addicted by Design, that was talking about
+all the different ways that our online universes
+today are a lot like casinos. The summary of her research is
+that much of the online world, particularly social media
+companies, much like casinos, are designed to draw our
+attention away in small bursts. As a result, to
+get our attention and retain you on the
+platform, sites often do things like send you a
+combination of mobile alerts, notifications, and emails. Sometimes this
+engagement is good, like if we're
+discovering interesting blog posts, or
+donating to creators, or watching original content. But, oftentimes, it
+can simply be noise. The online noise
+interferes with our ability to concentrate on
+longer-term projects and engage in
+longer-term thinking. And the problem is that there's
+always new noise and always new content online. A second problem
+with this content is a lot of it is
+very superlative. What do I mean when
+I say superlative? Usually you only
+get the very worst or the very best
+because that's what actually filters through the
+noise and creates engagement. So, as an example, if someone
+is posting their pictures of vacation online-- although, not
+recently these days. But if they are, you'll usually
+only see the best pictures from their hotel room. You won't actually see how they
+were late for their flight, or had problems at the airport,
+or had transportation issues. You only get the highlights. And the same is true with
+all the worst news stories-- of 2020 especially--
+because those are the ones that are
+optimized to get us to click. So we'll only see
+the very, very worst. And won't see what's
+progressing more in the median and in the long term. The third problem is that
+online is worse in 2020. The enormous amount
+of additional pressure 2020 has put on both our
+physical and digital lives has pulled us apart as humans. Which means that we
+can't meet with anybody and we're left to
+face the crisis, in the context of the current
+state of the internet, on our own. So we have this crisis
+that's occurring both in the physical world,
+with everything that's been happening during
+the pandemic, and then the digital world, with the
+crisis for our attention as well. How do we fight this? One of the best ways that
+I have found personally, is to be able to control it
+a very small bit of the time. And the best way to
+do that is to build your own digital garden. Anne Lamott, in Bird by Bird,
+says that the best thing to do is to take it piece by piece. And the title of the book
+comes from a book report that her brother had to write. "Thirty years ago," she
+writes, "my older brother, who was ten years
+old at the time, was trying to get a
+report on birds that he had three months to write. It was due the next day. We were out at our
+family cabin in Bolinas, and he was in the
+kitchen table close to tears, surrounded by
+binder, paper and pencils, and unopened books
+by birds, immobilized by the task at hand. Then my father sat
+down beside him, put his arm around
+my brother's shoulder and said, 'Bird by bird, buddy. Just take it bird by bird.'" The idea is that we
+can't change everything. But even changing a little
+tiny bit of our environment is better than changing nothing. So what's a way that
+you can fix the world, and change it bird by bird? The best way to do that
+is by planting a garden. The Secret Garden is a book
+by Frances Hodgson Burnett, who lived in American
+England in the 19th century. The story is about
+a girl named Mary whose parents die in a cholera
+epidemic in Colonial India. It's kind of sad,
+but her parents never saw her much anyway. She was cared for by
+servants, and, as a result, she had grown spoiled,
+selfish, and extremely lonely. She's sent to England, to her
+uncle's estate on the Moors. The moors are a beautiful,
+lonely, and foreboding place. And, just like the moors,
+the house where Mary stays is dark and cold. And, as is often the case
+in British literature, full of secrets. It's revealed that
+Mary's aunt, who died, had a secret garden in the
+house that was then locked up. When Mary comes to the
+garden, it's neglected. She begins to tend to it, and
+in the process of caring for it and watching things grow,
+she forgets to feel sorry for herself and her parents. The process of caring for
+it brings her back to life. So right now we're all
+a little bit like Mary at the start of a
+garden that's fallow. We're lost. We're not quite sure what to do. So there's some
+things that we can do. And next I want to talk about
+things that people have done. And then end with
+some suggestions for maybe smaller things that
+you can do to get started. So how do we fix this? How do we create something
+that's for our public garden and makes the internet
+better at the same time? I'll talk about a
+couple of different ways that people in the
+community have done this, and that I've done
+this, and then offer some more lightweight
+suggestions if these seem overwhelming to you. The first, and best
+way, in my opinion, is to write something
+from your perspective. David Robinson has a really
+good blog post about this. He writes a bunch about
+statistics, and R as well. He said that if you
+write something, if you tell somebody
+something three times, then you should write
+a blog about it. And he says that it's important
+to write a blog for a data science career portfolio. And I think it's important,
+not just for that, but because it allows
+you to create something that you're in control
+of on your own platform-- that doesn't change, and
+that counteracts the way that social media
+works, and that you can come back to again and again
+and have it always be the same. You can write about
+anything from analytics, from your opinion on certain
+trends, certain packages you've done. So these topics
+have been written about hundreds of
+thousands of times before data analysis
+and tidyverse. But the important
+thing is that it's coming from your perspective. Everybody comes to the story
+with a completely different perspective, completely
+different set of life skills, and history, and work skills. And the internet wants
+to hear about them. Two really great recent examples
+of this from our blogger are this recent article
+about pipes, about the pipe tool, and "A Spoonful of Hugo-- How much Hugo do
+I need to know?" Neither of these are very
+long and complex topics. But they break down what you
+need to in very specific ways. And they're talking about it
+from the author's experience. So these are both fantastic. The way that I've done this is
+in a couple of different ways. One of the places I'm active
+on is my technical blog. And I write about machine
+learning, and data and metrics. My main goal on my blog
+is to write about things that I don't really see anywhere
+else on the blogosphere, or write them from
+my perspective. And the other thing
+is that in the process of writing more
+technical posts you get more insight
+into what's going on, and a better
+understanding as well. So some things
+I've written about are getting machine learning
+to production, the spark API-- using R-- and in a very
+serious examination, breaking down the iOS
+screen time report. None of these are
+breakthrough topics. In particular, getting
+machine learning to production is a topic that has been
+covered over and over again. But this is my
+take on the topic. These are things that are
+interesting and important to me. And now I have them to
+refer back to in my blog. Another place I've been
+writing is my newsletter, "Normcore Tech," where I look
+at machine learning and data, but more from a
+human-centered perspective. I started, again, because
+I didn't see anyone covering these topics
+in quite the same way. Sure, we all talk about Google
+and Facebook and social media every week, but
+there were things that I wanted to
+understand better. So here are some recent
+things I've talked about-- how a lot of the
+products that we use are built by consensus, by an
+average of 10,000 people in San Francisco, and what impact
+that has for our online world. What happens when the
+internet stops in a country, as it did in Belarus
+in the middle of 2020? And how the internet actually
+gets from country to country. And how Google Drive,
+which is ubiquitous in most of the
+companies I've been at, is actually production,
+because we store really sensitive data in there. And when it goes down,
+it can be a problem. Another interesting
+thing that happens when you write about things
+that are of interest to you is you start getting people who
+are also drawn to these topics. So when I first
+started my newsletter, I didn't get any emails. But then, slowly and
+surely, I got more people talking to me about these topics
+from their perspective as well. So it's a wonderful way
+for building a community, even if you didn't
+initially intend it to be. The second way,
+if you want to go a little bit of a more technical
+route, is to empower people to understand data. Data literacy these days
+is really, really important with how confusing and
+click-bait-oriented the internet has become. And anyone who helps
+make sense of that data, and make it trustworthy,
+is a superhero. A fantastic example
+of this is the work of Julia Silge, who has
+created books, courses, and writes on her own blog
+about topics like TidyTuesday, as well as showcases videos. She does a fantastic
+job of explaining and making it accessible,
+and has that content on her site to own. Another wonderful example is
+R-Ladies Sydney course, created by Lisa Williams,
+who was inspired by her own frustrations
+of getting started with R. The course goes through
+getting started, packaging, and R Markdown. And it's another
+great way to work through what you're
+interested in, as well as share it
+with other people. Another person who has done
+a wonderful job empowering people, from the Python
+community this time, is Ines Montani, who works in
+the natural language processing space on the Python
+package spaCy. And not only does she
+have clear explanations of how to use the package, she
+open-sourced a whole library that allows you to
+create your own course. Finally, cultivating
+your own garden can simply be about being
+human and creating connections. One of my favorite
+examples about this is the illustrative work
+of Allison Horst, who creates illustrations
+both for her own talks and for use in the R community. And they're just
+beautiful, they're fun, they're interesting, and
+they're creative ways to think about a topic that
+hasn't really been covered in this same way before. One of the recurring themes of
+"Normcore Tech," my newsletter, has been that even though
+we all sit in machines and write code or munch data
+for a great deal of the day, we ultimately crave
+human connection. As we do during this
+pandemic in isolation. We don't have a way to
+handle physical things. Especially now,
+cultivating our own garden, that's not subject to the radio
+frequencies of radio KFKD, is a wonderful way to do that. But what if you're overwhelmed
+by the idea of getting started and don't know how? There's a lot of
+really small ideas that you can draw from as
+well, that don't necessarily involve creating a course,
+or making videos, or creating your own blog. And so I want to cover some
+of those things as well. If you're feeling intimidated
+by these very large-scale, broad-ranging
+projects, there's much smaller ways to get started. And, in fact, one of
+the ways that I got started was by creating a blog
+and drawing memes, something like 10 years ago. And I've been hooked on
+content creation ever since. So there's some
+much smaller ways that you can approach things. One of the first
+things you can do is just make a commitment to
+write 200 words once a month. The most important thing is
+that you're writing in a space that you feel
+comfortable writing, and that is not an impediment. As an employee of Automatic,
+I can recommend Wordpress.com. But it doesn't really
+have to be that. Just any place where the
+technology is not impeding you from making small progress on
+a bunch of words every day. The second thing that you can
+do is share a piece of code. If the idea of blogging seems
+overwhelming, sharing code and talking about code can be
+a stepping stone to cultivating an online place of your own. It's extremely easy to write
+Markdown posts in GitHub, and an added bonus is
+learning an industry tool that's very widely used. Something that I started, that
+I copied from Simon Willison, is a directory called TIL, Today
+I Learned-- full of random code snippets and pieces. The benefit of this
+is that you come back to it again and again. I know that's true for
+me, and you won't lose it, and you have it for
+others to share as well. In a world of incomplete
+Stack Overflow answers, think of this as your
+Stack Overflow, that's filled with your specific
+questions and answers for your needs. You can also make a comic. It might not seem like it,
+but memes, comics, TikToks, and the like, serve as
+a really important part of content creation. And I should know, my Twitter
+feed is chock-full of them. Just because something
+isn't serious doesn't mean it doesn't have
+educational value or importance as content. I'm thinking specifically
+of the wonderful zines that Julia Evans puts
+out, that include things like learning Linux and
+Git, but in a fun way. You don't have to create
+even an entire zine. Even a fun meme about R,
+statistics, or drawing, like Allison Horst,
+are all great ways to share what you
+know and feel like you have some sort of control
+over the creative process. You can also do
+something like make a bot, which is what I did. If you like and
+have the opportunity to write code in your
+spare time, building a bot, based off of an API,
+a fun way to learn about how the web works and
+claim your little piece of it. A few years ago, I built
+something called Soviet Art Bot, which, as it
+says on the tin, scrapes WikiArt for
+socialist realist images and tweets them out once a day. I learned a lot
+during this process. But what I love
+about it is that I get to control my online
+environment through code. I'm creating and changing what
+people see on their timelines. Art is something I always
+appreciate on my Twitter feed. And as an additional
+bonus, it gave me the time to learn about Twitter
+APIs and Cloud computing paradigms. The three things that
+I just talked about are very tangible
+ways, but there's also very intangible ways to do so. The first one is sending
+an email appreciation-- either an email, or
+a note on GitHub, or a comment on someone's blog. It can be to the author of
+your favorite R package, someone you're working
+with, or just someone you've seen do cool stuff online. People love getting
+appreciation. And in an increasingly
+negative and polarized world, that kind of feedback is
+really hard to come by. You might even get
+into a conversation with the author about something
+and create something together, which has happened to me before. What I love about
+this, especially with the email aspect,
+is that it's private, but it's still a way to send out
+really great, positive energy out in the world. And finally, start
+your own community. One of the reasons that
+we feel overwhelmed is that big communities
+are intimidating. I've often talked about
+this theory I have called good things don't scale. Where one of the reasons
+we get stressed out about social media,
+is that humans are not meant to carry out
+as many relationships as are in Dunbar's number-- 150 people. We simply can't hold
+it in our heads. And so we lose context with
+all the conversations we have. The best way to fight that noise
+is to create a small community. That can, again,
+be in any medium. As long as it's a medium
+that you and the other people in the community keep up with. For example, if you know
+you hate text messages, use Signal or WhatsApp. The ideal community for
+this is under 10, 15 people. And these people should
+be fairly active. A community of like-minded
+people who support each other is the key to
+fighting the bigness and the noise of the internet. Because the process
+for caring for a garden is an important one, and
+it's a long standing process, and it's made up of a
+very large, broad range of multiple things. Every time you create
+something positive you're doing a small
+amount of work outshining all of the negative work in the
+world in the internet today. You are taking away one
+piece of noise, one ping, from your life. There are many reasons
+to do it, including the ones I talked about at
+the beginning of the talk. But mostly, for me
+personally, it's a wonderful way to manage
+my own 2020 anxiety and change the
+world bird by bird. Because when you're
+tending to a garden, a thistle cannot
+grow in that place, as Frances Hodgson
+Burnett writes. And maybe that's just
+as much of a reason to create a garden as any other. It's my hope that
+radio 2021 is going to be tuned to a much, much
+better frequency than radio 2020. Thank you so much
+for your time and I hope to see your
+digital gardens soon.
+
+
+## Vicki Boykis - Keynote "Build and keep your context window" | PyData Amsterdam 2023
+
+URL: https://www.youtube.com/watch?v=icGHT7MiaFY
+
+hey everybody welcome welcome to Pi Day Amsterdam thank you so much for being here thank you to num Focus to Pi data to all the organizers give them another hand look at how beautiful this venu is look how much work this was and thank you to all of you for being here it's so wonderful to see everybody in person and to be at an inperson conference again so today this talk is going to be about context windows um I was already very wonderfully introduced if you don't know me I'm Vicki I'm also going to put all the slides all the links there's a lot of content as usual for me in this talk um it's going to be on my website after this hopefully soon I already have a poll request out um so yeah I've I'm a machine learning engineer at Doo security um you might also know me from such former hits as Norm cor Tech the newsletter Norm conon the conference about boring stuff in machine learning and vibr which is semantic search engine based on Vibes and I also wrote a small paper about embeddings recently um today though I want to talk to you about something and also um I used to Tweet stuff back when Twitter was still a thing um and turns out I got to do number one which is tur into a conference talk about AI uh today though I want to talk to you about something that's been worrying me over the past year now as a machine learning engineer who's responsible for putting stuff in prod and as an Eastern European I'm worried and concerned and cynical about stuff almost every single day but what I want to talk to you about there's a bunch of stuff that worries me right um data drift nulls notebook cell execution order don't put them in Pride unpin dependencies service SLA violations the thing that I'm worried about today is the two fundamental problems in computer science you might know them already cash inv validation and name naming things and we're going to talk about why they're important so this joke comes from Phil Phil Carlton um who used to work at Netscape in the early 1990s Netscape was a really important foundational company in the history of the internet and they were responsible for stuff like JavaScript uh cookies SSL so they were foundational architecture of the internet why are we taking a deep dive into the history of what happened in the early 1990s because history is context and context is power and the more context that we have in any of the given work that we do the better our work is and the better and the stronger it becomes to illustrate this a little bit more I want to talk about machine learning so that's one of the reasons why we're all here right so machine learning is the art of extrapolating patterns based on past data this is from and norig it's a foundational text in AI a modern approach and what are we if not the original machines that learn we need to take context and turn it train our own mental model in other words our own machine should be a little bit tired at all times so to motivate this a little bit more I want to step back even further and talk about why context can be important in a global sense and I want to do this by talking about the two panes the first is a book by Susanna Clark um it's one of my favorite books that I've read in a long time uh it's a fictional account of an unnamed narrator who lives in the world we don't know where this world is we just know that it's a big empty house on the bottom there's a big ocean that collides with other waters there's millions of corridors and then the house is open to the Sea the unnamed narrator thinks that he's always lived here and we know this because he records everything that he writes in a notebook so he keeps the memories but then the tides wash them away so he still has some of them but really he loses most of those notebooks he thinks that he has always lived alone in this house and we don't really know what's happening to him there is one other person in this house um and that is the other and he kind of comes in and out he's very welld dressed and it's through interacting with this other and through the notebooks that pan realizes that things aren't what they seem and what he's actually experiencing is a lot of memory loss and with the help of some notebooks he's able to finally figure out what happens I won't give away too many spoilers because it's a wonderful book and you should read it if you get the chance um but what the other does is he jokingly calls him piery um this unnamed man and this is not explained to or alluded to in the books um but what this is is it's an illusion to the other penei which is jaavan Batista panesi who was an Italian or V or Venetian architect um and engraver and artist who was born in the 1720s um his brother installed a very strong love for Roman architecture for art um and for classical culture in him and he went on to Rome to do a lot of sketching and Engraving and so before he did engraving he did a lot of drawing and a lot of studying um and what happened was that he recreated the classics he did very very meticulous sketches of all the ancient Roman landmarks and he created a book called V views um where he really meticulously studied them so here's some other examples um and when he was looking at all of this ancient stuff he was a little bit upset because a lot of it at the time was very dilapidated it was ruined it was run down um it was in fields or in gardens or it was being destroyed there was no real sense of preservation of any of this stuff and so what he wanted to do was preserve it by means of sketching it or engraving it he went not to become very successful as an engraver um but what happened was because he did so much studying of the classics he was then able to do a series of sketches of imaginary prisons and a lot of these um are used today as kind of foundational views for how you should draw worlds or um build video games and he was only able to do this because he had done so much studying of the classics so you can kind of see The Echoes of ancient Roman all these but these are all completely imaginary things that he created so by doing that he was able to build on them and here's some examples and this is how it alludes back to the book of pazi because pany himself the imaginary one was trapped in what was kind of an imaginary jail so what do these two things have to do with each other they both relate to memory and context in the first one pazi the imaginary one was held captive by what he imagined was going on and he couldn't get out of this house because he didn't have any memory eventually it was his diary that led him to understand what had happened to him and he was able to trace his way back and the second py because he had studied history and because he had so much context he was able to draw on that he was able to not only preserve that history but also build on that and create new imaginary worlds for himself so why are these things really important because right now the stage that we are in machine learning engineering and data science and all of that is just kind of like a baby stage right we've only been at the practice of software engineering for the last 50 years we the precepts of information retrieval of computer science with um Allan and vanar Bush was in the 1940s at a love lace who was considered the first developer programmer um was at most 100 200 years ago electrical engineering was only invented 250 years ago math and physics are really old right so where we are right now in the data world is we're at like the very very Beginnings even though it might seem like forever ago so I put Hadoop here because we think of Hadoop as an old technology was from 2006 um so all of this is important to keep in context for how how much has actually come before what we're doing and how much swirl there is in the current data ecosystem so if you look at this um machine learning is 50 years old Max but the concepts have been reinvented time and time again and if you look for them you'll see that the patterns are there so sorry for the slide I know there's a lot going on there but if you look at it it seems like there's an overwhelming amount of stuff how do we navigate our way through it how do we form our own context Windows how do we hang on to what's important how do we take control of the flood one way we can do that is do what Ellen man did so Ellen Olman is a really strong developer um she worked in the 70s 80s and90s at startups at large systems she did a lot of see a lot of Fortran so super hardcore developer um and she was also she is um a really prominent writer and thinker about software systems um and in one of her books she wrote an essay called the dumbing down of programming some thoughts on programming knowing and the nature of easy and in this essay what she did was she wanted to uninstall Microsoft Windows and install Linux and this was in 1998 so you have to understand the craziness of what she was trying to do people were lined up at midnight it's bu Windows 98 um Windows was as Microsoft is today at a very Peak popularity High uh 15 million installs of Windows on tone to get an idea of how much that is in today's world of apps that have hundreds of millions of users only 43% of people had computers in the internet at that time so what she wanted to do was install this operating system that this guy invented that was just a hobby he said it won't be big and professional um but Linux was already growing in popularity at the time in order to do all this she had to do this series of steps so first she had to get CD ROMs of Windows NT she had various stages in different stages of upgrades so she did that then she had to repartition the hard drive which you have to insert the floppy find the right floppies then she had to reformat the hard drive to include only dos which is the underlying Software System then finally she was at the point where she wiped everything and she was essentially a bare metal with no operating system and at that point she got this air noon basic system halted what does this mean what was this error message so it turns out the way that the software was developed was you had windows on top then you had Doss underneath then you had basic and then underneath all of that if anyone's doing to talk about Day times um in IB mpc's 1980 was year one so everything was based on that so she deleted the first two parts and then she got to the point where the operating system was basically looking for basic which it didn't have so what she found was that she had not seen a PC with built-in basic in 16 years but there was a vestigal trace of the history when she Unearthed everything this is really important because all the systems we build have these vestigal traces we can look for them and if we dig through the Pyramid of what's really happening we can understand the concept later on she wrote we build our computers the way we build our cities over time without a plan on top of ruins when we build software we might want to think about this as a form of context so how do we build our context window now we come to the actual problem of the talk which is cash invalidation so when we have an application any application we have two fundamental things that we're trying to solve in it in a web app um we have processes that are IO bound so we're trying to move data from one part to the other and then we have processes that are CPU bound so we're trying to process that data in memory and most of the app is concerned with these two problems particularly these days when you have Cloud architectures moving data between two machines is really really really expensive this is a problem in all applications you can see this pattern everywhere um in fact in a recent article about machine learning called distilling what we know this is an ACM article they talk about the bottom knock problem which is the problem of moving computations to the GPU so you can paralyze them so it's talking about no longer how fast you can perform computations but how fast you can feed data into the system so again iio bound and CPU bound it's a very common pattern um so what happens is we have to design our software to work work around those systems and to work within those constraints all of our software is always working within the constraints of time and money and often so Sarah hooker has this great um piece that she wrote called the hardware Lottery about ml Computing where she said research ideas win because they're compatible with available software and Hardware that we have and not because the idea is the best so we're always pushed in the direction of constraints when we design our systems even the jard loom which happened a long time ago is thought of as one of the first programmable machines was so expensive to rethread it was typically threaded once so this is the first first first example of caching in order to prevent having to recompute and move data what we can do is we can put it into a cache and a cache is essentially a piece of software that operates in memory in Ram where we can put all of our results instead of having to hit the database constantly all the time and have it available in cash for us to retrieve from our application so this is a really great pattern that works around the constraints of having to always be iio bound if we think about it in Python since this is pi data how do we do these lookups against caches we have a set of key value pairs what is the set of key value pairs it's just the dictionary so you have a key and you look up a value that's it that's how cash Works um even chat GPT which has architecture that's so expensive that it has to basically run for $700,000 a day this is all the stuff it has to do right so when you enter something into chat GPT you have a query then it has to authenticate you against the server then it checks the cach to see if the query is there which is how it gets that list of titles and Chats on the sidebar then it performs the model inference which is when it starts typing when did like this really clever trick to make the pointer blink so that you would know it's doing reference then it Returns the results then it adds those results to cash so you have your chat history and has to do all this in milliseconds so this is all really expensive $700,000 a day expensive for millions and millions of users but it also has this chat cache so this is great this is a fantastic pattern it helps makes our applications performant um when we find stuff in the cach that's a cash hit and we can get it directly and it's quickly when we don't it's called a cash Miss and then we have to go either the application airs out or it goes to the database to look for this data and that's expensive so we fixed the problem but now we have this other problem of the cash Miss and what a cash is is really like a context window what is a context window what is the title of this talk it comes from the NLP Comm community and the idea is that it's a range of tokens around a word or given word that allows us to understand the meaning of that word that's a we're trying to build history for a given word so in some ways a cache is like a context window so when we say the two sentences Suzanna Clark is an author she wrote piery when we say she we know that we're referring to Susanna because our internal context window keeps that machines don't know this so we've been trying to build context Windows into the way that we do machine learning and applications like I said our brain our brains use cach our brains use this concept of the context window so there's really great book called The programmer's Brain by feline hermans and she talks about the fact that we have three parts of memory we have short-term memory working memory and long-term memory and all those pieces need to work together when we're right writing or more accurate reading code because we spend a lot of time reading code so we have a piece of code it goes through the filter of and then it goes into our short-term memory and then it also looks up on long-term memory so the short-term memory is like Ram it looks up based on what we know from our previous experience and then it combines all of that in working memory which is like a cache and that's how we can read programs so what happened in December 2022 at least for me I know and for a lot of my friends who worked in machine learning even was that basically our internal caches broke it seemed like chat PT came out of nowhere um nobody had any idea what to do with it and everybody was kind of dumbfounded even in machine learning this was kind of like the context my context window when chat PT came out I had no idea what was happening um but what happens is if we go back if we start to build context we can build up to this context Windows themselves are not new so well we can think of it as as as a Markoff chain before I get cancelled disclaimer LS are not Markoff chains a lot of people get angry about this um but what we can think of is that they have similar statistical properties so hundreds of years ago Dude called marov and others before him who build up to this concept um have this idea IDE that you have two states and you can think of these as characters or letters or anything and you have the probability of transition between those States so the first of this was the first order Markoff chain where the probability of transition from e to a is 7 and E to e itself is3 and you get this from past data that you pull um so you know that the next generated letter token or what have you these are the two probabilities there a very simple way of understanding the relationship between two events it's simple um but people have been using it for a very long time and in fact in this book practice of programming from kerning hang and Pike uh who wrote a lot of the Unix kernel which the Linux kernel that alen man then tried to install is based off of um have this practice problem for you to practice programming this book is really great by the way um and they say we're going to implement Markoff chains so this is not new and even your truly has been implementing Markoff chains don't look at this code it's very bad it's from 2015 when I was a new engineer um I basically implemented this program to create Hacker News Headlines which is essentially kind of what chat GPT does so you can see the results are iffy but it's like a baby Al so the Markoff chain gives you the first token of context in our sentence and now we're starting to build our context window we have this foundational structure that we know this has happened before next stage turns out that one state transitions are not really good especially when you're dealing with a lot of texts and Google and other companies started working with engrams um and they released this in 2006 and the idea is that you can now look at more and however many 1 2 3 Etc um so then you start to build statistical models of not just the next token but two or three or four tokens surrounding it so that then you get to the point where you your context window is the entire sentence did a lot of stuff with this so now we have another tool in our toolbox to understand how we can perform text analysis then that wasn't enough cuz they were doing a lot of text processing um so in 2013 between this by the way um there's a bunch of other statistical methods that I won't get into for the sake of time um but word Toc was the next really really big one um and this was one of the first neural network approaches to understanding context Windows Google released it in 2013 um and this is a neural network so what it does is it takes the inputs and it creates a set of embeddings or contextual representations of words instead of manually calculating them one by one um and then it gives some sort of output probability kind of like markof chains that the words are related to each other so there's two different architectures there's CBO and Skip grams um the way sibo works is it holds out a single word from a sentence and then based on the embeddings it learns it says How likely do you think it is that that word is likely to be in the sentence and then it'll give you an output set of probabilities much like a Markov chain so in our case what we would do is we' hold out rote blank create a statistical model for it and then say she wrote panaz which gives us more context so we're continuing to build context Windows however it had a bunch of limitations due to its architecture so then people started looking at other neural network approaches to this um and the next one after this so fixed embeddings you can't really change them if there's a word that's not as the vocabulary you have to retrain the model again and again and because the context window in that model is set it's also limited by the context window so now we have three levels of approach so now we have Markoff chains the statistical language modeling that I skipped over LDA and LSA and now we're at neural net so none of this is new we're just building up and learning our history then we get to recurrent neural networks this was able to do variable length sequences because it had a look back window um but it was computationally very very expensive to perform so then Google again um invented the Transformer it didn't invent the Transformer it put together a bunch of different concepts in a paper uh where it said how do we deal with the fact that this cannot perform computation in an efficient way and what it came up with was this concept of attention and attention um there's a lot of explainers different of it basically it keeps track of all the words in your given text and how they map the different representations and creates weight weights of them so now we're Transformers and GPT which is a type of Transformer does the same thing what is ATT tension in reality it's just a hashmap which is what a cach is both probabilistic Vibes which is what Mark chain Markov chains also do it's all the same when we build to these Concepts we're increasing our own context window for what we learn and for what we know how to do and in fact if we go back to our cache situation redus which I'm going to talk about in a second its acronyms are remote dictionary server so a cache is a hashmap is a context window and it turns out that context windows are also important with chat PT because in March 20th there was a memory leak um I don't know if you remember this but but you could see other people's chat titles and maybe some of their contexts and here's what happened so the way the inference server for chat GPT works is you have this chat history you have the web client and then you have redest which keeps this chat history um and the way it works is through python async iio through the redis py client Library um and it creates basically two cues one where it pushes stuff onto the queue and one where it pops stuff onto the queue to return it and then when it actually needs to perform inference it goes to the model python server that's running on kubernetes on like the 700 7,000 nodes or whatever they have this cluster um but what happened was they pushed the library update which broke the push operation and when the push operation breaks the connection is drained and the chat titles are no longer connected in push and pop so you can get someone else's chat titles and that's essentially what happened on March 20th which they fixed right away but it turns out that all this stuff even though it seems crazy it's all interconnected and it works together so even if you use Chad GPT you still need to know hashmaps um this says I have five minutes but I should have more right yes okay cool thanks there's no way I'm going to get through everything in five minutes there's a lot more cont context okay so what context Windows do is they give us the ability to be really confident Engineers they allow us to understand engineering they allow us to understand the hype of llms which is really just foundational Concepts building and building on top of each other and they allow us to evaluate the hype of not only llms but the ecosystem itself they're really important and we need to continue building them so now we get to the second part which is naming things so we talked about cash and validation which is really hashmaps which is really context Windows now we're going to talk about why naming things is important and if you don't have this F first part of hashmaps and context Windows you cannot get to the second part so we've all had this thing where we try to pick a name for a variable it's like do we call it X do we call it notebook version 5000 should it be a cach is a data store is it a vector is it a list why is it so hard and there's a really cool book that came out recently called naming things by Tom Berner um and the reason that naming things is hard is because we need to know one exactly what the thing does the name for a thing and that the name will be reused in the code base so given all of that there's a lot of pressure to come up with really good names because we need the context window of the historical context of the name business context the context of our code base and the context of the computer language that we're working with so let's say for example you're building a semantic search engine hypothetically um that recommends you books based on Vibe so you have a search query it goes through a flask API it hits reddis um it comes up with books that are similar to The keywords that you entered and then it Returns the results and let's say that this is based on embeddings which are context um and then let's say also uh that we need to return these results to the user how would you go about naming the process that regenerates the embeddings because as you know in machine learning we create one model then we iterate and it's not good then we need to check again then we have four versions of this model so let's say you need to reindex these embeddings over and over again so the problem is to write a module class that repopulates a cach with embeddings which are context what are sets someone wrote a book about this tldr um the rules for naming classes so we when we think about what we want to name it it needs to be a noun should be consistent with the rest of our codebase and easy for humans to read so you could go with something like embeddings writer or data writer or when you're tired of naming stuff just Vector putter none of these really work well so what we can do is we can dig through history um and it turns out that some smart people before in the early 9s had written a paper one of the first recommender systems called tapestry and this was in like' 91 or '92 um and the idea behind tapestry was to use collaborative filtering where you could use other people's actions to determine what kind of stuff you got recommended and in this case the stuff was um messages from mailing lists in your email so people it turns out in 1991 people were already flooded with messages so there's no hope for for us today um and so the way this system worked was it created a list of collaborative actions based on what your co-workers or other people this was developed at Xerox um had been interested in so if you dig through the paper it turns out there's this thing in the architecture there's this thing called an indexer so it reads documents from email newswires Etc and the indexer parses those documents into a set of index fields that can be referenced and queries there is we already know that indexer as a concept exists as early as the 1990s and so what we can do is we can name our uh class the indexer okay so I've talked at length about why it's important to have the historical context and keep that historical context how do we do that how do we build this for ourselves there's a couple of different ways one is to become a binary tree um um so a tree is a structure in computer science which you can Traverse efficiently you can Traverse it either bread first which is across the width of the tree or depth first go really deep in one thing um you can do both of these um and that's what I suggest that we should become we should go bread first and then we should go depth first and find out what we need to know so first of all read broadly um you don't have to read everything but just a little bit of things to get enough idea um so this is what I started out this this is kind of like a picture of my sack of books like two three years ago um and the important thing is that they should also some of this should also be books I think we forget a lot of times that we can read stuff in books um for computer science and data stuff um and the further back you read like for example the book from 1999 art of programming the more stable that stuff is like it won't change every couple years um so I had this stack and I was overwhelmed by how much I had to read but the second part of it is um so my husband Dan who is also a software developer um he's tired of me complaining about this all the time he said look if you read part of this stack some of it is going to relate to other Concepts that you understand right so if you read about binary trees then you know about graphs then you can know about hashmaps all of these Concepts relate to each other so if you read one book book you have to read less of the second book and less and less so you can go broad but then that ends up not having to be as Broad and then second is read deeply so especially if you're interested in like the llm stuff or just in general read papers so I was reading a paper a couple weeks ago on GPT training data and it turns out that they use spark and Spark's native algorithm which is not something you really associate with GPT right it's sexy in the cloud it's no they're just using spark to clean it they're just like the rest of us um and the second thing is read code that you use a lot deeply so the code that you read at work any code that you might come across so I was curious like when you do git I misspell git commands a lot I was curious how the AutoCraft works and it turns out you can just they will just let you go to the git repo and look at the code um and you can just see that slav steam distance so stuff like that really helps you understand that nothing that we're working with is really magical or mystical it all Builds on top of each other to get out of your head talk to other humans that's why we're here right we're in inperson conference it's great there's no social media here it doesn't exist um just talk to other people talk about their work problems ask them what they're working on it might be that they're working on some of the same stuff that you are and that's what helps us build context Windows as well um so in py the book py himself is observing flocks of birds this is one of the things he does um and he says that the wisdom of birds not in the individual but in the flock in the congregation and outside of books talking to people who are doing living breathing data science is very very good then build from first principles um so later in the book Ellen man talks about being close to the code um so this was in the early '90s still but I think the same concept still applies there's the idea of being close to the machine and what that means is being close to the source of whatever it is is happening um so when an engineer refers to low-level code it's good when we talk about lowlevel stuff in real life it's bad but our lowlevel code it's good because it means we're closer to understanding the fundamentals of whatever it is is going on low is better so what are some ways you can become close to the machine so I really like this from Andre Kathy where he in like the world of vector databases and Vector stores he basically keeps his vectors in an NP I do not recommend this in production um but if you really want to understand how Vector retrieval works this is a fantastic way you can build it you can look at it you can interspect it and then you can understand how some of these larger systems are making the decisions they do that's being close to the machine because you're abstracted away from the cloud abstracted away from vendors apis you're close to what is actually going on underneath um Sebastian rashka who's also has a fantastic resource on machine learning he says that he implements some of his own algorithm from scratch now you don't always need to do that but if you want to understand something whatever algorithm means for you it could be a machine learning algorithm it could be building a cach it could be moving data it could be a database whatever that is try building out from scratch to see if it gives you intuition for how to do that and then think about how it relates to the higher level Concepts you're working with and finally build with joy um so this is for myth mythical man month by Frederick Brooks and he says that the programmer like the poet Works only slightly removed from pure thought stuff he or she uh builds Castles in the Air creating by exertion of the imagination and that's really cool that you can take something from your memory from the programmer's brain and put it down and build it and have it be out there um the most important part of this is to actually ship something um so Mitchell Hashimoto who founded Hashi cor has also a really cool blog um he wrote that when he broke his tasks into chunks by seeing forward progress and then shipped it that was good for him and in data land that can be really hard especially when you're deliverable is a piece of data or context but the more we allow ourselves to ship and execute the more exciting it comes it becomes for us to explore these things as well so tldr hash Maps caches context windows are all the same keep building them the more you build them the more you're going to be empowered especially in the fast moving world of data and that's it thank you so much
+
+
+## Human in the Loop ft. Vicki Boykis, Duo Security
+
+URL: https://www.youtube.com/watch?v=ocsCczEKDkI
+
+[Music] you're listening to numerically 
+speaking the anaconda podcast   on this podcast we'll dive into a variety of 
+topics around data quantitative computing and   business and entrepreneurship we'll speak to 
+creators of cutting edge open source tools   and look at their impact on research in every 
+domain we're excited to bring you insights   about data science and the people that make it all 
+happen whether you want to learn about ai or grow   your data science career or just better understand 
+the numbers and the computers that shape our world   numerically speaking is the podcast for you make 
+sure to subscribe for more resources please visit   anaconda.com i'm your host peter wayne hello and 
+welcome to um the podcast and um i really i'm   just so glad to um to to welcome vicky boykiss 
+on here with with us we're really honored to   have you on the show and um while uh some in our 
+audience uh may already know you many are probably   already familiar with you um but can you quickly 
+share just a bit of background on who you are and   and what you do for those who are not familiar 
+and maybe tell us a little bit more about   about tumblr and about automatic sure thank you so 
+much for having me peter i'm so excited to do this   um so like you said i'm vicky voykus i 
+am a machine learning engineer at tumblr   which is part of automatic so tumblr itself is as 
+i describe it the anti-social media social media   platform um it's been around for 15 years now 
+wow um and it's um there's no one single way to   describe it but a good way would be it's a home 
+for artists it's a home for creators it's aware   place you can express yourself and it's part of 
+automatic which is the larger company that owns   companies such as wordpress.com day one and 
+woocommerce and it's basically um all about making   the web a better place a place to express yourself 
+a place where you can sell and create your content   that's that's fantastic um and uh and you called 
+the did you say anti-social social media that's   the way i like to describe it anti-social social 
+media um yeah so one of the cool things about   it is um you don't have to use your real name um 
+there's a lot of artists there's a lot of creation   going on um and the way our users like to think 
+of it as kind of like also stream of consciousness   so right right i so i i'm sure we'll come 
+back to this topic later um but this idea   of actually having a free space to be 
+who you are or to express yourself um   may actually make it it's a different kind of 
+socialization and one might say the amplification   platforms that we're familiar with today uh the 
+ones in which you and i are so famous perhaps   but still those are actually more antisocial in 
+certain regards right they certainly incentivize   a lot of antisocial behavior unfortunately but 
+we'll get into all that later but maybe to start   off with i will just seize on something you said 
+you call yourself a machine learning engineer   and did you always call yourself that or at 
+some point you know didn't didn't you call   yourself a data scientist at some point or was 
+it always ml engineer yeah so it's been it's   been an interesting evolution um my background 
+is actually in economics which i think is true   for a lot of people in the data industry probably 
+like the two most common jobs i see are economics   and physicists we love to congregate in data 
+and i actually started as a data analyst and   kept running up against this thing where i 
+had to do more and more software involvement   and i found that at first um i wasn't too 
+interested in it um but then i basically   saw what software development could do so i 
+think the first job i had um i was basically   an economic analyst so i actually graduated with 
+a job in my major which i think is pretty rare um   and i had to analyze some data from the world 
+bank and it was on the world bank website   and i was taking a row and it was in like this 
+horrendous columnar format that you see in all   open source data everywhere so i would just take 
+a row at a time highlight it copy it and paste it   into my excel sheet um and then someone showed me 
+at work they're like did you know that you could   scrape this data with a python script and i'm like 
+what um and so once i saw that you could do that   i thought i'm all in i'm all in on what this 
+entails nice um and then i went on to do more   and more progressively programming things so i 
+did go into data science then after data analysis   um and then at one of my jobs i had the fortune or 
+unfortune to be placed on the team that was being   introduced to hadoop at the time um as as a data 
+scientist and um i started writing it was at the   time pig scripts so there's this meme going around 
+twitter telling me how old you are without telling   me how old you are so one of the things i did was 
+pig scripts um which was like the original data   science um and then i thought this is really cool 
+how can i do more with this how can i get more   involved with this and so i move progressively 
+more and more towards from um kind of looking   at the data side of things to actually creating 
+and programming this these systems and i think   in a way that's where um the entirety of data is 
+headed um not that everybody is writing code or   fortunately interacting with hadoop um but it is 
+getting to a point where i think we started in   data science where everybody was kind of doing 
+these analyses these one-off analyses excel   are etc um just on their machines and they got 
+to the point where oh okay this is a really cool   thing we can make it part of a product how can 
+we actually build this into our application how   can we build recommendations in our application 
+how can we build these machine learning models in   and so i think everybody is kind of getting to 
+the point where we're moving closer and closer   to what we consider to be software development and 
+production environments and so i think my career   progression has hopefully not um just like a 
+one-off bias but has reflected where the industry   is headed as a whole right right well and what's 
+interesting about that is the we look at this and   we say well as data science goes from exploration 
+to producing things that are part of production   production applications and and whatnot um data 
+science has to mature in certain ways right um to   kind of meet the standards of software engineering 
+and what what the people who operate these systems   and get paged at like two in the morning like what 
+they would expect from a certain level of quality   and whatnot and that all makes sense but um but 
+you know in life uh everything changes everything   else so what are the ways that the requirements of 
+these data systems these online prediction systems   different systems what are ways that you're seeing 
+these change how software engineers in traditional   application development who are used to writing 
+like crud apps or little database things or   whatever things um as they start looking at these 
+you know giant data driven things and deploying   them how does it and software how does it change 
+or how have you seen it change or or maybe   reluctantly or try to refuse to change you know 
+what tell me about that part of the interaction   yeah i think there's a really interesting 
+interplay between what we consider   traditional software development and what we now 
+see in machine learning or data driven development   as a whole and so like you said so the traditional 
+development loss uh life cycle is what so you have   a crud app where you're developing a feature let's 
+say you're developing a toggle to do x y and z in   your app so what do you do so you develop this 
+toggle you test it you have unit tests does this   toggle work on and off etc you launch it you put 
+it behind a feature flag and that's you're done   with creation feature it can be pretty open-ended 
+in some ways um like is this the right framework   to use do i need to architect this toggle to be 
+able to be hit a million times a second whatever   um but in general it's pretty close ended um 
+and the way that data development works it's   very open-ended it's very different because how 
+does how does machine learning work so you have   some data you have to spend a generous amount 
+of time 80 low level estimate um cleaning it   getting it ready for features getting it ready 
+to be part of a model then you create the first   iteration of your model and that might be a 
+good model or it might be a bad model what   does it mean for it to be a good or a bad model 
+maybe it could be classifying things correctly   or it could be classifying things incorrectly 
+or it could be serving new recommendations what   does it mean for a recommendation to be good or 
+bad it could be good for you it could be bad for   the platform etc it could be good in general it 
+could be bad in general as well so what does it   mean for the results of a model to be good or 
+bad obviously there has to be human in the loop   evaluation on that and then do you do a second 
+pass of this model so maybe you do then you   create more results from this model is this a good 
+model is this a better model than the first model   and so um if we do have a what we consider to be 
+a bad model for whatever metrics we follow whether   they be offline metrics on model precision recall 
+accuracy or online metrics or people clicking   on the results of this model um we might 
+need to go back and collect more data   or it might be that this works and then the data 
+that we're collecting changes someone starts   logging something differently all of a sudden we 
+have null values for certain features um and so   then the model doesn't work anymore so the machine 
+learning model the process of creating a machine   learning product is a lot more open-ended um and 
+i think that where we bump up into the traditional   constraints of software is software says this 
+works or it does not or you get an exception right   um with machine learning you also get exceptions 
+you get a lot of exceptions a lot of yammel   validation errors um but you also have this thing 
+where there's a lot more human judgment that you   put into the system and i think that um we're just 
+starting to figure out how to make space for that   in the development cycle right right now that all 
+that all makes sense to me i mean the way i see it   um a traditional software developer has the luxury 
+of being able to specify what correctness is in   general you start knowing what correctness is 
+kind of i mean you spend a lot of time trying   to get the business requirements nailed down so 
+that does take time uh but once that has sort of   been moved semantically from the business domain 
+into some kind of um specification or something   like that a technical specification you can then 
+build systems that then have you know whatever   inputs but but you know if it's it's right or 
+wrong but with um data data what i call the   value dependent systems right that you know even 
+just the sub you know you imagine when you give   a coding test to someone hey you write a function 
+that reverses a linked list or you write a   function that adds a list of numbers or something 
+and um and there's a correctness aspect to it that   once you write that function the function is 
+correct regardless of the values in the list   sort of right but then all the data people know no 
+actually you can write a function and it's right   for some values and wrong for other values and 
+holy crap how do we build an entire production   system where every piece has this kind of a wiggle 
+to it right and that is incredibly difficult   um and i think you know this i'm gonna go on a 
+limb here but i suspect also that this intrinsic   complexity of building ml systems and deploying 
+animal systems is obscured sometimes by a cultural   um impedance mismatch between the kinds of people 
+who are often building these systems versus   traditional people who are building database 
+applications and sort of you know business   software app kind of things um because you're 
+right they're economists they're like washed   up physicists they're people who come from this 
+data world and they end up being data uh or ml app   builders and so like at least what i found during 
+consulting ten years ago there was definitely a   bit of like you know like you're not from around 
+here are you kind of like experienced when you   met up with a whole room full of java architects 
+right you're like no i haven't read all the books   so i can't speak all the java architect you know 
+lingo but i'm telling you this is a thing you   have to solve and this is actually really hard not 
+because i'm an idiot but because it's really hard   and that is actually sometimes hard to it's um you 
+know all these computer systems are the result of   humans interacting with each other and humans 
+tribes of humans form tribal sort of identities   and all sorts of like um you know baggage right 
+that makes this difficult have you seen that um   you know kind of in your experience do you see 
+any flavor of that yeah i think something that   you touched on like the human aspect um i think it 
+can be sometimes hard to reconcile the fact that   all of the data that we're working with to put 
+on into these systems is human generated data for   the most part unless you're dealing with i don't 
+know like statistical control in factories etc   um but even then humans play a part of that 
+process because human built those factories   and so there's definitely um there's a shape 
+to the data there's a flavor there's a nuance   there's a way to understand this that is 
+inherently like you said at odds with traditional   software development which is we have a functional 
+spec we put data in we get something out we don't   really care about what we put in and what we get 
+out and if you notice that it's true like when   you do unit testing for traditional software right 
+we only care that this function works and it's not   a pho it's not a focus or you're not supposed to 
+have like a lot of data that you mock out because   the idea is just right the function works well 
+you're supposed to test you're supposed to test   extreme values or certain kind of error conditions 
+right right but you're not supposed to test like   you have ten potential values for this what 
+happens with this what happens with this um   but you do need to pay more attention to that in 
+machine learning as well and i think uh like yeah   these two different mentalities it's something 
+that i thought about a lot um when we're doing   software engineering we care about building things 
+that data can just pass through easily when we're   doing machine learning we care about the data 
+itself just as much and i think those two things   both complement and are at odds with each other 
+yeah so there's a there's this absolutely um   there's this amazing quote from uh jim 
+gray that i'm going to try to find here um   uh here i i just presented this uh well i've been 
+presenting this for a long time because you always   you can make yourself sound really smart by 
+quoting smart people this is a cool trick   it's a cool cool conference uh stop talk trick but 
+um but jim gray has this uh really great quote and   he said what is it um uh the the separation 
+of data and programs is artificial one cannot   see the data without using a program and when 
+most program and most programs are data driven   so it is paradoxical that the data management 
+community has worked for 40 years to achieve   something called data independence a 
+clear separation of programs from data   and and when i read that you know however 
+many years ago it sort of blew my mind in   the sense of like oh yeah no you're right like 
+we build database systems or you know hadoop   big scripts whatever it is or it just could be an 
+oracle standard you know you know bog standard sql   database but we have a data management a program 
+that does data management that's independent of   the data and there is some regime where software 
+that is data independent is still useful it's   useful because it's better than pen and paper it's 
+better than people calling each other up okay so   it's a little bit useful in that regard but now 
+we're going into a world where we're realizing oh   data sensitive value dependent computing programs 
+that that are the synthesis of code and data are   incredibly powerful undeniably you know impactful 
+but we have absolutely no theory as an industry   to to manage this really we're just trying to 
+figure this out um and i think you you use this   quote before you said that um we're still in the 
+what are the steam power days of machine learning   right um so so do you what do you think will 
+d demarcate the the end of the steam powered   era in the beginning of the fossil fuel era or 
+something like that or i don't know what is the   post-steam peel i guess that was also fossil fuels 
+nuclear-powered ml yeah i think uh i don't know i   think the we're getting to a point so just to back 
+up and give a little bit of context to history so   um we had this era where we had compute that 
+was close to storage right in a traditional   database system then we took those traditional 
+database systems apart because storage became   very cheap and transferring data over the network 
+also became cheap so it was easy to separate them   and create um like the hdfs data lake et cetera 
+s3 era you just throw everything that you have   in there and kind of let spark sort it out 
+right so that was like the past i don't know   i don't even know where how time moves in you 
+know the date of science machine learning life   cycle anymore so that was like the past 10 years 
+now we're getting to the point where people are   like okay we have these systems separately 
+but now we want to keep them close together   um so now we're seeing the bundling like who was 
+it that said everything is either you make money   in either bundle business is bundling yeah and the 
+same with data too so we started bundling it then   we unbundled everything we put it in mongodb and 
+we put it in hdfs and then we just had our program   sorted out and now we're getting put to the point 
+where oh we have a lot of stuff that's on bundle   all over the place now we want to keep a 
+close eye on it so now you have technologies   um like delta like for example um postgres just 
+released a machine learning module where you can   do machine learning in the database itself um 
+is a way to kind of like move the database to   machine learning so there's different theories 
+on how this is happening but i see all of this   is moving closer together and then there's also 
+a larger amount of architecture going on around   these systems so mlaps obviously everyone's 
+talking about mlaps everyone's doing mls   um so now you have mlaps which is like 
+okay we had these systems in the wild   maybe we want to now manage them like we manage 
+actual software and write actual software and you   have monitoring and you have this and this but i 
+don't think we still know entirely how to do it   um but we're working to the point where again 
+back to like what i was talking about where   my career is headed we're working to the point 
+where we're getting closer and closer to software   engineering we don't know exactly how it'll 
+be different yet but we're starting to congeal   with data right together well so because this is 
+the um because this podcast is called numerically   numerically speaking um we can be a little bit 
+more opinionated uh and as an ex-physicist we   can you know we have the physicist conceit 
+we can always bring to the table and say you   know the software engineers don't know what 
+they're doing either because they will the   senior software architecture will be the first 
+to tell you software is architecture before the   arch right it's still it's also um one of my 
+favorite quotes about software is that um you   know science advances by scientists stand on each 
+other's shoulders software developers move forward   by standing each other's toes right and that's 
+essentially layers and layers of bandages that   basically uh it's like sedimentary compress into 
+becoming substrate and because the poor hardware   engineers work late into the night to make things 
+faster they spend all these time all this time   making these a little bit faster and then we just 
+throw like another vm abstraction on top of it   because why not right um because we can't be 
+bothered to read the docs right and so i feel   like even as we're saying we want to make this 
+stuff more and more robust we want to figure out   how to productionize it um i don't think that 
+the way people productionize software it should   be the gold standard i don't think it's really all 
+i don't think it's very great on that side of the   world either so maybe we can find our a a golden 
+path a middle path between these different worlds   but i think certainly there are some um uh just 
+intrinsic hard constraints that the data world   brings into this and and this is why personally 
+i like to to try to use the word cybernetic more   often because these are control systems these are 
+sensing systems prediction systems control systems   and um as we deploy ml to the edge more 
+and more we'll find that the sensor plus   the sensor training action sort 
+of the ooda loop in the edge   is going to become a bigger bigger part of 
+people's architectures especially as we have   data privacy if we go to federated learning and 
+things like that you're not going to be able to   pull it all together to some gigantic data center 
+you have to figure out actually new application   prediction architectures that work when they're 
+federated at the edge um so i i just i really   want to make sure for people who are listening 
+um that you know we we're we still we hold on to   our own sort of set of values around this those 
+of us who who uh are mathematically inclined um   so so yeah well the the other thing i want to ask 
+you about sort of um around some of the stuff so   the high level this consolidation of computer 
+storage um and and the emergence of ml ops   of course there's a lot of conversation around the 
+the modern data stack and and there's all you know   great great um data twitter threads about some of 
+the stuff mocking it talking about it seriously   where do you think why why is there such 
+a cambrian explosion of not even just like   projects and companies but even like entire 
+categories right um right now it seems like   there's more now than there was before what is a 
+covid is it more people showing up on twitter and   it passed some threshold what is it when you're 
+talking about categories you're talking about   um like what the modern data stack is or just 
+generally kind of like these classifications   yeah like ml yeah so so the data the modern 
+data stack set of conversations are around   i mean that sits a little bit more squarely in 
+data engineering right the intersection data   engineering and data science let's say but then ml 
+ops and all the cube flow and all the other kinds   of things like that's in a kind of a different 
+space that's the intersection of data science and   uh more like i.t and software development and 
+software deployment right and then there's then   there's there's there i i actually saw the word 
+deep ops right so for operationalizing don't laugh   it's not nice we don't laugh at people when they 
+use terms like this we try to understand where   that's coming from right because actually most of 
+the ml ops stuff for is container based and that's   notoriously difficult to do gpus very well with 
+those things right so do we need different iis   providers to do deep learning operations or is 
+it different like so all these startups coming   in vc's throwing money at them new terms are being 
+minted faster than gardner can you make quadrants   and at the end of the day you know where do where 
+is someone even get started how do they know what   is good and what is what is crap and what's 
+hype like what what give us some clues here   yeah i think i think a lot of this is um well not 
+a lot of it but some of it is partially due to the   way we do compute now which is in the cloud right 
+so the way we used to do um compute and software   development and data analysis um was that so for 
+data analysis we'd do locally software development   we would have a monolith right you would have 
+a big monolith you would work on that monolith   together um now everything is being broken up 
+right so now what do you do if you have a monolith   you have to break it up into microservices 
+um for some definition of have to um and so   now what we have is we have a lot of and what are 
+microservices right and so if we're in the cloud   what it means is you have this service that does 
+this you have this service you're basically gluing   different things together right so we had the 
+monolith we broke it apart into microservices   now what do we have we have 10 different services 
+for machine learning that you have in aws or gcp   and you're just basically trying to get them to 
+talk to each other so i think a lot of this comes   out of the fact that you now have you now need a 
+holistic view into these systems and like you said   machine learning systems are very very complicated 
+maybe even more complicated than software systems   because of all the nuances that you mentioned and 
+especially because we need to have humans in the   loop at some point for a lot of these systems 
+evaluation with data specific privacy gpr all   that stuff federated um privacy all that stuff um 
+and so what happens is people are i think a lot of   this comes out of the fact that people are trying 
+to wrap their mind around like this whole system   in some way and try to control and reason through 
+and reason their way through this whole system as   it applies to their entire stack and that's where 
+i think a lot of these startups come in that's   where this management we have a lot of layers like 
+software development today you might be working   with i don't know 10 different layers context 
+switching between three or four different   languages at a time and so i think this is 
+a way to try to get a handle on all of that right i think maybe um and maybe the the 
+way to think about it is that a lot of i   mean coming from point of empathy a lot of 
+people end up they could be very tenured in a   particular area of software development and the 
+world's changed around them there's just like   10 different new things they have to consider or 
+they could be relatively junior and they haven't   had like me you know 30 years to understand the 
+fundamentals of computing from like 8086 up right   so they're just trying to figure out you know 
+the linux bits here the kubernetes bits there   front end bits here some linear algebra there 
+it's a lot right it's a lot to bake and understand   and so um i so so coming from point of empathy 
+when people just uh are getting hurt by all these   different things and they're stumbling in the 
+dark on tables they don't even they can't even   name they're stubbing their toes on furniture they 
+can't see so they just give names to baskets of   pain right it's like okay this part of the room 
+i call something and they're always called ops   right because if we actually know what we're doing 
+we call it engineering so this basket of pain we   call something ops this other basket of pain 
+and some other ops and then we just got to do   yeah um and every now and then you just torch 
+the whole thing with like you know blowing away   your mpm modules you know modules anyway um so uh 
+one thing when we were kind of um chatting before   about some topics um one thing that came up was i 
+um i reflected that i really enjoyed reading your   uh newsletters in your sub stack uh and this and 
+the norm core stuff because you took a very um   a very candid i would say a very sort of 
+sensible like look i don't think you need   all this stuff and here's what i do and this works 
+and and i find that in um as this industry is um   as more people are coming into this part of 
+the industry or as you know machine learning   uh absorbs more and more things uh there's 
+a lot more posturing there's a lot more like   people coming in taking social media like uh 
+trying to use social media as a way to build   their careers or to type their startup hype some 
+tech certainly for me very disturbing is this uh   creating github like vanity github repos right or 
+doing some activity uh you know in the open source   space not out of a genuine desire to create but 
+because like it's padding your career or padding   your resume um and so one of the things we talked 
+about here is like the systems of the system of   incentives around uh community social media 
+whatever around the communications um that we   would use in the industry in the past uh that the 
+system of incentives in the commercial environment   has that distorted the human ecology around open 
+source open data science and all these things   i think it has in the last 10 years that's my 
+view is something that's definitely shifted   it's hard to put my finger on exactly what but you 
+not only just as someone in the industry but also   um uh someone who works at a social media company 
+right like what are your perspectives on that you   know is it distorting have these technologies 
+and tools been distorting and if so what are   things that we might be able to do to to kind of 
+ground things again in reality and credibility   i think yeah so i think there's a couple of things 
+going on um around social media or just around how   we talk about tech and social media um one of 
+those trends i've noticed is context collapse   has gotten very very big so context collapsed um 
+there was a really great book about it called the   presentation of self in everyday life um by 
+goffman basically says that individual people   um basically segregate their audiences based on 
+where they are at any given time and so in the   physical world we're able to do that really 
+well like you you would talk to your parents   one way you would talk to your children 
+different way you talk to your friends   a certain way um and usually or you talk to your 
+boss a different way from that and usually all   those things are different representations of 
+yourself and something else that's interesting   is i read that um basically your personality is a 
+reflection of who you're talking to at any given   time like you don't have one single personality 
+it depends a lot on what you're talking about   in the digital world we can't do that 
+anymore because um on on very very   public social media like twitter for example 
+you're talking to everybody at the same time so   whatever you say if you're talking about for 
+example open source to one audience another   audience might interpret it completely differently 
+so we have that sense of context collapse which   then leads people to either try to be louder 
+than the contacts and make kind of like very   large claims that um generate like a lot 
+of controversy or noise or they um cause   people to be very bland and not for any sort of 
+controversy at all and just basically do things   like you said where um they create repos or they 
+have threads like here's how you do x and y and z   and the point is just um like to get followers 
+to see that you know how to do x y and z without   any opinion on it whatsoever um and a lot 
+of stuff online right now is tied to your   real identity like twitter sometimes um there's a 
+lot tied your real identity and a lot of people do   use their real identity so that means the stakes 
+are very high to be also very performative um and   what that's resulted in i think is a lot of like 
+performative signaling as well so i just saw i was   reading this story i think it was yesterday um i 
+saw it surface on hacker news where basically um   this woman felt dehumanized by a viral tick tock 
+that was filled without her consent so it was just   this um guy that came up to her and gave her some 
+flowers to hold he said that um he needed to fix   his hair or something for a date um and then he 
+walked away and he said these flowers are for you   um and this thing was being filmed the whole time 
+and she didn't know it and she was kind of shocked   but it went super viral because of how nice the 
+guy was being she said i feel taken advantage   of because um this guy was acting not out of 
+genuine good faith but in a performative nature   so i think there's a lot of element of that in 
+whatever we do online we think about how not   only what we say but how it will play um in a way 
+that like you noted is is much more prevalent now   even than 10 years ago when people were blogging 
+about stuff um there wasn't as much of a potential   for it to kind of get out and explode and i think 
+people were a lot more genuine in their opinions   yeah i so this is a topic i could talk about 
+literally for hours maybe days because i think   somehow we engineered and built a bunch of 
+stuff that jammed itself in as infrastructure   for human to human communications and none of 
+the people building any of this stuff had any   uh reading not done any of the reading or 
+the background and any of the stuff and it   is so easy i mean you build a web web page you 
+build a message board people get on it and they   you know share funny pictures and they you know 
+make jokes about things and and what's the harm   in that and it's it's sort of like giving 
+kids a bunch of uranium or like whatever   it's like they're just playing around this really 
+pretty blue metal but you put a lot of it together   the whole thing gets vaporized right so there's 
+something around this the the way you talk about   context collapse and the presentation itself the 
+the the phrase that i like to use is that every   conversation is a space and every humane space has 
+consistent and implicitly explicit but norms has   norms that are understood by the participants and 
+the problem with these online uh environments and   communications media so to speak is that we don't 
+create there's no way to create a space or the   spaces shift so much you know you know one thread 
+here another thread there um the norms and so what   identity what avatar you present is completely 
+you have no idea right and that's deeply stressful   when we don't know who we should be how we should 
+show up that's incredibly stressful right are you   talking to the ceo of megacorp are you talking 
+to like you know social media intern who's just   like upvoting your little jokey mate right and 
+so there's this kind of thing that's really um   some i don't i mean calling it inhumane is maybe 
+very harsh but it's just like something deeply   inconsiderate about how this is done and your 
+example about that that uh video going viral   i i see i i've seen these other things where 
+people they do pranks right and they've always   been pranks a lot i mean like t that i remember 
+tv shows where they would go and prank somebody   or punch somebody that's like okay fine um the 
+social media stuff uh this there's one where   they were um i guess it was three three women 
+at the gym and two of the women were just really   being nasty this third woman and they were 
+basically trying to troll this guy at the gym   into like you know and he's just a random dude 
+trying to like he's just trying to like tell this   one like don't listen to them they're just i don't 
+know why they're being so nasty to you and all   this stuff but they were obviously trying to prank 
+him into doing something you know that would that   make him the fool and it's a it's a bullying of a 
+sort right basically what you're doing is creating   an environment a space in that conversation that 
+interaction that space is a trap and it's entirely   designed to exploit the ignorance of the other 
+person uh they're not they're not aware they're   on stage and and that's that that is a a kind of 
+bullying it's absolutely taking advantage um but   um but anyway this kind of went a little bit off 
+to the side i get so passionate about this topic   because it's yeah it's so obvious to me it's like 
+no let's not give children plutonium and uranium   to play with because like this is actually really 
+toxic we need to train them to have like genuine   conversations how to actually because if you're i 
+guess this is the thing that it does come down to   if you feel threatened then you're not going to 
+present vulnerability you're not going to approach   other people with openness and this is then a race 
+to the bottom then others will not respond in kind   and so overall what what sucks out 
+of this thing which just drains away   is any kind of human to human vulnerable deep 
+listening actual you know uh interaction that um   ice integrity right is there a way to engineer 
+these systems to select for genuine integrity oh yeah that's that's tough i think i don't know 
+i'm only a machine learning engineer um i think   that i think that there's a lot of like you said 
+there's a lot of social sciences that need to be   built into these systems that we are just now 
+starting to understand how to build them in   correctly um i think that so i was trying to find 
+this while you were talking about um messaging and   message boards but i read a really good book yes 
+um a couple years ago i'll have to find a link   basically i talked about the first moderator 
+of um there was an online chat community that   started in new york that was specifically based 
+in new york and she moderated for something like   i want to say 15 years or so and basically she 
+was it was an interview with her and she was one   of the first people who um was a what we consider 
+today a moderator and she talked about the rules   for her community she really thought this through 
+this was in the early 90s um so it was before any   of this where we had to think through what content 
+we put on a platform we don't um how to be nice to   people on the platform how to kick off offenders 
+how do all the stuff that we um now are talking   about at a large scale it starts with like this 
+very human thing of how do you moderate a people   in a community to be nice to each other um and 
+i think that in smaller communities um this is   much easier um this goes back to post i wrote 
+good things don't scale which was about the   country of iceland like why iceland is so awesome 
+because it's tiny and they can make things awesome   um but on a large country it's harder because you 
+have a lot of networks a lot of things that play   a lot of counteractive interests um and so what 
+does that mean so i think what we're seeing   is like we have these very large social 
+networks but then we have clusters   and the clusters in the social networks are easier 
+to manage and i think that's why we have we start   to see things like data twitter or um modern data 
+stack twitter and people can discuss those things   in in their interest groups and i think that's one 
+of the things that makes it easier to have those   civil discussions because then you start to fold 
+in a little bit of that context collapse right   right you follow the context collapse and then you 
+make it easier to have the norms like when we have   technical if you have a technical part of twitter 
+then it's like hey here we're talking the tech   stuff let's keep the politics out or keep the 
+religion out of it because we're here to talk   about some tech right and um that's not to say 
+that humans aren't political animals that's not to   say that people shouldn't you know manifest their 
+spiritual beliefs and live in accord to their   personal spiritual values but just this part of 
+the conversation let's just really keep it about   the tag right or keep it about the the topic at 
+hand um and the moderation thing you know that is   that is a way of enforcing uh the norms right 
+what do people get their wrist slap for what   do people get ejected from the room for setting 
+those norms and the thing is when we look at uh   i mean of course the most the recent episode with 
+um well all the discussion around free speech on   twitter and hugh gets banned who doesn't and this 
+and then the other and boosting versus d boosting   versus all these things uh it's an attempt 
+to um to use formal systems and computers   to enforce a deeply human thing which is what are 
+the norms for x group of people right and you know   uh n choose k what are the norms for k versus 
+norms for n there's no formal white one another   a great quote um one of my favorite uh most 
+quotable computer scientists uh is alan perlis   and he famously said you cannot move from 
+the informal to the formal via formal means   and so human human to human norms and the 
+communications like what's accepted and how   to push the boundaries together that's the thing 
+that a bunch of people have to decide there's   not an algorithm for that this is my my personal 
+view on this but there's also i will reference to   readers or listeners who are interested to uh 
+listen to a great blog a great podcast that   jim rutt on the jim rutt show he did with the 
+creator of slashdot and they talked about the   moderation system on slashdot it was a community 
+moderation but they handed out mod points to a   few people and when you got mod points you you 
+only got them every now and then and it was a   special thing that you would use to enforce and 
+upvote download certain things it wasn't like here   where everyone can stop voting down vote you have 
+mobs like suppressing things or boosting things   so anyone's interested in this topic i'd recommend 
+those those two things as well i'm looking at the   clock here we're uh running a little bit out of 
+time i love talking about so many more things but   um but on the flip side of all this like 
+online stuff um tell me we had we talked   about sort of in person versus uh remote work 
+right and you had some thoughts there on how   automatic as a distributed company uh and 
+remote first company uh manages this and   i would love to hear from you about that and 
+and you know how you all go about doing that   yeah so automatic is unique in that it's 
+been remote and distributed from the   very beginning we've been doing it before it 
+was cool um and one of the ways that we um used   to manage it is we have a top-down culture and 
+bottom-up culture of written communication first   um and so i've written about this before but the 
+way we communicate is um this product called p2   which is as you would imagine a wordpress blog um 
+and uh basically every team in the company has a   p2 you can see everybody's p2s um and literally 
+we don't send emails um everything that is uh   discussion i'm thinking about doing this project 
+an rfc a retro etc all of that happens on p2s   and people can comment on it etc and so um what 
+that does is two things one documentation it   codifies everything that you're working on i can 
+see all the projects that i've done um and i'll   i'll just send you a link oh here's a p2 to this 
+here's a p2 to that second when you're working   um internationally so automatic is distributed 
+internationally um you might have people who   are 12 hours behind you 12 hours ahead of you 
+people who are working six hour time differences   so slack you can use for that and you can 
+use twitter threads um but it kind of um   slows down the conversation deliberately in 
+certain ways so that everybody has a chance to   respond at any given time because the response is 
+a comment so you make a comment and that drives a   conversation in the same way that a meeting might 
+um and so i found this i i love written culture   i love p2 culture what is really interesting 
+about it to me is that you can very clearly see   what you've worked on um and you have references 
+to every single thing you've done and you can   also search through every p2 so you can clearly 
+see what a project um like where it came to now   of course it might take you the downside is it 
+might take you a while to get to what you need   um because a project thread might have i don't 
+know 15 20 different comments what if we do this   what do we do this here's the outcome um so it 
+does take deliberate filtering but i think it's   a great way to um to work remotely i think it's 
+a great way to have those conversations and to   to document stuff that's there for 
+reference um in an asynchronous yeah   yeah that's that's so that um i'm very envious 
+of that concept of having such written culture   certainly it's uh um you know the we hear about 
+you know amazon having such a culture and we   i mean internally anaconda of course 
+people write a lot of docs there's   collaborative editing of docs and there's 
+a lot of these things and we have um um   what we'll call apes right so like product 
+enhancements anagon product enhancements   things like that so there's there's these things 
+that that we are working on but um uh i i just   i looked at the p2 site so it's wordpress.com p2 
+for anyone who's interested um really looks super   interesting and would love to actually maybe try 
+prototyping that for some of our stuff internally   um but that having that written culture it does 
+slow things down right and it and that's that slow   down is actually it makes things a little more 
+deliberate in that way so um that's excellent so   with that i guess one final question for you vicky 
+which is um do you have any takes on ai and the   singularity how far out you think we are are 
+you building one have you guys produced one yet   i heard that a google language model just became 
+sentient so has any of your stuff become sentient   listen peter i'm just trying to get my ham to lint 
+correctly out here it's hard enough to to build   these systems as it is like make sure that you 
+have your feature store make sure you have this   make sure you have your model make sure you have 
+your output make sure you put it in production   um i am not worried about the singularity 
+anytime soon i think we have a very very   long way to go all right well well that's 
+a very bold uh claim to make i think   you know the old joke was that uh you know so-so 
+you know i'll replace you at some point with a   small python script or a small bash script and i i 
+could say now yeah we might be looking at a skynet   creating a creating a sentient robot just to um 
+just to parse your yaml's robustness oh i hope so well thank you so much for joining us i really 
+appreciate chatting with you appreciate the   the insights and perspectives vicky and i 
+will see you in whatever our part of twitter   um uh uh look forward to more conversations in 
+the future um thank you so much for joining us   really appreciate it thank you it was my 
+pleasure thank you so much for having me   thank you and for the listeners we'll have 
+links and references to uh various resources   and things mentioned today and vicki if you 
+figure out that um the the thing about that   moderator of the message board uh definitely 
+shoot that over so we'll include that um um   but uh yeah thanks everyone for listening and 
+look for it for our next episode thank you   for listening and we hope you found this episode 
+valuable if you enjoyed the show please leave us   a 5 star review you can find more information 
+and resources at anaconda.com [Music] you
+

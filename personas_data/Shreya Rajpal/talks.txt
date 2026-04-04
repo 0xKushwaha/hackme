@@ -1,0 +1,337 @@
+## Shreya Rajpal on Guardrails for Large Language Models
+
+URL: https://www.youtube.com/watch?v=O7mS7D5AVtE
+
+hey it's Roland M here before we start today's podcast I wanted to tell you about cuon London 2024 it is quon's Flagship International software development conference that takes place in the heart of London next April 8 to 10 I will be there learning about senior practitioners experiences and exploring their points of view on emerging Trends and best practices across topics like software architecture generative AI plat Form Engineering observability and secure software Supply chains discover what your pairs have learned explore the techniques they are using and learn about or the pitfalls to avoid learn more at cucon l.com and we really hope to see you there please say hi to me when you are welcome everyone to the infoq podcast my name is r meon and I'm your host for today I am interview queing rashal who is a CEO and co-founder of guard reals AI we are talking to each other in person at the cucon San Francisco Conference just after she gave the presentation called building guard rails for Enterprise AI applications with large language models keep an eye on info.com for her presentation as it contains many insights into how one can add guard drills to your large language model application so you can actually make them work during today's interview we will dive deeper into how this works and I hope you enjoy it and you can learn from it welcome sh to the infoq podcast we are here at cuon in San Francisco how do you enjoy the conference so far yeah it's been a blast thanks for doing the podcast I've really enjoyed the conference I was also here last year and I had just a lot of fantastic conversations I was really looking forward to it and I think it holds up to the standard all right and you just gave your talk how did it go what was your talk about I think it was a pretty good talk the audience was very engaged I got a lot of questions at the end and they were very like pertinent questions so I enjoyed the engagement with the audience the topic of my talk was on guard rails or the concept of building guard rails for large language model applications especially from the lens of you know this open source framework I created which is also called guardrails AI what is guardrails AI what does it do how can it help me out guardrails AI essentially looks to solve the problem of reliability and safety for a large language model applications so if you work with generative Ai and built applications on top of generative AI what you'll often end up finding is that they're really flexible and they're really functional but they're not always like useful primarily because you know they're not always as reliable so I like comparing them with you know traditional software apis right so traditional software apis tend to have a lot of correctness baked into the API because we're in a framework or we're in a world that's very deterministic compared to that generative AI ends up you know being very very performant but ends up being essentially not as rigorous in terms of correctness criteria so hallucinations for example are a common issue that we see so this is the problem that God rail's AI tends to solve so it essentially is something that acts like a firewall around your LM apis and make sure that any input that you send to the llm or any output that you receive from the llm is functionally correct for whatever correctness might mean for you right maybe that's not hallucinating and then they'll check for non hallucination maybe it means like not having any profanity in your generated text because of you know who your audience is and it'll check for that maybe it means getting the right structured outputs and all of those can be basically correctness criteria that are enforced yeah so it can if I for example ask it for a Json documents you will guarantee me that I get correct Json but I assume that it can't really check any of the content right oh it does yeah I think like Json correctness is something that we do and something that you do well but in addition to that that is how I look at it that's kind of like table Stakes but it can also like look at each field of the Json and make sure that's correct even if you're not generating Json and you're generating like string output so let's say you have a question answering chatbot and you want to make sure that the string response that you get from your LM is not hallucinated or doesn't violate any rules or regulations of wherever you are like those are also functional things that can be checked and enforced so this is basically then like an API interface on top of the large language model yeah I like to think of it as kind of like a shell around the LM so it kind of acts as a sentinel at the input of the LM at the output of the LM and like a as you know making sure that there's no dangerous outputs or unreliable outputs or unsecure outputs essentially yeah nice and is this something which you then solve with fuse shot learning or how do you then Ensure is correctness yeah yeah in practice how we end up doing it is a bunch of different techniques depending on the problem that we solve so for example for Json correctness Etc we essentially look to see okay here's our expected structure here's what's Incorrect and you can solve it by few short prompting to get the right Json output but depending on like what the problem is we end up using like different sets of techniques so for example a key abstraction in our framework is this idea of a validator where a validator basically checks for a specific requirement and you can combine all of these validators together in a guard and that guard will basically you know run alongside your LM API and make sure that there's those guarantees that we care about and our framework is both a template for creating your own custom validators and like orchestrating them via the orchestration layer that we provide as well as a library of many many commonly used validators across a bunch of use cases so some of them may be like rules-based validators so for example we have one that makes sure that any like Rex pattern that you provide you can make sure that the fields in your Json or any string output that you get from your Json like matches that rejects we have this one that I talked about in my talk which you can check out on info.com called Providence and Provence is essentially making sure that every llm utterance has some grounding in a source of truth that you know to be true right so let's say you're an organization that is building a chat box you can make sure that your chatbot only answers from the documents from your help center documents or from the documents that you know to be true and you provide the chatbot and not from its own like World model of the internet that it was trained on right so Providence looks at every utterance that the LM has and like checks to see where did it come from in my document and make sure that you know it's correct and if it's not correct that means it was hallucinated and can be filtered out so we have like different versions of them and they use like various different machine learning techniques under the hood the simplest one basically uses like embedding similarity we have more complex ones that use like LM self- evaluation or an based classification like a natural language inference and so depending on what the problem is we use like either code or ml models or we use external apis to make sure that the output that you get is correct and just from my understanding where do you build in these guard rails is this something you built into the model so do you fine tune the model or is it something you built into essentially beam search for the output where you say oh but if you generate this this path can't be correct do you do it at this level or do you just take the already generated whole text by your large language model and then you then in hindsight kind of postprocess it the ladder our core assumption is that we're very like we abstract out the model completely so you can use an open source model you can use a commercial model the example I like using is that in the extreme you can use a random string generator and we'll check that random string generator for like profanity or you know making sure that it matches like a Rex pattern or something right just like worst large language model yeah the worst exactly the worst large language model I guess it was a decision that allows developers to really be flexible and focus on you know more application Level concerns rather than you know really wrangling their model itself and so how we end up operating is that we are kind of like a side car that runs along your model so any prompt that you're sending over to your LM can first Hospital guard rails check to see if there's any safety concerns Etc and then the output that comes back from your llm before being sent to your application passes through guard rails yeah so are there any trade-offs when you're building in these guard rails are there some people who say oh but I like some of the errors or that's an interesting question I once remember chatting with someone who was like oh yeah they were building an LM application that was used by a lot of people and they basically said no actually people like using us because our system does have profanity and it does have a lot of things that for other commercial models are filtered out via their moderation apis and so there is an audience for that as well in that case like what we end up typically seeing is that correctness means different things to different people right so for the person that I mentioned for whom like profanity was a good thing the correct response for them is a response that contains profanity right so you can essentially like configure each of these to work for you there's no like Universal definition of what correctness is just as there's no Universal you know like use case Etc yeah yeah yeah have you already seen any applications where your guard RS have added a significant impact to the application yeah yeah yeah so I think like some of my most exciting applications are either in chatbots or in structured data extraction I also think that those are where most of the LM applications today are around so if you're doing structured data extraction which is you're taking like a whole chunk of unstructured data and then from that unstructured data you're generating you know some table or something right like you're generating a Json payload that can then go into your data warehouse as like a row of data so in that case essentially making sure that the data you extract is correct and uses the right context and doesn't Veer too far off from historically the data that you receive from that I think that's a common use case I think the other one that I've seen is you're building a chat bot and you care about like some concerns in that chat bot like for example if you're in a regulated industry making sure that there's no like rules that are violated like misleading your customer about some feature of your product Etc brand risk using the right tone of voice that aligns with your Brands like communication requirements I think that's another common one checking for like bias Etc is another common one so there tend to be a lot of these like very diverse set of like correctness criteria that people have a chat Bots that we can enforce so how do you enforce these things for example bias because I think that's something which is quite hard to grasp especially if you have only one sample instead of seeing a large overview of samples yeah I think this is another one of those things where like depending on the application or the use case like different organizations may have like different desert ARA so for example like one of the things you can check for is essentially gendered language right like are you using like very gendered language or are you using like gender neutral language like when you need to be using in your press reefs Etc so that is like one specific way of checking bias but our core philosophy is to kind of like take these requirements and kind like break them down into you know these smaller chunks that can then be configured and like put together yeah or I just remember that if you have Google photos they at some point had this incident where someone put in gorillas and then found like images of people I think they just stopped using this keyword at all which is quite interesting yeah any other applications where you already saw significant impact or do you have any concrete examples yeah let's see I think there's a bunch of like if you go to our open source GitHub page I think there's about like 100 or so projects that use guardrails you know for enforcing their guarantees I want to say most of them are around like chat Bots or structured data extraction I see a lot of resume screening ones like I see a lot of you know like making sure that you're able to go to someone's like LinkedIn profile or look at like someone's resume and make sure that they're the right Candidate For You by looking for you know specific keywords and like how those keywords like projected onto a resume so I think that's a common one yeah I think those are like some of the top of Mind ones like Health Center support chat Bots or another common use case analyzing like contracts Etc you know using LMS I think is another one these o sign like applications where you absolutely need to be sure that whatever you put there is is correct is very correct yeah yeah absolutely so what kind of questions did you get after the talk who were interested in this what kind of questions were there the audience was pretty excited about a lot of the content I think like one of my favorite questions was around like the cost of implementing guard rails right like at the end of the day there's no free lunch this is all like compute that needs to happen at run time and make sure that you know you're at runtime looking at where your risk areas are off your system and like safeguarding against those risk areas which typically requires like add some amount of latency add some amount of like cost Etc as well and so I think that was an interesting question about like how do we think about you know the cost of like implementing that I think we've done a bunch of work in making the guard rails configurable enough where you can set a policy on each guard rail to make sure that it's you know a policy that allows you to say how much you care about something right not every guard rail is like pull the alarm this is a horrible outcome like some of them are you know like bad but you just strug and move on some of them are like you take some programmatic action some of them you know you do like more aggressive like Risk mitigation and so that is configurable and we did a bunch of investment making sure that you know they low latency they can like be paralyzed very easily ET so for example I could say I absolutely want my output to be the right API specification but it's okay if one of the categories didn't exist before or is they my prompts yeah yeah absolutely yeah that's exactly right I think a classic example I like using is that if you're in healthcare and you're building like a healthcare support chatbot you do not have the authorization to give medical advice to anyone who comes on and so that's a guard rail where like the no medical advice guard where you much rather be like oh I might as well like not respond to this customer and let a human come in if I suspect that there's medical advice you know in my output so that's a guard rail where you either get it right or you know it's not useful to your customer at all right so that's one of the ones where even if it's slightly more expensive you're willing to take that on a lot of the other ones you can like you said if there's some extra Fields Etc you know that you're typically okay with yeah yeah so what are the next steps and for guard Bros AI what kind of things are you thinking about for for the future do you get some requests all the time yeah I think a common request that we get is I think this is much less a capability thing and more like you know just make it easy for our users to use it where we have like support for a lot of the common models but we keep getting requests every day for support b or support like anthropic Etc so we have like a custom like I said like a string to string translator where you can substitute your favorite model and use whichever one you want but like I think that's a common one where just add more Integrations with like other models that are out there is there a winning model at the moment which everybody is going for I think open AI typically is the one that we see most commonly yeah I think like some of the other ones are more around like specific features with being able to create like custom guard rails with like lower input involved so like I mentioned we have a framework for creating custom guard rails where they're like okay how do I make it easier to see what's happening I think like better logging and visibility is another one so a lot of exciting changes I think a few weeks ago we released like a big 0.2 release which had like a lot of these changes kind of implemented in addition to a lot of like stability improvements Etc and yeah more releases to come yeah and so for the fixing the errors is this just always hand coded rules or could you also send it back to a large language M and say oh we got this issue try it again fix yeah so that's what we like to call the reasing Paradigm that we implemented so that actually was a core design principle behind guard rails where these models have this very like fascinating ability to self-heal if you tell them like why they're wrong they're often able to like incorporate that feedback and like correct themselves so guardrails like basically automatically constructs a prompt for you and then sends it back and then you know runs verification Etc all over again this is another one of those things that I walked over in my talk which you know is available for viewers yeah so then do you just take the existing output and then send the output back and say this was wrong fix it or do you just re ask the question I hope that it gets it correct the next time yeah that's a great question so typically we work on the output level we've done like some prompt engineering to on our end to configure how to create this prompt to get the most likely correct output so we include like the original request we include the output on the output we do some optimization where we only and this is configurable as well where you only Reas the incorrect parts so often you'll end up finding like there's a specific like localized area either like some field in ad Json or if you have a large string or paragraph or something you know some sentences in a paragraph that are incorrect so you only send those back for reasing and not the whole thing and that ends up being like a little bit less expensive yeah okay oh interesting so you only query the things which you know are wrong ah smart yeah that must save a lot of money yeah and then in terms of correctness and safety do you have any tips for people who are writing prompts such that you can structure them better or how do you normally evaluate whether prompt is correct I think my response is that I kind of disagree with the premise of the question a little bit I actually I go over this in my talk but what you end up finding a lot of times is that people invest a lot of time and energy in prompt engineering but at the end of the day like prompts aren't guarantees right like first of all the LMS are non-deterministic so even if you have like the best prompt figured out you send that same prompt over like 10 different times and you're going to see like different outputs like you're not going to get the right output I think the second is that like prompt isn't a guarantee like maybe you're like okay this is what I want from you this is you know the prompt communicating with the LM like this is what I want from you make sure you're not violating XYZ criteria Etc there's absolutely nothing guaranteeing that the LM is going to respect those instructions in the prompt right so you end up getting like incorrect responses still so we say as like safer prompts like yes definitely like prompt is a way to Prime the LM for being more correct than normal so you can still like definitely include those instructions like like don't do XYZ but verify right like make sure that you actually like those conditions are being respected otherwise you're opening yourself up to like a world of pain yeah I also find it really cute if people just put things in there like oh you're a very nice you're a very nice agent yeah you always give the correct answer like Ah that's that will help it one of my favorite anecdotes here is from a friend of mine actually who works with the LMS and has been doing that like for a few years now which is a few years ahead of a lot of other people get into the area and I think one of her problems was like a man will die if you don't respect this constraint you know which is a way to like Wrangle the LM to get the right output so people do all sorts of weird things but our key thing I think she end up moving onto this like verification system as well so I think like at the end of the day you need to make sure that those conditions you care about are respected and prompting is you know just plain and sufficient yeah yeah so I guess that's the lesson we learned today is always tell your L that's so someone will die if they get the answer incorrect yeah yeah absolutely yeah interesting all right thank you very much for being on the podcast and hope you enjoy K yeah absolutely thank you thank you for inviting me yeah excited to be here thank you very much for listening to this podcast I hope you enjoyed the conversation as I mentioned we will upload the talk on info.com sometime in the future so keep an eye on that thank you again for listening and thank you again sha for joining the inq podcast [Music]
+
+
+## AI Native 2025 Lightning Talk | Guardrails AI CEO & Co-Founder, Shreya Rajpal
+
+URL: https://www.youtube.com/watch?v=m51ljq4Sgv0
+
+Hi everybody, my name is Shrea. Uh I'm really excited to be here. So the last talk ended with companies uh employing guardrails. The name of my company is guardrails. Uh so we'll talk about you know all of the different ways that uh we can do uh risk mitigation, but a big focus of the talk will be specifically on simulation testing. Um, so this is going to be, you know, more of a technical talk maybe than some of the previous ones that you've had and I hope I don't lose a lot of the, you know, VC audience. Uh, so stick stick with this and, uh, hopefully you'll see a lot of patterns about, you know, what we can learn from self-driving and how it applies to generative AI and agents. Um, awesome. Before we get started, a little bit about us, uh, the focus and the mission of the company really is AI reliability. So uh we are probably best known for our guardrails framework which is you know uh very well used in open source the largest collection of guardrails that you will find anywhere. Um but uh even with all of the guardrails in the world a big problem that we ran into is it's very hard for static data sets uh of any kind to keep up with genai. Right? machine learning AI isn't a new problem but the modality of AI that we see today in in practice is actually very different from you know your data science systems or your structured data systems right uh and a lot of this problem comes from just how infinite and unbounded genai feels or like text or image or video feels um so that you know even if you're creating any data set of any kind typically uh there's so much variety and longtail edge cases corner cases in uh the text modality that it becomes very hard for you to get coverage and sufficient representation over what you'll see in the real world, right? Um, and this longtail problem is what ends up being pretty challenging, which is why you often run into people talking about, you know, oh, we tested our system extensively, but when we went out into production, it failed in this unexpected way, maybe, you know, hallucinations and specialized knowledge, uh, unexpected behavior when it comes to like multi-turn conversations, etc. Um, interestingly, this is, uh, while it might feel like a net new problem with, you know, most consumer AI, uh, this isn't a net new problem in AI generally, uh, specifically in self-driving cars, which is, you know, where a lot of my background is in. Um, we saw this problem constantly because if you think about it, the real world is a longtail distribution, right? um you drive like many miles on the street and yet you'll maybe find you know some weird way in which pedestrians are configured which will make like driving on the real world challenging. Um and in self-driving cars which try to automate uh driving uh we saw this constantly where even with the many millions of miles driven uh it was very you know uh easy to come across like rare but high-risisk scenarios uh that would all be different from each other but different in a new way you know and and different like pretty commonly. Um, so we had a huge 10-year head start compared to Genai in self-driving and we had, you know, some of the best and brightest minds and a near infinite budget. So, how we solved this problem in self-driving was by building a very highfidelity simulation engine uh that allows you to, you know, systematically and programmatically anticipate how your car will fail or how your car will behave across like a huge set of, you know, rare edge CC corner Casey scenarios, right? So rather than needing to drive your Whimos, you know, um, like like a billion miles, you can actually just drive it for maybe, you know, on the order of millions of miles, but simulate it on the order of billions of miles so that you can, you know, figure out like how does it do when somebody's coming at your Whimo from within the blind spot. Does it still fail and behave gracefully? Um so what we're doing um is building a product called snow globe that allows you to build you know the same category of simulation environments for your AI systems or your AI agents so that you can anticipate how they will behave before you actually put them out into production. Uh we do this via large scale simulation testing that generates you know realistic diverse scenarios uh that can you know allow you to test out how your system behaves on hallucinations, off-topic responses, policy violations uh etc. And because we're doing this in an automated way um you don't have to be limited by human creativity, right? Like often, you know, if you're building anything to do with AI, it's some unfortunate person's job to be the person that's manually writing like scenarios and test cases, etc. Uh, and it's often limited by what they can anticipate, you know, only by the failures that they've seen before. But if you can actually do this uh at scale with reasoning models, you can go beyond those constraints. Um, awesome. So, I have a uh I wanted to show you guys what simulation looks like in in real life or how how we've built slow. So, I'm going to present like a small video. Um, so I'm going to simulate here. Whoops. Sorry about that. Uh, what I'm going to h uh all right. Yeah. So, what I'm going to show is basically simulating users interacting with this life coach GPT. Um, so I make sure that I have a live connection to my life coach GPT solution and a short description about what my AI agent is. So in this case, you know, this is a small system that can answer questions about life and work. Um, and I can simulate lots of different types of users coming in and interacting with the system. In this small demo, I'm going to showcase specifically general users that, you know, just ask questions about life and work. So these are not malicious users, not somebody that's trying to jailbreak your system, but just a normal users that that's coming in and doing this. So uh, very quickly we end up, you know, generating these synthetic user personas. So um we looked at you know user personas that can essentially simulate um you know what their talking style etc is and we start to see a lot of these conversations come up. Um so we start seeing you know some synthetic user messages that are generated that are interacting with your system. But when we actually go through the entire process of simulation we actually get you know this huge data set that looks very realistic and very diverse. So I'm scrolling through some of these synthetic conversations here uh where you can actually you know programmatically generate you know different kinds of human behavior interacting with the AI agent that you've built which you can use for um either you know fine-tuning or optimizing your system by getting a lot of synthetic data that looks very realistic. Uh you can use it for extensive QA or you can use it for um AI evals. Um awesome. That's my time. So, if you want to learn more about what simulations are, how they do, and just, you know, general learnings about um how we solved a lot of these like longtail challenges in self-driving cars, you can, you know, get in touch with me either at my LinkedIn, I've attached a QR code, or um by contacting us at Snow Globe. Thank you.
+
+
+## Building the Next Generation of Reliable AI // Shreya Rajpal // AI in Production Keynote
+
+URL: https://www.youtube.com/watch?v=S6NItF1pRKI
+
+now it is talk number two I'm ready I am so 
+ready for Shrea where you at Shrea there you   are hey hi Demetrios long time I'm so excited 
+for this I heard a little birdie told me that   you have something special to tell us about in 
+this session but I'm not going to be a spoiler   I am going to let you get after it and go ahead 
+and talk for those that do not know Shrea she's   friend of the community she's doing awesome work 
+when it comes to guard rails check out that open   source project if you have not seen it I'll drop 
+a link in the chat and shya the floor is yours do   you want to share your screen or anything yeah 
+yeah let's do it um all right Sha the floor is   yours yeah thank you Demitrius that's a really 
+hard act to follow uh but I'll try to do my best   uh all right hey everyone thank you for uh thank 
+you for your time here my name is sha I am the CEO   of guardrails AI uh and my talk is about building 
+the next generation of reliable AI so a lot of   this really comes from um you know uh being out 
+in the field building reliable technology for AI   systems for the past year or so so the purpose of 
+this talk kind of is to you know talk about like   what are the set of problems that people who 
+are really serious about building production   ready AI systems like what are the set of problems 
+that they really care about as far as reliability   goes uh what are the methods and techniques that 
+they uh kind of look for what are the challenges   with some of them and how can we build towards 
+a vision of the future uh to account for a lot   of the challenges that we kind of have uh seen 
+over the last year um awesome so before we get   started a little bit about me um I'm the CEO and 
+co-founder of guardrails AI but in the past I've   spent a decade working in machine learning uh so I 
+started out doing a lot of research in classically   AI deep learning infrastructure worked in ml for 
+self-driving cars for a number of years uh was   the Tech lead for ML infra so I've kind of worked 
+across the full stack of research applied AI ml   infrastructure and now really working on how do 
+we make generative AI uh you know work like any   other piece of infrastructure um awesome so we've 
+all kind of seen this over the past year there's   been this amazing fascination with generative 
+AI technology and a lot of excitement about   you know what it can really do for us um so uh 
+can I treat mental illness how will generative   AI will it completely transform sales will sales 
+just fundamentally look really really different   from what it has in the past uh even software 
+engineering how does how do coding workflows that   we participate in day-to-day change uh I think 
+so there's a lot of like there's this kind of   Pandora's Box that have been that has been opened 
+and for the last year you know all of us has have   been really playing around with this technology 
+and understanding uh where will this Pandora's   Box you know impact what I do day-to-day um but at 
+the same time you know the reality of adoption for   generative AI looks very different from what it 
+has for previous uh Generations uh so for example   Chad gbt here had the fastest path to uh you know 
+100 million users compared to like even Tik Tok   or uh Instagram Facebook Etc but if you look at 
+one month retention for Chad GPT or some of the   other AI first companies compared to you know 
+one month retention for other more traditional   software companies that that graph looks a little 
+bit different uh so AI Force companies tend to   have a little lower uh retention overall and a lot 
+of this is really kind of um from the question of   where are the really valuable use cases in AI 
+right so what's really fascinating to me is uh   there's about like 200 billion in value that AI 
+will need to create and will need to create fast   to justify all of the GPU spend um so Nvidia 
+is really pumping out those gpus you know at   this unprecedented rate and here's you know some 
+some analyst estimates about where GP spending   how much GPU utilization is expected to grow up 
+uh in the next you know couple of years how do   we create enough value out of the AI systems 
+that we're building today to kind of justify   that spending right so the end consumers of a lot 
+of these technologies will be places like um very   traditional Enterprises like your Walmarts or your 
+GM Etc so how do they get value out of generative   AI outside of just you know the really fantastic 
+CH gbt and GitHub Copilot um so another way to   kind of phrase the same question is today what is 
+the problem that is holding Enterprises back from   being able to use generative AI effectively and 
+the answer to this is what you know over the last   year we've been kind of working on and we've 
+been kind of seeing and so this uh this talk   is basically a a compilation of all of those you 
+know amazing like Trends and insights um so some   Enterprises have adopted generative AI you know 
+early uh and here's some examples of you know   the type of issues that they run into so uh this 
+was pretty well publicized uh a Chevy dealership   uh built you know an AI for chatbot and then uh 
+uh Chris here convinced uh that Chad bot to sell   them um an $80,000 truck for like a dollar no no 
+takes backis so it's legally binding uh another   example here so this is you know a lot of these 
+are just from like this week uh where new lawyers   are fined every day for citing cases that AI 
+up and that don't actually exist you know in   the uh in the real world um the key issue is 
+that enterprises are fundamentally very risk   averse uh you know and gen using generative 
+AI open themselves uh to a lot of risk that   is uncontrolled so the natural question if we want 
+to create that that huge amount of value that gen   offers how do we really control a lot of that 
+risk and it is to really dig deep into reliable   Ai and reliable AI tooling uh and that's the so 
+so that ends up being a very necessary piece of   infrastructure in order to kind of you know make 
+Enterprises that are very you know conservative   fundamentally like take on generative Ai and 
+created a host of like really awesome products   um what is reliable AI I think there's a lot of 
+talk around this and it's related to a lot of   these similar ideas around responsible AI uh you 
+know AI governance Etc including guard rails like   the the philosophical idea of a models needing 
+guardrails but the core idea for Reliable AI   essentially ends up being this that you have 
+this really really powerful system and this   same system can write SQL queries for you it can 
+write a poem about uh the 49ers losing the Super   Bowl it can write you an article about the modern 
+data stack it can do a host of other things right   but when an Enterprise adopts a gen technology in 
+their own use case they're using it for one single   object objective I want to optimize my customer 
+support team or I want to optimize my you know   data parsing or structured data extraction so 
+there's a single objective that I'm solving and   I just want my AI system to be constrained and 
+answer this one problem really really well which   is you know why can't I log into account or why 
+are my transactions not working or how do I change   my password Etc right not write a poem about 49ers 
+not write a not write a SQL query Etc um so what   are the methodology is that today uh Enterprises 
+use or uh Enterprises and organizations use to   make AI systems reliable uh and this is the really 
+interesting part where you know where I basically   go through like a set of Technologies uh that we 
+see across the board uh you know rag fine-tuning   uh better models Etc and then talk about you know 
+what works for those Technologies and what makes   Enterprises and organizations nervous about those 
+Technologies uh and how we can kind of do better uh before I go into that you know like I'm 
+going to basically uh ra going to be raing   these Technologies on a set of evaluation 
+criteria so that you know there's a holistic   picture of like uh how we can kind of uh build 
+something that's bigger than the sum of its   parts by combining a bunch of these Technologies 
+together so efficacy of uh of any methodology how   effectively does my is my risk reduced you know 
+the cost of implementation of runtime of running   it in production uh latency is my application 
+meaningfully slower by adopting this technology   compared to if I wasn't uh customizability how 
+I have a set of like very very diverse use cases   how well does this work for my specific use case 
+versus the generic use case uh controllability how   much control does this give me over the model 
+output am I uh you know just kind of happy   with the output or can I really like do I get 
+guarantees or is it just like light suggestions   uh and then finally ease a fuse um great so with 
+that setup let's dig into uh the first technology   which most people here would be familiar with 
+rag or retrieval augmented generation uh so   the idea for retrieval augmented generation 
+is pretty straightforward uh instead of just   asking Chad gbt uh you know a question straight 
+away why don't we first provideed some data from   our internal data source that we know to be true 
+and we know to be reliable and we'll pass it you   know the question that we want to ask with all of 
+this extra data and tell you know AI system hey I   have all of this extra context given this context 
+can you tell me how I solve problem a or how I do   this task Etc so it's a way of kind of grounding 
+the response of the AI system in something that   you can trust uh so that's the high level idea um 
+efficacy this might be controversial but um it's   not great as far as reliable AI is concerned it 
+does give you answers it's almost the standard I   I actually don't talk to many people that aren't 
+building technologies that that are not built on   rag um but it's very um as far as reliability is 
+concerned um it's not the mo it's it's not very   effective in giving you a very reliable AI outcome 
+um cost cost is pretty uh okay you know there's uh   some cost of vector DBS Associated but overall you 
+know and your prompt length increases but overall   not too bad uh latency is great customizability is 
+great you can fix it and uh you know uh configure   it however you want controllability again not 
+great uh you know your at the end of the day   kind of like just asking your llm to like uh 
+respect the context and the the the context   that you provided it which might not necessarily 
+be you know respected uh ease ofuse is awesome   and a big part of this is like why we see rag as 
+the ubiquitous solution you know everywhere where   there's meaningful generative AI technology built 
+out um if I were to summarize the key challenge   for rag as far as reliability is concerned and 
+you know unlocking this um unlocking this huge   amount of value for the uh for for generative AI 
+use cases rag is effectively prompting on steroids   you just really overpower your prompt and tell 
+it to you know like fix a lot of the problems   for you but prompting doesn't offer any guarantees 
+um awesome LM self- evaluation if we want to build   reliable tooling and we have a problem with llms 
+you know maybe getting like weird responses or un   incorrect responses or uh responses that are just 
+uh you know toxic or have hate speech in them why   don't we just ask the llm to evaluate itself and 
+tell me if it's good or bad so that's very very   simple idea is kind of like the idea behind 
+LM self- evaluation and there's a host of um   derivatives of this me method around you know 
+assertions and uh self-checking reflection Etc   uh efficacy is uh you know leave something to be 
+desired cost latency and controllability are all   pretty poor for this method um you know there's 
+a lot of research Publications that talk about   about how it's very hard to trust the outcome 
+of these methods of these methods uh you know   because they have known biases Etc uh ease of 
+use is really great right if you can write if   you can write an English language prompt you can 
+ask the LM to evaluate itself um the key challenge   as far as llm self-evaluation is concerned is I'm 
+not going to attempt to try reading this but how   do we trust you know who will Who will guard the 
+guards um how do we trust the llm own evaluation   of itself isn't just isn't that just stacking 
+two things that we can't trust on top of each   other is that a sufficient lift for Enterprises 
+to be able to adopt this technology um RL XF so   rlf rla aif or just model fine-tuning so really 
+fine-tuning models so that you know they work for   your AI applications or your use cases efficacy 
+is fantastic uh cost controllability and ease of   use not so much uh if you're getting pre-tuned 
+pre- fine-tuned models that you're using off the   shelf then that's great uh but typically in 
+order to do this yourself you know you would   need a data set you would need to have a lot of 
+spend on AI model training which is you know my   background was all in like training really large 
+models um really uh challenging timec consuming   cost intensive task to do uh customizability 
+not great right for every criteria that you   kind of need to enforce you need to kind of like 
+build this kind of up from scratch uh and the key   challenge here is I typically as an Enterprise 
+as an organization I have a whole custom site   of list you know of like criteria that I want my 
+LM to follow so I have I will have my own like   communication guarantees for my own use case 
+I will have you know some requirements for the   industry I work in like if I'm a consumer 
+facing you know tech company versus if I'm   a financial institution or a bank I will have 
+a very different set of concerns so how do you   really customize fine-tuning for all of these sets 
+of concerns and use cases and stakeholders Etc um okay and then the final this is I'm I'm 
+obviously biased you know the name of my   company is guardrails but guardrails is also 
+this technique for uh you know adding checks   and verifications on the inputs and outputs of the 
+models to very very explicitly check for uh you   know the set of risks that you kind of care about 
+uh so it kind of works as you know a layer that   surrounds your llm in technically how it functions 
+uh again like I said I'm biased but I've tried to   be really objective here and talk through you know 
+how guard rails kind of situates and compares to a   lot of these Technologies and what the challenges 
+are today uh with this technology uh efficacy   is great cost is great controllability is great 
+because you can really mix and match and configure   a lot of things latency and customizability you 
+know leave something to be desired fundamentally   you're adding this computation after you get the 
+LM back and that computation will never end up   being free right it can be optimized for sure 
+but it's never free ease of use is probably the   biggest challenge here and what we've seen like 
+over the past year uh so for for example how easy   if you were to encode every set of risks into one 
+input output guardrail that is a lot of work that   needs to be done for every single risk that you 
+need to do right uh and that kind of ends up being   the critical challenge here which is that do we 
+am I as as a practitioner as somebody building gen   technology am I supposed to build a guard rail for 
+every type of risk we want to guard against and   that is you know over the past year what the what 
+the kind of uh the Crux of the issue that we've   seen in the past and like what we try to address 
+now um all right so if I were to summarize the   key challenges in AI reliability methodologies 
+uh the first is instructions aren't guarantee   so um as somebody who really worked on structured 
+data generation from open AI at a time when that   wasn't a thing um return only Json do not include 
+a preamble to your answer I've seen variations of   this where I have a I have you know a collaborator 
+of mine who literally has in their prompt uh   somebody will die if you're out outut doesn't 
+look this way and even then you know I mean   it's just it's just there's no guarantee right 
+it's just a suggestion or an instruction at the   end of the day um customizability is a necessity I 
+think this is something that a lot of people Miss   uh and and that's a very very important Nuance 
+of AI reliability which is like what you care   about really changes depending on who you are 
+so maybe something as simple as profanity right   like some of us can agree like most of us can 
+agree that profanity is bad it's offensive but   I genuinely personally have had like more than 10 
+conversations with organizations Enterprises Etc   that were specifically looking for models that can 
+generate uh profanity because that was the kind of   use case you know authenticity was what they were 
+going after uh a polite tone can be professional   but if you're building a more social application 
+you know it can appear distant uh Financial advice   if you are you know just building uh something 
+that doesn't have any regulatory constraints as   you know smaller companies typically don't uh 
+then Financial advice device is helpful right   it's it's a nice little companion that's telling 
+you how to split up your your savings Etc but if   you are a financial institution so if you are JP 
+Morgan if you are you know Robin Hood if you're   a big company that wants to put out a gen product 
+into production Financial advice is really really   risky and there's regulation against being 
+able to give Financial advice uh and finally   the ability to measure so every time I put this 
+put any system into production I really need to   understand how does the system work for the set of 
+risk that I care about right Financial advice how   many times am I close to giving Financial advice 
+how many times are my medications working all of   that ends up being really critical uh in order 
+to you know get Enterprises get organizations to   a point where they can push uh these AI first 
+products out into the market uh all right so   looking ahead from all of these amazing you know 
+learnings that we've had how do we address these   challenges in an open and collaborative manner 
+so that we're able to you know have the fastest   possible possible acceleration to solving the 
+problem of AI reliability and a lot of these   key challenges um so that is our um you know that 
+is the problem that we're working on and that is   what we're really excited to announce which is 
+uh the guard rails Hub which is live I think as   of like 20 minutes ago today uh so that's been 
+really exciting uh and a lot of the key um you   know prom is that the guard rails Hub offers 
+um it is that um there it is an open- Source   platform with very high quality implementations 
+of guard rails for a lot of common use cases   so for example we talked about am I supposed to 
+build a guard rail for every single uh you know   use case every single risk that I want to capture 
+right so the guardrails Hub is this open- Source   platform that just comes with a lot of those 
+Technologies kind of pre-implemented for you   uh there are plug andplay guard rails that can 
+be configured and customized so a lot of them   you can kind of use off the shelf and just you 
+know get start of it directly but a lot of them   can be customized and can tell you hey for this 
+type of risk what is the best solution out there   what does the state-of-the-art solution kind 
+of look like so a lot of the benefits of Open   Source technology that we've seen in the past 
+with software and in machine learning with you   know uh with hugging face uh how do we kind 
+of bring some of that same you know benefits   to uh open source um a reliability uh and then 
+finally there's templates and recipes for ease   of use that tell you for your use case for your 
+application how do you really kind of solve the   set of AI reliability challenges um so it's fully 
+open source and it comes with batteries included   so 50 plus validators implemented across a bunch 
+of different use cases a bunch of different risks   that you want to capture uh input guarding 
+as well as output guarding so you can track   for pii profanity jailbreaking attempts uh is this 
+conversation veering off course from you know what   I intended this conversation to be output guard 
+rails for you know a host of risks around um you   know profanity etiquette tone data leakage Etc um 
+we talked about latency uh as a key concern that a   lot of organizations have so guardrails comes with 
+streaming built in so any guardrails that you mix   and match and you apply to your uh to your system 
+you know comes with streaming so you can stream   validate uh any output that you get which really 
+you know helps with uh uh streaming as well as   latency orchestration of all of the guardrails you 
+configure uh and each guard rail is configurable   customizable and fully open source so that you 
+can really adopted for your own use case um I   have like a few quick examples of you know uh how 
+you would practically like install and set this up   uh so we've really worked on making it as easy to 
+use as a lot of uh you know other gen technology   as as you know as simple as calling your model 
+endpoint for example so installing a guardrail is   a simple like guardrails Hub install you know and 
+then the URI of the guardrail so here we have our   anti- hallucination guardrails and then setting 
+it up is you know uh create a guard that uses that   specific guard rail that you want to add to your 
+system uh for example if you didn't care about   hallucination but you did care about you know only 
+talking about a certain set of topics uh let's say   only talking about the weather and music and never 
+ever venturing into talking about politics uh you   can install you know the on topic guardrails with 
+guard rails Hub install and this URI uh and set   up and use it by creating a guard that uses the 
+restrict to topic guardrail specifies only talk   about food and cars never talk about politics 
+uh and then validate if that works for your use   case you can mix and match multiple guardal so pii 
+and profanity can separately be installed and then   you can create a guard that uses many guard rails 
+and this will all be streamed so many guard rails   as part of a guard will be streamed and then the 
+guard will kind of orchestrate it so they run in   pretty low latency uh awesome we're really excited 
+about this we hope that this you know is is like a   Leap Forward for Reliable AI tooling by really 
+being this collaborative platform for building   a lot of AI technology uh you can kind of stay in 
+touch with uh you know uh a lot of the open source   projects uh as well as our website by uh link.bio 
+guardrails a uh and then the god rails Hub can be   found at hub. guardrail a.com and like I said 
+live as of I think 30 minutes ago now um and   yeah really thank you for your time so cool Shrea 
+I'm so excited for this this is awesome that is so   yeah I mean I talk about this all the time but I 
+think it's hilarious when you brought up that that   example of somebody buying a car for $1 and there 
+was it was legally binding no takesy backies so   that kind of stuff you don't want happening right 
+that is not what you want to have your AI use case   b and there's a another few things on here I mean 
+the chat has been blowing up so that is awesome   we're going to ask like two or three questions and 
+then keep it moving because we've got jam-packed   after afternoon or morning or wherever you are 
+but first question while people are throwing   their uh their questions in the chat we had been 
+discussing I think before the actual start what   do we got to do you like guard rails helps models 
+not hallucinate and it helps them stay on track   is there any um hallucinations as a service type 
+thing that you've heard about because I need to   get me some of that that's what I'm looking for 
+no I think that's I mean you say that as a joke   but that genuinely is the really fascinating 
+thing right like for for JB Morgan building a   chatbot for customer support hallucinations are 
+necessarily bad like they do not want it uh but   if you're using Chad GPD to brainstorm or uh 
+or you know write amazing new music about uh   you know AI uh like hallucinations that's never 
+been written before hallucinations are a good   thing they're almost like creativity it's a proxy 
+for like creativity right so that's the really   interesting thing about God rails and it kind of 
+goes back to customizability for me which is that   not every not every person interprets correctness 
+the same way like hallucinations can be good for   someone and bad for someone and as a user you 
+should kind of have the ability to kind of mix   and match and really apply what you want and you 
+need for you know your use case yeah yeah I did   like that idea of like yeah I'm one of those use 
+cases where I would love a model to curse do not   care if it is saying bad words to me it's all 
+right I can maybe I'll fly and I can share some   jailbreak prompts with you that'll that'll get 
+you there that's what I'm talking about that's   what I'm looking for all right cool so another 
+question that came through that I thought was   fascinating and let me see if I'm understanding 
+it correctly it's like for different use cases   you can apply different guard rails and so for 
+example I think someone was asking a question   about the healthcare industry and you can kind of 
+like Niche it down by use case in the healthcare   industry what you're doing with it and then you 
+you almost have like these little building blocks   that you can say I want two or three of these 
+guard rails on top of my model so there's one   that's very broad that says like don't talk about 
+anything that's not healthcare related and then   more that are specific is that how we understand 
+it yeah yeah absolutely we've seen this you know   for example we work with financial institutions 
+and we've seen this with financial institutions   where they care about again their Enterprises 
+so hallucinations are always bad for them so   they always like hallucinations are a very broad 
+sweeping thing right but they care about like very   very specific things where my Enterprise offers 
+like these three products so it's not even you   know ask me a question about Finance it's ask me 
+a question about these three products and these   three products only and my response will be about 
+these three products only I won't talk about if   you come and ask me my opinion on the 2024 general 
+election I won't even give like not even a neutral   response I I don't want to give any response 
+because anything reflects poorly on me so you   can really like Whittle it down from the broadest 
+like correctness like hallucination type things to   really really specific this is my use case this 
+is who I am as an organization and this is what   I care about and configure and mix and match and 
+play with it yeah that's cool that is very cool   so last question for you and then we're going to 
+keep rocking are there different options for bias   guard rail sometimes you want certain biases and 
+other times maybe not so much so it seems like   it might mitigate some of the debate around bias 
+making its way into llms and I guess just me to   tag on to that do you have a temperature control 
+on how much guard rail you can put on or is it   you slap it on and it's on or off yeah yeah so 
+every guard rail is configurable for a lot of   the types of guards around bias hallucinations 
+toxicity staying on topic there's a threshold   because all of these guard rails under the hood 
+are you know machine learning models that's how   you kind of attack that's the only way to attack 
+this problem you can't have a rules engine for   a lot of these things um so for these modelbased 
+Gils you can set and configure your sensitivity to   them um you can pretty much configure uh you know 
+for example like uh toxicity I think or profanity   I'm forgetting which one but you can Define what 
+are the types of profanity you care about is it   you know uh talking about like um nationalities 
+or is it talking about like uh you know uh race   Etc so right so you can really configure like what 
+is the type of toxicity that you're sensitive to   and then filter that out and you know so so it's 
+all configurable and I guess it goes back to you   know our underlying learning which is that 
+customizability again is is really key yeah   yeah yeah going back to that control and there was 
+somebody that wrote I think it was uh ninad in the   chat and I thought it was hilarious how they were 
+saying there's so many broken hearts on this slide   it's making me depressed something along those 
+lines so hopefully not anymore hopefully just go   check out guardrails hub and no more broken hearts 
+the day after Valentine's Day oh that's yeah yeah   so there there is uh oh man so we've got Holden 
+coming up next I just uh I I want to ask these   two questions because they're so awesome so Holden 
+thank you for your patience I know you're in the   background and I've got you coming the questions 
+that I want to ask ask are coming through in the   chat and they're if we use llms for guard rails 
+the ux slows down have you done any performance   analysis on red Jax rules vers lookups versus llm 
+based yeah I think llm based is uh by by far the   slowest so some guard rails use LMS under the 
+hood and then that's also why we try to build   like model specific guard rails right like we have 
+hallucination guard rails that we're releasing   um that you know there there's one hallucination 
+guardrails that uses LMS under the hood and it is   performant but it is so slow um but um the models 
+that work really well are fast and are competitive   with these models are really really task specific 
+very precise smaller models and that's kind of   like the agenda forward uh right which is that 
+you get the sophistication of LM based guardrails   but without the kind of like a speed or slow down 
+from that um maybe like off uh yeah we have like   some benchmarks that we plan to share that aren't 
+public yet about like rule based almost next to no   latency especially with streaming uh model based 
+lookup model model based guard rails also very   very low latency especially with streaming and the 
+orchestration that we have LM based guardrails add   like a little bit of lift which is also why we 
+kind of you know mix and match and only use that   as a fallback yeah excellent all right we're gonna 
+keep it moving and Shrea thank you so much also   huge announcement from you today right you raised 
+uh boatload of money so yeah yeah I I haven't read   it yet but I think the tech crunch article popped 
+out just as I was getting onto the Green Room for   for this talk so yeah go check out the article 
+yeah thank you so much for your time Demetri was   really appreciate it yeah likewise this is great 
+thanks so much and anybody that wants to continue   talking to Shrea go ahead hit her up on LinkedIn 
+and on Twitter where she is very [Music] Act
+

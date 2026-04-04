@@ -1,0 +1,86 @@
+[
+  {
+    "name": "kubernetes-ingress",
+    "url": "https://github.com/matei/kubernetes-ingress",
+    "stars": 0,
+    "description": "NGINX and  NGINX Plus Ingress Controllers for Kubernetes",
+    "language": "Go"
+  },
+  {
+    "name": "codecrafters-grep-rust",
+    "url": "https://github.com/matei/codecrafters-grep-rust",
+    "stars": 0,
+    "description": "",
+    "language": "Rust"
+  },
+  {
+    "name": "pyutils",
+    "url": "https://github.com/matei/pyutils",
+    "stars": 0,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "pdo-logger-db",
+    "url": "https://github.com/matei/pdo-logger-db",
+    "stars": 0,
+    "description": "PDO Logger DB Adapter for Magento",
+    "language": "PHP"
+  },
+  {
+    "name": "intellij-pbcopy",
+    "url": "https://github.com/matei/intellij-pbcopy",
+    "stars": 0,
+    "description": "",
+    "language": "Kotlin"
+  },
+  {
+    "name": "cryptopals",
+    "url": "https://github.com/matei/cryptopals",
+    "stars": 0,
+    "description": "My solutions for the Matasano Cryptopals challenges",
+    "language": "Python"
+  },
+  {
+    "name": "magento2",
+    "url": "https://github.com/matei/magento2",
+    "stars": 0,
+    "description": "All Submissions you make to Magento Inc. (\"Magento\") through GitHub are subject to the following terms and conditions: (1) You grant Magento a perpetual, worldwide, non-exclusive, no charge, royalty free, irrevocable license under your applicable copyrights and patents to reproduce, prepare derivative works of, display, publically perform, sublicense and distribute any feedback, ideas, code, or other information (“Submission\") you submit through GitHub. (2) Your Submission is an original work of authorship and you are the owner or are legally entitled to grant the license stated above. (3) You agree to the Contributor License Agreement found here:  https://github.com/magento/magento2/blob/master/CONTRIBUTOR_LICENSE_AGREEMENT.html",
+    "language": "Unknown"
+  },
+  {
+    "name": "devdocs",
+    "url": "https://github.com/matei/devdocs",
+    "stars": 0,
+    "description": "Magento Developer Documentation",
+    "language": "JavaScript"
+  },
+  {
+    "name": "decoder",
+    "url": "https://github.com/matei/decoder",
+    "stars": 0,
+    "description": "",
+    "language": "Java"
+  },
+  {
+    "name": "magento2-sample-data",
+    "url": "https://github.com/matei/magento2-sample-data",
+    "stars": 0,
+    "description": "Magento 2 Sample Data",
+    "language": "PHP"
+  },
+  {
+    "name": "chef-php-extra",
+    "url": "https://github.com/matei/chef-php-extra",
+    "stars": 0,
+    "description": "Additional chef recipes to support the Opscode cookbook",
+    "language": "HTML"
+  },
+  {
+    "name": "magento2vm",
+    "url": "https://github.com/matei/magento2vm",
+    "stars": 0,
+    "description": "",
+    "language": "HTML"
+  }
+]

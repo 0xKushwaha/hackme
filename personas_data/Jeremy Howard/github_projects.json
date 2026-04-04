@@ -1,0 +1,107 @@
+[
+  {
+    "name": "Python-Neural-Network",
+    "url": "https://github.com/jhoward/Python-Neural-Network",
+    "stars": 82,
+    "description": "A pure python implementation of a neural network.",
+    "language": "Python"
+  },
+  {
+    "name": "bigbrother",
+    "url": "https://github.com/jhoward/bigbrother",
+    "stars": 5,
+    "description": "School of Mines building energy project",
+    "language": "Matlab"
+  },
+  {
+    "name": "test_test",
+    "url": "https://github.com/jhoward/test_test",
+    "stars": 0,
+    "description": "",
+    "language": "Unknown"
+  },
+  {
+    "name": "test_mlops",
+    "url": "https://github.com/jhoward/test_mlops",
+    "stars": 0,
+    "description": "",
+    "language": "Unknown"
+  },
+  {
+    "name": "mlops_lab_1",
+    "url": "https://github.com/jhoward/mlops_lab_1",
+    "stars": 0,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "mlops_homework5",
+    "url": "https://github.com/jhoward/mlops_homework5",
+    "stars": 0,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "mlops_lab_10",
+    "url": "https://github.com/jhoward/mlops_lab_10",
+    "stars": 0,
+    "description": "This repo provides a starter code for Lab 6 - CI with Jenkins",
+    "language": "Python"
+  },
+  {
+    "name": "mlops_basic_server",
+    "url": "https://github.com/jhoward/mlops_basic_server",
+    "stars": 0,
+    "description": "",
+    "language": "Dockerfile"
+  },
+  {
+    "name": "mlops_sentiment_lab",
+    "url": "https://github.com/jhoward/mlops_sentiment_lab",
+    "stars": 0,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "mlops",
+    "url": "https://github.com/jhoward/mlops",
+    "stars": 0,
+    "description": "",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "bits_and_bytes",
+    "url": "https://github.com/jhoward/bits_and_bytes",
+    "stars": 0,
+    "description": "",
+    "language": "HTML"
+  },
+  {
+    "name": "code_shop",
+    "url": "https://github.com/jhoward/code_shop",
+    "stars": 0,
+    "description": "Repo for coding challenges and learning new things",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "teaching",
+    "url": "https://github.com/jhoward/teaching",
+    "stars": 0,
+    "description": "Labs and code for students",
+    "language": "Python"
+  },
+  {
+    "name": "jhoward.github.io",
+    "url": "https://github.com/jhoward/jhoward.github.io",
+    "stars": 0,
+    "description": "Public repo page for James Howard",
+    "language": "CSS"
+  },
+  {
+    "name": "greatest_of_all_time",
+    "url": "https://github.com/jhoward/greatest_of_all_time",
+    "stars": 0,
+    "description": "goat",
+    "language": "Python"
+  }
+]

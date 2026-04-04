@@ -1,0 +1,32 @@
+[
+  {
+    "title": "A Closer Look at Gradient Estimators with Reinforcement Learning as Inference",
+    "year": 2021,
+    "url": "https://www.semanticscholar.org/paper/9b7c44752b76fb12d035f91fef0558699e3dce67",
+    "citations": 2
+  },
+  {
+    "title": "Neural guidance for SAT solving",
+    "year": 2018,
+    "url": "https://www.semanticscholar.org/paper/dacf4ed81a3e55c367c47f0a5f60b941113468cc",
+    "citations": 0
+  },
+  {
+    "title": "TensorFlow Distributions Joshua",
+    "year": 2017,
+    "url": "https://www.semanticscholar.org/paper/4416ab4c9e6e7d84c40736e1d4979893f6b0ab2c",
+    "citations": 0
+  },
+  {
+    "title": "TensorFlow: Large-Scale Machine Learning on Heterogeneous Distributed Systems",
+    "year": 2016,
+    "url": "https://www.semanticscholar.org/paper/9c9d7247f8c51ec5a02b0d911d1d7b9e8160495d",
+    "citations": 11627
+  },
+  {
+    "title": "Cislunar Space Situational Awareness Sensor Tasking using Deep Reinforcement Learning Agents",
+    "year": null,
+    "url": "https://www.semanticscholar.org/paper/0d0bf17338df3a79ff9c7a6dbd0610e5e7659cb1",
+    "citations": 7
+  }
+]

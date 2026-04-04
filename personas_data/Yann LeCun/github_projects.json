@@ -1,0 +1,23 @@
+[
+  {
+    "name": "deploy",
+    "url": "https://github.com/Yannlecun/deploy",
+    "stars": 0,
+    "description": "This repository provides various examples of how to deploy Hummingbot using Docker.",
+    "language": "Unknown"
+  },
+  {
+    "name": "DistributedATS",
+    "url": "https://github.com/Yannlecun/DistributedATS",
+    "stars": 0,
+    "description": "DistributedATS is a FIX Protocol based multi matching engine exchange(CLOB) that integrates QuickFIX and LiquiBook over OpenDDS",
+    "language": "Unknown"
+  },
+  {
+    "name": "music-website",
+    "url": "https://github.com/Yannlecun/music-website",
+    "stars": 0,
+    "description": "🎧 Vue + SpringBoot + MyBatis 音乐网站",
+    "language": "Unknown"
+  }
+]

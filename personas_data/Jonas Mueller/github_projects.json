@@ -1,0 +1,352 @@
+[
+  {
+    "name": "eagerpy",
+    "url": "https://github.com/jonasrauber/eagerpy",
+    "stars": 698,
+    "description": "PyTorch, TensorFlow, JAX and NumPy — all of them natively using the same code",
+    "language": "Python"
+  },
+  {
+    "name": "linear-region-attack",
+    "url": "https://github.com/jonasrauber/linear-region-attack",
+    "stars": 12,
+    "description": "A powerful white-box adversarial attack that exploits knowledge about the geometry of neural networks to find minimal adversarial perturbations without doing gradient descent",
+    "language": "Python"
+  },
+  {
+    "name": "uniformly-sampling-nd-ball",
+    "url": "https://github.com/jonasrauber/uniformly-sampling-nd-ball",
+    "stars": 11,
+    "description": "Efficiently sampling vectors from the n-sphere and n-ball",
+    "language": "Python"
+  },
+  {
+    "name": "randn-matlab-python",
+    "url": "https://github.com/jonasrauber/randn-matlab-python",
+    "stars": 11,
+    "description": "Reproducing Random Numbers in Matlab and Python / NumPy",
+    "language": "Python"
+  },
+  {
+    "name": "arxiv-bear-app",
+    "url": "https://github.com/jonasrauber/arxiv-bear-app",
+    "stars": 10,
+    "description": "My personal reference management system for arXiv papers using Bear.app",
+    "language": "Unknown"
+  },
+  {
+    "name": "foolbox-native-tutorial",
+    "url": "https://github.com/jonasrauber/foolbox-native-tutorial",
+    "stars": 9,
+    "description": "",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "foolbox-native",
+    "url": "https://github.com/jonasrauber/foolbox-native",
+    "stars": 7,
+    "description": "Foolbox Native brings native performance to Foolbox",
+    "language": "Python"
+  },
+  {
+    "name": "lockfile",
+    "url": "https://github.com/jonasrauber/lockfile",
+    "stars": 5,
+    "description": "lockfile provides a minimalistic and modern implementation of a simple file-based lock mechanism for Python",
+    "language": "Python"
+  },
+  {
+    "name": "analysis-by-synthesis",
+    "url": "https://github.com/jonasrauber/analysis-by-synthesis",
+    "stars": 5,
+    "description": "Analysis by Synthesis — reimplemented",
+    "language": "Python"
+  },
+  {
+    "name": "tensorflow-imagenet",
+    "url": "https://github.com/jonasrauber/tensorflow-imagenet",
+    "stars": 5,
+    "description": "Jupyter notebook templates for training or fine-tuning on ImageNet using TensorFlow.",
+    "language": "Jupyter Notebook"
+  },
+  {
+    "name": "attax",
+    "url": "https://github.com/jonasrauber/attax",
+    "stars": 4,
+    "description": "Attax: adversarial attacks using JAX",
+    "language": "Python"
+  },
+  {
+    "name": "foolbox-tensorflow-keras-applications",
+    "url": "https://github.com/jonasrauber/foolbox-tensorflow-keras-applications",
+    "stars": 3,
+    "description": "The pretrained TensorFlow Keras models with a Foolbox Zoo compatible interface",
+    "language": "Python"
+  },
+  {
+    "name": "norm",
+    "url": "https://github.com/jonasrauber/norm",
+    "stars": 3,
+    "description": "Norm is a tiny command-line utility to compute the norm of the difference between two images",
+    "language": "Nim"
+  },
+  {
+    "name": "clipping-aware-rescaling",
+    "url": "https://github.com/jonasrauber/clipping-aware-rescaling",
+    "stars": 2,
+    "description": "Calculates eta such that norm(clip(x + eta * delta, a, b) - x) == eps.",
+    "language": "Python"
+  },
+  {
+    "name": "DiscreteEntropyEstimators.jl",
+    "url": "https://github.com/jonasrauber/DiscreteEntropyEstimators.jl",
+    "stars": 2,
+    "description": "Discrete Entropy Estimators implemented in Julia",
+    "language": "Julia"
+  },
+  {
+    "name": "cifar10-fast-reimplemented",
+    "url": "https://github.com/jonasrauber/cifar10-fast-reimplemented",
+    "stars": 1,
+    "description": "A simplified reimplementation of the original fast CIFAR10 training code",
+    "language": "Python"
+  },
+  {
+    "name": "pants",
+    "url": "https://github.com/jonasrauber/pants",
+    "stars": 0,
+    "description": "The Pants Build System",
+    "language": "Unknown"
+  },
+  {
+    "name": "micrograd",
+    "url": "https://github.com/jonasrauber/micrograd",
+    "stars": 0,
+    "description": "A tiny scalar-valued autograd engine and a neural net library on top of it with PyTorch-like API",
+    "language": "Unknown"
+  },
+  {
+    "name": "swift",
+    "url": "https://github.com/jonasrauber/swift",
+    "stars": 0,
+    "description": "The Swift Programming Language",
+    "language": "Unknown"
+  },
+  {
+    "name": "bearapp-tag2link",
+    "url": "https://github.com/jonasrauber/bearapp-tag2link",
+    "stars": 0,
+    "description": "Create Links to BearApp Tags",
+    "language": "Python"
+  },
+  {
+    "name": "joss",
+    "url": "https://github.com/jonasrauber/joss",
+    "stars": 0,
+    "description": "The Journal of Open Source Software",
+    "language": "Unknown"
+  },
+  {
+    "name": "robustness_workshop",
+    "url": "https://github.com/jonasrauber/robustness_workshop",
+    "stars": 0,
+    "description": "",
+    "language": "Unknown"
+  },
+  {
+    "name": "cpython",
+    "url": "https://github.com/jonasrauber/cpython",
+    "stars": 0,
+    "description": "The Python programming language",
+    "language": "Unknown"
+  },
+  {
+    "name": "thinc",
+    "url": "https://github.com/jonasrauber/thinc",
+    "stars": 0,
+    "description": "🔮 A refreshing functional take on deep learning, compatible with your favorite libraries",
+    "language": "Unknown"
+  },
+  {
+    "name": "packages",
+    "url": "https://github.com/jonasrauber/packages",
+    "stars": 0,
+    "description": "List of packages for Nimble",
+    "language": "Unknown"
+  },
+  {
+    "name": "nimpy",
+    "url": "https://github.com/jonasrauber/nimpy",
+    "stars": 0,
+    "description": "Nim - Python bridge",
+    "language": "Unknown"
+  },
+  {
+    "name": "python_namespace_packages_editable_bug",
+    "url": "https://github.com/jonasrauber/python_namespace_packages_editable_bug",
+    "stars": 0,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "scikit-umfpack",
+    "url": "https://github.com/jonasrauber/scikit-umfpack",
+    "stars": 0,
+    "description": "The umfpack scikit provides wrapper of UMFPACK sparse direct solver to SciPy.",
+    "language": "Unknown"
+  },
+  {
+    "name": "jax",
+    "url": "https://github.com/jonasrauber/jax",
+    "stars": 0,
+    "description": "Composable transformations of Python+NumPy programs: differentiate, vectorize, JIT to GPU/TPU, and more",
+    "language": "Python"
+  },
+  {
+    "name": "example_foolbox_model",
+    "url": "https://github.com/jonasrauber/example_foolbox_model",
+    "stars": 0,
+    "description": "",
+    "language": "Python"
+  },
+  {
+    "name": "datajoint-tutorial",
+    "url": "https://github.com/jonasrauber/datajoint-tutorial",
+    "stars": 0,
+    "description": "Tutorial Documentation https://tutorials.datajoint.io/",
+    "language": "HTML"
+  },
+  {
+    "name": "crowdai",
+    "url": "https://github.com/jonasrauber/crowdai",
+    "stars": 0,
+    "description": "Fighting for Open Science with Open Data",
+    "language": "JavaScript"
+  },
+  {
+    "name": "numpy",
+    "url": "https://github.com/jonasrauber/numpy",
+    "stars": 0,
+    "description": "Numpy main repository",
+    "language": "C"
+  },
+  {
+    "name": "cleverhans",
+    "url": "https://github.com/jonasrauber/cleverhans",
+    "stars": 0,
+    "description": "A library for benchmarking vulnerability to adversarial examples",
+    "language": "Python"
+  },
+  {
+    "name": "mxnet",
+    "url": "https://github.com/jonasrauber/mxnet",
+    "stars": 0,
+    "description": "Lightweight, Portable, Flexible Distributed/Mobile Deep Learning with Dynamic, Mutation-aware Dataflow Dep Scheduler; for Python, R, Julia, Scala, Go, Javascript and more",
+    "language": "C++"
+  },
+  {
+    "name": "foolbox",
+    "url": "https://github.com/jonasrauber/foolbox",
+    "stars": 0,
+    "description": "Python toolbox to create adversarial examples that fool neural networks",
+    "language": "Python"
+  },
+  {
+    "name": "readthedocs.org",
+    "url": "https://github.com/jonasrauber/readthedocs.org",
+    "stars": 0,
+    "description": "source code to readthedocs.org",
+    "language": "Python"
+  },
+  {
+    "name": "docker",
+    "url": "https://github.com/jonasrauber/docker",
+    "stars": 0,
+    "description": "Information and scripts to run and develop the Bethge Lab Docker containers",
+    "language": "Makefile"
+  },
+  {
+    "name": "convnet-benchmarks",
+    "url": "https://github.com/jonasrauber/convnet-benchmarks",
+    "stars": 0,
+    "description": "Easy benchmarking of all publicly accessible implementations of convnets",
+    "language": "Python"
+  },
+  {
+    "name": "models",
+    "url": "https://github.com/jonasrauber/models",
+    "stars": 0,
+    "description": "Models built with TensorFlow",
+    "language": "Python"
+  },
+  {
+    "name": "tensorflow",
+    "url": "https://github.com/jonasrauber/tensorflow",
+    "stars": 0,
+    "description": "Computation using data flow graphs for scalable machine learning",
+    "language": "C++"
+  },
+  {
+    "name": "scipy",
+    "url": "https://github.com/jonasrauber/scipy",
+    "stars": 0,
+    "description": "Scipy library main repository",
+    "language": "Python"
+  },
+  {
+    "name": "ipython",
+    "url": "https://github.com/jonasrauber/ipython",
+    "stars": 0,
+    "description": "Official repository for IPython itself. Other repos in the IPython organization contain things like the website, documentation builds, etc.",
+    "language": "Python"
+  },
+  {
+    "name": "nbextension-scratchpad",
+    "url": "https://github.com/jonasrauber/nbextension-scratchpad",
+    "stars": 0,
+    "description": "scratchpad extension for Jupyter notebook",
+    "language": "JavaScript"
+  },
+  {
+    "name": "fblualib",
+    "url": "https://github.com/jonasrauber/fblualib",
+    "stars": 0,
+    "description": "Facebook libraries and utilities for Lua",
+    "language": "Lua"
+  },
+  {
+    "name": "agmb-docker",
+    "url": "https://github.com/jonasrauber/agmb-docker",
+    "stars": 0,
+    "description": "Docker containers for AG Bethge",
+    "language": "Shell"
+  },
+  {
+    "name": "neural-style",
+    "url": "https://github.com/jonasrauber/neural-style",
+    "stars": 0,
+    "description": "Torch implementation of neural style algorithm",
+    "language": "Lua"
+  },
+  {
+    "name": "MariOCaml",
+    "url": "https://github.com/jonasrauber/MariOCaml",
+    "stars": 0,
+    "description": "HTML 5 canvas implementation of Mario written in Ocaml",
+    "language": "OCaml"
+  },
+  {
+    "name": "METADATA.jl",
+    "url": "https://github.com/jonasrauber/METADATA.jl",
+    "stars": 0,
+    "description": "Metadata for registered Julia packages.",
+    "language": "Julia"
+  },
+  {
+    "name": "Notifier.jl",
+    "url": "https://github.com/jonasrauber/Notifier.jl",
+    "stars": 0,
+    "description": "",
+    "language": "Julia"
+  }
+]

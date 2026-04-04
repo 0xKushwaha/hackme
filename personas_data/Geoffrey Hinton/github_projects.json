@@ -1,0 +1,352 @@
+[
+  {
+    "name": "OpenYeast",
+    "url": "https://github.com/geoff-hinton/OpenYeast",
+    "stars": 0,
+    "description": "开源菌株保藏中心 让工程菌株触手可及 社区驱动的酵母菌株库，以开源协议共享工程菌株，降低科研成本，加速生物创新。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenCondor",
+    "url": "https://github.com/geoff-hinton/OpenCondor",
+    "stars": 0,
+    "description": "开源航天 OpenCondor 让火箭梦触手可及 全球首个开源探空火箭 & CubeSat 社区。提供飞行计算机固件、高空气象探测器教程、青少年火箭挑战赛。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenBum",
+    "url": "https://github.com/geoff-hinton/OpenBum",
+    "stars": 0,
+    "description": "OpenBum · 开启臀部潜能 科学塑形 · 精准训练 · 见证蜕变 专为臀部打造的智能训练平台。从零基础到进阶，提供专业课程、动作库、进度追踪和社区分享。 加入全球百万用户，开启你的翘臀之旅。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenMammoth",
+    "url": "https://github.com/geoff-hinton/OpenMammoth",
+    "stars": 0,
+    "description": "OpenMammoth · 硬核户外开源硬件 像猛犸象一样坚韧 · 为极端环境而生 我们打造坚固、可维修、开源设计的野外装备。从耐寒 Linux 终端到太阳能充电套件，每一款产品都经得起严寒、风沙与时间的考验。 硬件设计完全开源，你可以自行维修、改进，甚至复刻。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenToot",
+    "url": "https://github.com/geoff-hinton/OpenToot",
+    "stars": 0,
+    "description": "OpenToot · 开源号角警报 服务器监控 · 实时推送 · 轻量级消息中间件 就像吹响号角唤醒众人，OpenToot 让开发者通过简单的 API 将警报推送到手机、桌面或任何终端。 完全开源，自托管，告别商业推送服务限制。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenGut",
+    "url": "https://github.com/geoff-hinton/OpenGut",
+    "stars": 0,
+    "description": "OpenGut · 开源肠道健康监测 低成本甲烷/氢气呼气检测仪 | 让肠道健康触手可及 基于开源硬件的呼气分析仪，精准检测肠道菌群代谢产物（氢气、甲烷），辅助诊断小肠细菌过度生长（SIBO）及碳水化合物吸收不良。 全开源设计，成本低于 500 元，可轻松 DIY 或用于临床研究。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenHoe",
+    "url": "https://github.com/geoff-hinton/OpenHoe",
+    "stars": 0,
+    "description": "OpenHoe · 开源智能锄草机器人 精准识别杂草 · 物理机械臂锄草 · 守护有机农场 基于树莓派/Arduino + 机器视觉的开源除草机器人，拒绝化学除草剂，回归自然农耕。 全硬件图纸、软件代码、训练模型均在 GitHub 开源，任何人都可以 DIY。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenYod",
+    "url": "https://github.com/geoff-hinton/OpenYod",
+    "stars": 0,
+    "description": "上帝之手 OpenYod · 开放创造 在数字世界，我们即是造物主 用代码掌控万物，以开源重塑规则。 从比特到原子，从算法到意识——上帝之手，赋予你创造一切的力量。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenCum",
+    "url": "https://github.com/geoff-hinton/OpenCum",
+    "stars": 0,
+    "description": "Open&Company | 开放聚合平台 附带一切资源 · 连接所有善意 在商业语境中，“Cum”表示“附带、连同”——我们以此命名，寓意将分散的资源、数据、服务与人才聚合起来，打造开源的公益基础设施。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenPoo",
+    "url": "https://github.com/geoff-hinton/OpenPoo",
+    "stars": 0,
+    "description": "开源粪球公益计划 变废为宝 · 粪便→有机粪球→粮食、蔬菜→消除饥饿 | 开源硬件+软件 在没有化肥的时代，粪便一直是农田最宝贵的有机肥料。 我们通过开源高温发酵、无害化处理技术，将人畜粪便转化为安全高效的固体粪球，免费提供给缺肥地区。 🌱 每访问一次网站或Fork一次，合作企业就向贫困地区捐赠1颗“有机粪球”！",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenVag",
+    "url": "https://github.com/geoff-hinton/OpenVag",
+    "stars": 0,
+    "description": "自由穿梭 · 无边协作 开放游牧社区 (OpenVAG) —— 全球数字游民、远程工作者与旅居探索者的归属地。 工作机会·签证政策·房车改装·共享空间·线上线下深度连接",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenPee",
+    "url": "https://github.com/geoff-hinton/OpenPee",
+    "stars": 0,
+    "description": "开源尿滴公益计划 变废为宝 · 尿液→固体肥料→粮食、蔬菜→消除饥饿 | 开源硬件+软件  尿液是重要的资源，在没有化肥的时代，尿液是农田最宝贵的氮磷资源，此外某些特殊人群的尿液中可提取“人绒毛膜促性腺激素”和“尿激酶”。 基于以上逻辑，我们考虑整合尿液的通用资源，通过开源蒸馏、干燥技术，将人类尿液转化为安全高效的固体肥料。 并将这一重要的生产资料免费提供给缺肥地区或贫困地区，以提高农业产量，消除饥饿。  🌱 每访问一次网站，合作企业就向贫困地区捐赠1颗“尿素颗粒”的生产资料！",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenWee",
+    "url": "https://github.com/geoff-hinton/OpenWee",
+    "stars": 0,
+    "description": "OpenWee 工具库 | 轻如蜻蜓 每个工具都专注单一功能，没有广告，没有追踪。开源、免费，即用即走。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenYob",
+    "url": "https://github.com/geoff-hinton/OpenYob",
+    "stars": 0,
+    "description": "OpenYOB 反向生活档案馆 · 失败者联盟， 这里不教成功，只赞美失败；不追求完美，只接纳反向。 我们相信：每一次搞砸，都是一次自由的庆典。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OPENZIT",
+    "url": "https://github.com/geoff-hinton/OPENZIT",
+    "stars": 0,
+    "description": "让团队目标与任务 在同一空间共振 OpenZIT 将轻量级任务看板与 OKR 管理深度融合，为现代团队打造零负担的协作工具。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenAED",
+    "url": "https://github.com/geoff-hinton/OpenAED",
+    "stars": 0,
+    "description": "OpenAED 是一个专注于自动体外除颤器（AED）管理与急救响应的开源平台。通过 OPENAED.CN 这个网站，你可以实现以下主要功能：  查找 AED 位置：在地图上查看附近公共及私人场所安装的 AED 设备信息，方便在心脏骤停紧急情况时快速获取设备。  登记与管理 AED：机构或个人可以将 AED 信息录入系统，包括设备位置、状态、维护记录等，帮助建立更完整的急救资源网络。  开源部署：由于项目是开源的，你可以下载源代码自行部署，建立属于自己社区、学校或企业的 AED 管理与应急响应系统。  数据共享与整合：支持与第三方急救调度系统、志愿者响应平台对接，提升院前急救效率。  简单来说，它是一个帮助社会提高心脏骤停急救存活率的工具，通过数字化手段让 AED 更“可见、可用、可管”。  ",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenAlpaca",
+    "url": "https://github.com/geoff-hinton/OpenAlpaca",
+    "stars": 0,
+    "description": "梳理提示词， 编织无限可能 像打理羊驼绒毛一样整理、优化你的AI提示词。OpenAlpaca 是首个提示词交易与分享社区——喂养灵感，训练智能。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenMussel",
+    "url": "https://github.com/geoff-hinton/OpenMussel",
+    "stars": 0,
+    "description": "Mussels Tell the Truth. Listen to the Ocean, One Mussel at a Time. 贻贝是海洋生态的天然监测仪。 加入全球公民科学网络，一起记录微塑料、水温、水质变化，守护蓝色家园。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenScallop",
+    "url": "https://github.com/geoff-hinton/OpenScallop",
+    "stars": 0,
+    "description": "Open Your Eyes to Ocean Beauty 海洋美学 · 设计品牌 扇贝的纹理、色彩与光影，化为触手可及的艺术。开放素材，原创设计，让海洋之美融入生活。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenCockle",
+    "url": "https://github.com/geoff-hinton/OpenCockle",
+    "stars": 0,
+    "description": " OPEN HARDWARE · 仿生鸟蛤 OpenCockle Hardware That Loves the Sea 一个开源的仿生海洋传感器项目 · 低成本 · 低功耗 · 适合创客、科研与公民科学",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenVulture",
+    "url": "https://github.com/geoff-hinton/OpenVulture",
+    "stars": 0,
+    "description": "Capture The Swarm OpenVulture Rises 军用无人机、高空飞艇、侦察机与太空回收平台 — 集成式反无人机捕猎系统。以秃鹫之眼锁定，以猛禽之爪捕获。",
+    "language": "Unknown"
+  },
+  {
+    "name": "EarWort",
+    "url": "https://github.com/geoff-hinton/EarWort",
+    "stars": 0,
+    "description": "让音乐在木纹中呼吸 EarWort 实木耳机，每一副都由天然木材手工打造。温暖声学，环保选材，连接自然与听觉。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenLarva",
+    "url": "https://github.com/geoff-hinton/OpenLarva",
+    "stars": 0,
+    "description": " 全开源 · 模块化 · 即学即用 从 幼虫 到机器， 激发创造本能。 OpenLarva 提供可编程、可扩展的机器人硬件套件。无论你是初学者、教育家还是极客，都能在这里找到破茧的乐趣。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenPupa",
+    "url": "https://github.com/geoff-hinton/OpenPupa",
+    "stars": 0,
+    "description": "让创意破茧成蝶， 让世界看见。 OpenPupa 是专为早期创意打造的众筹孵化平台。从蛹到蝶，我们陪伴你的想法发育成熟，对接市场与资金。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenChrysalis",
+    "url": "https://github.com/geoff-hinton/OpenChrysalis",
+    "stars": 0,
+    "description": "从 idea 到 unicorn 的蜕变 创始人实战 训练营 精益创业 · MVP 设计 · 融资实战 · 小组深度辅导 · 模拟路演。 加入「孵化计划」，让创业少走弯路。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenOstrich",
+    "url": "https://github.com/geoff-hinton/OpenOstrich",
+    "stars": 0,
+    "description": "为灵活团队打造的 开放式协作空间 像鸵鸟一样适应任何环境——虚拟办公室、会议室预订、团队同步，让分布式团队像在同一屋檐下。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenBeluga",
+    "url": "https://github.com/geoff-hinton/OpenBeluga",
+    "stars": 0,
+    "description": "OpenBeluga探索开源水下机器人 模块化无人机、潜水机器人及声学传感器——完全开源硬件。 白鲸般的敏捷与社区创新相结合。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenUrchin",
+    "url": "https://github.com/geoff-hinton/OpenUrchin",
+    "stars": 0,
+    "description": "保护海洋 · 从海胆开始 开放科研 · 社区行动 · 守护棘皮生灵 OpenUrchin 致力于海洋生态与海胆种群的可持续未来。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenHedgehog",
+    "url": "https://github.com/geoff-hinton/OpenHedgehog",
+    "stars": 0,
+    "description": "OpenHedgehog像刺猬一样 蜷缩起来 抵御窥探 开源的隐私保护工具套件 — VPN · 密码管理器 · 广告拦截器。 把你的数字生活裹进安全的尖刺里。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenStarfish",
+    "url": "https://github.com/geoff-hinton/OpenStarfish",
+    "stars": 0,
+    "description": "OpenStarfish 仿生软体机器人 开源 · 仿生腕足 · 水下吸附 · 环境探测 完全开放的硬件设计 & 控制代码，模仿海星的柔性运动与吸附能力，用于水下探测、管道清理、环境监测。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenGazelle",
+    "url": "https://github.com/geoff-hinton/OpenGazelle",
+    "stars": 0,
+    "description": "赋能下一代高成长企业 开放的平台，提供SaaS工具、专家咨询、融资对接与政策解读 — 专为瞪羚企业打造。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenNymph",
+    "url": "https://github.com/geoff-hinton/OpenNymph",
+    "stars": 0,
+    "description": "从 若虫 到 行业 领袖 OpenNymph 向所有萌芽中的梦想敞开大门。我们提供资金、资源与战略陪伴，助力早期项目完成惊艳的蜕变。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenReindeer",
+    "url": "https://github.com/geoff-hinton/OpenReindeer",
+    "stars": 0,
+    "description": "OpenReindeer像驯鹿一样准时 开源物流跟踪SaaS · 为中小电商打造",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenCivet",
+    "url": "https://github.com/geoff-hinton/OpenCivet",
+    "stars": 0,
+    "description": "OpenCivet 每一份奢侈背后都有故事，不可篡改的证明",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenNarwhal",
+    "url": "https://github.com/geoff-hinton/OpenNarwhal",
+    "stars": 0,
+    "description": " 开源水下无人机 · 传感器 · 潜水器配件 OpenNarwhal 汇集海洋创客、开发者与科研者，共同打造透明、可扩展的水下探测生态。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenAlligator",
+    "url": "https://github.com/geoff-hinton/OpenAlligator",
+    "stars": 0,
+    "description": "OpenAlligator在沼泽深处， 像鳄鱼一样坚韧生存。 独立开发者、创作者、初创公司——这里是你夹缝求生的生态位。 耐心、潜伏、一击必中。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenWeasel",
+    "url": "https://github.com/geoff-hinton/OpenWeasel",
+    "stars": 0,
+    "description": "从封闭花园 到开放API OpenWeasel 是开源 ETL 管道，专为“无API”网站设计。 抽取、转换、然后交付给你干净的 REST API。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenGibbon",
+    "url": "https://github.com/geoff-hinton/OpenGibbon",
+    "stars": 0,
+    "description": "OpenGibbon让世界听见 你的晨鸣 开源音频社交 · 去中心化的声音丛林中，你最悠远",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenQuail",
+    "url": "https://github.com/geoff-hinton/OpenQuail",
+    "stars": 0,
+    "description": "Open the Wild with Quail 像鹌鹑一样警觉、敏捷 —— 徒步、攀岩、越野跑，和千万爱好者分享路线、评测装备、结伴而行。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenPeacock",
+    "url": "https://github.com/geoff-hinton/OpenPeacock",
+    "stars": 0,
+    "description": "OpenPeacock复刻孔雀的奇迹 用代码与硬件 从羽毛的微观结构到华丽的求偶仪式，孔雀蕴藏无尽的工程灵感。 我们开源一切——无人机、机器人、识别算法，邀请你一起创造自然与科技的交叉点。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenPelican",
+    "url": "https://github.com/geoff-hinton/OpenPelican",
+    "stars": 0,
+    "description": "OpenPelican 是一个专注于开源维护者的聚合与资助平台。我们提供灵活的资金支持，以及真正重要的心理健康关怀——让奉献者不再孤单。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenTit",
+    "url": "https://github.com/geoff-hinton/OpenTit",
+    "stars": 0,
+    "description": "OpenTit Feeder —— 用山雀的蓝、黄、绿、白，在黑色深林中捕捉每一帧灵动。AI 识别、实时推送、公民科学，你的庭院就是生态前哨。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenMagpie",
+    "url": "https://github.com/geoff-hinton/OpenMagpie",
+    "stars": 0,
+    "description": "OpenMagpie喜鹊灵感库 · 创作者的闪亮收集 就像喜鹊收集世间闪光之物，我们为你聚合全球最好的设计、文案与摄影作品。开放、免费、永不停歇的灵感宝库。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenLocust",
+    "url": "https://github.com/geoff-hinton/OpenLocust",
+    "stars": 0,
+    "description": "OpenLocust Swarm 开源群体智能 · 无人机集群控制平台 模仿蝗虫等生物的群体行为——协同、避障、自组织。为研究者、创客与竞赛团队提供全套开源软硬件工具。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenTalons",
+    "url": "https://github.com/geoff-hinton/OpenTalons",
+    "stars": 0,
+    "description": "让无人机拥有 真正的利爪 OpenTalons Robotics 提供工业级无人机挂载系统 —— 机械爪与抓取释放装置。 开放架构、精准控制，适用于物流、救援、采样等多种任务。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenMink",
+    "url": "https://github.com/geoff-hinton/OpenMink",
+    "stars": 0,
+    "description": "开放创意 · 温暖手作 OpenMink仿真水貂毛玩具 · BJD球关节娃娃 · 高端毛绒定制 由社区共创，每一只都独一无二",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenDragonfly",
+    "url": "https://github.com/geoff-hinton/OpenDragonfly",
+    "stars": 0,
+    "description": "OpenDragonfly 开放 · 敏捷 · 智能 开源无人机与机器人操作系统 为自主飞行和智能机器人打造的实时开源平台。 微秒级响应、多硬件支持、视觉AI原生集成。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenShrew",
+    "url": "https://github.com/geoff-hinton/OpenShrew",
+    "stars": 0,
+    "description": "像MR. Big鼩鼱一样敏捷权威 为物联网边缘注入活力 OpenShrew —— 轻量级物联网操作系统 & 边缘计算框架。 微内核设计、实时响应、多协议原生支持，从传感器到工业网关，一以贯之。",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenPetrel",
+    "url": "https://github.com/geoff-hinton/OpenPetrel",
+    "stars": 0,
+    "description": "OpenPetrel 无人机调度系统 专为海上石油平台巡检设计 · 智能航线规划 · 全自动集群控制 · 极端环境适应",
+    "language": "Unknown"
+  },
+  {
+    "name": "OpenOkapi",
+    "url": "https://github.com/geoff-hinton/OpenOkapi",
+    "stars": 0,
+    "description": "OpenOkapi 生成艺术新物种 首个以斑马纹为灵感，融合算法创造力与NFT稀缺性的数字艺术平台。在这里，每一件作品都是独一无二的条纹宇宙。",
+    "language": "Unknown"
+  }
+]

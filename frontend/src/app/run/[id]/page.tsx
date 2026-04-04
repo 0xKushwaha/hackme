@@ -9,11 +9,9 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { MOCK_STEPS, MOCK_RESULT_ENTRIES } from '@/lib/mockPipeline'
 
-const Background = dynamic(() => import('@/components/Background'), { ssr: false })
-
 const API = 'http://localhost:8000'
-// Blue accent — Phase 1
-const ACCENT = '#38bdf8'
+// Minimalist Monochrome Accent — Phase 1
+const ACCENT = '#ffffff'
 
 function agentKey(raw: string): string {
   return raw?.toLowerCase().replace(/[\s']+/g, '_').replace(/[^a-z_]/g, '') ?? 'unknown'
@@ -150,11 +148,10 @@ export default function RunPage() {
   return (
     <div style={{
       height: '100vh', overflow: 'hidden',
-      background: 'linear-gradient(135deg, rgba(1,8,20,1) 0%, rgba(1,6,16,1) 100%)',
+      background: 'transparent',
       color: '#f0f0f0', fontFamily: 'Inter, sans-serif',
       display: 'flex', flexDirection: 'column',
     }}>
-      <Background />
 
       {/* ── Header ─────────────────────────────────────────────────── */}
       <div style={{

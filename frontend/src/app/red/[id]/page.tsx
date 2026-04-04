@@ -56,7 +56,7 @@ export default function RedModePage() {
   const [activeAgent,  setActiveAgent]  = useState('')   // active Phase 1 agent
 
   // Debate state
-  const [lines,        setLines]        = useState<string[]>([])
+  const [lastLine,     setLastLine]     = useState('')
   const [currentRound, setCurrentRound] = useState(0)
   const [roundPersonas,setRoundPersonas]= useState<Record<string, string[]>>({ '1': [], '2': [], '3': [] })
   const [synthesisDone,setSynthesisDone]= useState(false)
@@ -81,21 +81,21 @@ export default function RedModePage() {
       await delay(400)
 
       // ── Stage 1: Phase 1 agents ────────────────────────────────────
-      setLines(prev => [...prev, '[RED_PHASE1_START]', '🔬 Phase 1 — Agents gathering analysis…'])
+      setLastLine('🔬 Phase 1 — Agents gathering analysis…')
       const doneP1: string[] = []
       for (const agent of P1_ORDER) {
         if (cancelled) return
         setActiveAgent(agent)
-        setLines(prev => [...prev, `[AGENT:${agent}]`])
+        setLastLine(`[AGENT:${agent}]`)
         await delay(500)
         if (cancelled) return
         doneP1.push(agent)
         setPhase1Agents([...doneP1])
-        setLines(prev => [...prev, `[AGENT_DONE:${agent}]`])
+        setLastLine(`[AGENT_DONE:${agent}]`)
       }
 
       await delay(400)
-      setLines(prev => [...prev, '[RED_PHASE1_DONE]', '✓ Phase 1 complete — starting debate'])
+      setLastLine('✓ Phase 1 complete — starting debate')
       setPhase('debate')
       setActiveAgent('')
 
@@ -103,49 +103,49 @@ export default function RedModePage() {
 
       // ── Stage 2: Debate — Round 1 ─────────────────────────────────
       setCurrentRound(1)
-      setLines(prev => [...prev, '[RED_ROUND:1]', 'ROUND 1 — Independent Takes (20 parallel calls)'])
+      setLastLine('ROUND 1 — Independent Takes (20 parallel calls)')
       const doneR1: string[] = []
       for (const name of MOCK_PERSONAS) {
         if (cancelled) return
         setActivePersona(name)
-        setLines(prev => [...prev, `[PERSONA:${name}]`])
+        setLastLine(`[PERSONA:${name}]`)
         await delay(280)
         if (cancelled) return
         doneR1.push(name)
         setRoundPersonas(prev => ({ ...prev, '1': [...doneR1] }))
-        setLines(prev => [...prev, `[PERSONA_DONE:${name}]`])
+        setLastLine(`[PERSONA_DONE:${name}]`)
       }
 
       await delay(300)
 
       // Round 2
       setCurrentRound(2)
-      setLines(prev => [...prev, '[RED_ROUND:2]', 'ROUND 2 — Full Debate (20 parallel calls)'])
+      setLastLine('ROUND 2 — Full Debate (20 parallel calls)')
       const doneR2: string[] = []
       for (const name of MOCK_PERSONAS) {
         if (cancelled) return
         setActivePersona(name)
-        setLines(prev => [...prev, `[PERSONA:${name}]`])
+        setLastLine(`[PERSONA:${name}]`)
         await delay(260)
         if (cancelled) return
         doneR2.push(name)
         setRoundPersonas(prev => ({ ...prev, '2': [...doneR2] }))
-        setLines(prev => [...prev, `[PERSONA_DONE:${name}]`])
+        setLastLine(`[PERSONA_DONE:${name}]`)
       }
 
       await delay(300)
 
       // Round 3 — synthesis
       setCurrentRound(3)
-      setLines(prev => [...prev, '[RED_ROUND:3]', '[RED_SYNTHESIS]', 'Synthesising 20 takes across 2 rounds…'])
+      setLastLine('Synthesising 20 takes across 2 rounds…')
       await delay(1200)
       if (cancelled) return
 
       setSynthesisDone(true)
       setDone(true)
       setResult({ personas: MOCK_PERSONAS, round1: MOCK_ROUND1, round2: MOCK_ROUND2, synthesis: MOCK_SYNTHESIS })
-      setActiveTab('synthesis')
-      setSelectedPersona(MOCK_PERSONAS[0])
+      setActiveTab('r1')
+      setSelectedPersona('')
     }
 
     run()
@@ -161,7 +161,7 @@ export default function RedModePage() {
       if (data.error && data.done) { setError(data.error); return }
 
       cursorRef.current = data.cursor ?? cursorRef.current
-      if (data.lines?.length)     setLines(prev => [...prev, ...data.lines])
+      if (data.lines?.length)     setLastLine(data.lines[data.lines.length - 1])
       if (data.phase)             setPhase(data.phase)
       if (data.phase1Agents)      setPhase1Agents(data.phase1Agents)
       if (data.phase === 'phase1' && data.agent) setActiveAgent(data.agent)
@@ -176,9 +176,8 @@ export default function RedModePage() {
         const result = await res2.json()
         if (!result.error) {
           setResult(result)
-          setActiveTab('synthesis')
-          // Auto-select first persona for content pane
-          if (result.personas?.length) setSelectedPersona(result.personas[0])
+          setActiveTab('r1')
+          setSelectedPersona('')
         } else {
           setError(result.error)
         }
@@ -208,19 +207,19 @@ export default function RedModePage() {
     h.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 
   const roundLabel = ['', 'Round 1 — Takes', 'Round 2 — Debate', 'Round 3 — Synthesis']
-  const roundColors = ['', '#dc2626', '#fb923c', '#f59e0b']
+  const roundColors = ['', '#e11d48', '#e11d48', '#e11d48']
 
   // whether the floating content panel is open
   const panelOpen = !!selectedPersona || activeTab === 'synthesis'
   const panelPersona = selectedPersona
-  const panelColor   = panelPersona ? (PERSONA_COLORS[panelPersona] ?? '#dc2626') : '#f59e0b'
+  const panelColor   = panelPersona ? (PERSONA_COLORS[panelPersona] ?? '#e11d48') : '#e11d48'
 
   const closePanel = () => { setSelectedPersona(''); setActiveTab('r1') }
 
   return (
     <div style={{
       height: '100vh', overflow: 'hidden',
-      background: 'linear-gradient(135deg, rgba(15,2,2,1) 0%, rgba(8,1,1,1) 100%)',
+      background: 'transparent',
       color: '#f0f0f0', fontFamily: 'Inter, sans-serif',
       display: 'flex', flexDirection: 'column',
     }}>
@@ -258,7 +257,7 @@ export default function RedModePage() {
           )}
           {/* Phase label */}
           {phase === 'phase1' ? (
-            <span style={{ fontSize: 10, fontFamily: 'JetBrains Mono', padding: '3px 10px', borderRadius: 6, color: '#38bdf8', background: 'rgba(56,189,248,0.07)', border: '1px solid rgba(56,189,248,0.2)' }}>
+            <span style={{ fontSize: 10, fontFamily: 'JetBrains Mono', padding: '3px 10px', borderRadius: 6, color: '#ffffff', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.2)' }}>
               Phase 1 — {phase1Agents.length}/9 agents
             </span>
           ) : currentRound > 0 && (
@@ -302,6 +301,10 @@ export default function RedModePage() {
               if (p) { setSelectedPersona(p); setActiveTab('r1') }
               else   { setSelectedPersona('') }
             }}
+            onSelectSynthesis={() => {
+               setSelectedPersona('')
+               setActiveTab('synthesis')
+            }}
             selectedPersona={selectedPersona}
             phase={phase}
             phase1Agents={phase1Agents}
@@ -340,9 +343,9 @@ export default function RedModePage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   {activeTab === 'synthesis' ? (
                     <>
-                      <div style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: '#f59e0b' }}>◎</div>
+                      <div style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(225,29,72,0.15)', border: '1px solid rgba(225,29,72,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: '#e11d48' }}>◎</div>
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#f59e0b', fontFamily: "'Space Grotesk',sans-serif" }}>Synthesis</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#e11d48', fontFamily: "'Space Grotesk',sans-serif" }}>Synthesis</div>
                         <div style={{ fontSize: 9.5, color: 'rgba(255,255,255,0.28)' }}>{personas.length} experts · {doneR2.length} debates</div>
                       </div>
                     </>
@@ -433,7 +436,7 @@ export default function RedModePage() {
             <span style={{ fontSize: 10, fontFamily: 'JetBrains Mono', color: 'rgba(255,255,255,0.2)' }}>
               {phase === 'phase1'
                 ? activeAgent ? `running ${P1_META[activeAgent]?.label ?? activeAgent}…` : 'Initialising Phase 1…'
-                : lines[lines.length - 1] ?? 'Initialising…'
+                : lastLine || 'Initialising…'
               }
             </span>
           </div>

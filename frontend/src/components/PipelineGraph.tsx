@@ -9,16 +9,16 @@ export interface NodeData {
 }
 
 export const PIPELINE_NODES: Omit<NodeData, 'content'>[] = [
-  { key: 'explorer',         label: 'Explorer',        icon: '◉', color: '#38bdf8', role: 'Data Scout',        description: 'Scans structure, finds patterns and key features.' },
-  { key: 'skeptic',          label: 'Skeptic',          icon: '⚠', color: '#fb7185', role: 'Quality Guard',     description: 'Challenges assumptions, flags anomalies and leakage.' },
-  { key: 'statistician',     label: 'Statistician',     icon: '∑', color: '#3b82f6', role: 'Numbers Expert',    description: 'Distributions, correlations, hypothesis testing.' },
-  { key: 'ethicist',         label: 'Ethicist',         icon: '⚖', color: '#34d399', role: 'Bias Detector',     description: 'Evaluates fairness and ethical implications.' },
-  { key: 'feature_engineer', label: 'Feature Eng.',     icon: '⟁', color: '#818cf8', role: 'Signal Extractor',  description: 'New features, encodings, and transformations.' },
-  { key: 'pragmatist',       label: 'Pragmatist',       icon: '◈', color: '#fbbf24', role: 'Reality Check',     description: 'Model plan — which models, eval metric, split.' },
-  { key: 'devil_advocate',   label: 'Devil Adv.',       icon: '⛧', color: '#f97316', role: 'Critical Thinker',  description: 'Stress-tests the plan, proposes alternatives.' },
-  { key: 'optimizer',        label: 'Optimizer',        icon: '⚡', color: '#2dd4bf', role: 'Efficiency Expert', description: 'Hyperparameter tuning, CV strategy, ensembles.' },
-  { key: 'architect',        label: 'Architect',        icon: '⬡', color: '#c084fc', role: 'System Designer',   description: 'Research-backed architecture with arxiv references.' },
-  { key: 'final_report',     label: 'Final Report',     icon: '◎', color: '#f0c040', role: 'Pipeline Output',   description: 'Complete analysis: findings, metrics, recommendations.' },
+  { key: 'explorer',         label: 'Explorer',        icon: '◉', color: '#a1a1aa', role: 'Data Scout',        description: 'Scans structure, finds patterns and key features.' },
+  { key: 'skeptic',          label: 'Skeptic',          icon: '⚠', color: '#71717a', role: 'Quality Guard',     description: 'Challenges assumptions, flags anomalies and leakage.' },
+  { key: 'statistician',     label: 'Statistician',     icon: '∑', color: '#d4d4d8', role: 'Numbers Expert',    description: 'Distributions, correlations, hypothesis testing.' },
+  { key: 'ethicist',         label: 'Ethicist',         icon: '⚖', color: '#a1a1aa', role: 'Bias Detector',     description: 'Evaluates fairness and ethical implications.' },
+  { key: 'feature_engineer', label: 'Feature Eng.',     icon: '⟁', color: '#e4e4e7', role: 'Signal Extractor',  description: 'New features, encodings, and transformations.' },
+  { key: 'pragmatist',       label: 'Pragmatist',       icon: '◈', color: '#d4d4d8', role: 'Reality Check',     description: 'Model plan — which models, eval metric, split.' },
+  { key: 'devil_advocate',   label: 'Devil Adv.',       icon: '⛧', color: '#71717a', role: 'Critical Thinker',  description: 'Stress-tests the plan, proposes alternatives.' },
+  { key: 'optimizer',        label: 'Optimizer',        icon: '⚡', color: '#a1a1aa', role: 'Efficiency Expert', description: 'Hyperparameter tuning, CV strategy, ensembles.' },
+  { key: 'architect',        label: 'Architect',        icon: '⬡', color: '#e4e4e7', role: 'System Designer',   description: 'Research-backed architecture with arxiv references.' },
+  { key: 'final_report',     label: 'Final Report',     icon: '◎', color: '#fafafa', role: 'Pipeline Output',   description: 'Complete analysis: findings, metrics, recommendations.' },
 ]
 
 interface D3Node { id: string; x?: number; y?: number; fx?: number | null; fy?: number | null }
@@ -40,8 +40,8 @@ const LINKS: D3Link[] = [
   { source: 'architect',        target: 'final_report',      label: 'architecture' },
 ]
 
-const R = 26
-const R_FINAL = 34
+const R = 44
+const R_FINAL = 54
 
 interface Props {
   activeAgent: string
@@ -66,12 +66,17 @@ export default function PipelineGraph({ activeAgent, doneAgents, done, nodes, se
   const staticMap = Object.fromEntries(PIPELINE_NODES.map(n => [n.key, n]))
 
   // ── Build scene once ────────────────────────────────────────────────────────
-  useLayoutEffect(() => {
+  useEffect(() => {
     const svgEl = svgRef.current!
     const svg   = d3.select(svgEl)
-    svg.selectAll('*').remove()
-    nodeEls.current.clear()
-    linkEls.current = []
+    let sim: d3.Simulation<D3Node, undefined>
+    let rafId: number
+    let timeoutId: NodeJS.Timeout
+
+    const build = () => {
+      svg.selectAll('*').remove()
+      nodeEls.current.clear()
+      linkEls.current = []
 
     const W = svgEl.clientWidth  || window.innerWidth  || 900
     const H = svgEl.clientHeight || window.innerHeight || 700
@@ -113,11 +118,11 @@ export default function PipelineGraph({ activeAgent, doneAgents, done, nodes, se
     const simLinks: D3Link[] = LINKS.map(l => ({ ...l }))
     linkData.current = simLinks
 
-    const sim = d3.forceSimulation<D3Node>(simNodes)
-      .force('link',    d3.forceLink<D3Node, D3Link>(simLinks).id(d => d.id).distance(180).strength(0.35))
-      .force('charge',  d3.forceManyBody().strength(-700))
+    sim = d3.forceSimulation<D3Node>(simNodes)
+      .force('link',    d3.forceLink<D3Node, D3Link>(simLinks).id(d => d.id).distance(280).strength(0.35))
+      .force('charge',  d3.forceManyBody().strength(-2000))
       .force('center',  d3.forceCenter(W / 2, H / 2))
-      .force('collide', d3.forceCollide(70))
+      .force('collide', d3.forceCollide(110))
       .force('x',       d3.forceX(W / 2).strength(0.02))
       .force('y',       d3.forceY(H / 2).strength(0.02))
 
@@ -157,26 +162,28 @@ export default function PipelineGraph({ activeAgent, doneAgents, done, nodes, se
 
     nodeG.each(function(d) { nodeEls.current.set(d.id, this) })
 
-    nodeG.append('circle').attr('class', 'pulse-ring')
-      .attr('r', d => (d.id === 'final_report' ? R_FINAL : R) + 10)
+    const getHex = (r: number) => [0, 1, 2, 3, 4, 5].map(i => `${Math.sin(i * Math.PI / 3) * r},${-Math.cos(i * Math.PI / 3) * r}`).join(' ')
+
+    nodeG.append('polygon').attr('class', 'pulse-poly')
+      .attr('points', d => getHex((d.id === 'final_report' ? R_FINAL : R) + 10))
       .attr('fill', 'none').attr('stroke', 'none').attr('stroke-width', 0)
 
-    nodeG.append('circle').attr('class', 'main-circle')
-      .attr('r', d => d.id === 'final_report' ? R_FINAL : R)
+    nodeG.append('polygon').attr('class', 'main-poly')
+      .attr('points', d => getHex(d.id === 'final_report' ? R_FINAL : R))
       .attr('fill', 'rgba(255,255,255,0.03)')
       .attr('stroke', 'rgba(255,255,255,0.12)')
       .attr('stroke-width', 1.5)
 
     nodeG.append('text').attr('class', 'icon-text')
       .attr('text-anchor', 'middle').attr('dominant-baseline', 'central')
-      .attr('font-size', d => d.id === 'final_report' ? 20 : 16)
+      .attr('font-size', d => d.id === 'final_report' ? 26 : 22)
       .attr('fill', 'rgba(255,255,255,0.35)').attr('pointer-events', 'none')
       .text(d => staticMap[d.id]?.icon ?? '◌')
 
     nodeG.append('text').attr('class', 'label-text')
       .attr('text-anchor', 'middle')
-      .attr('dy', d => (d.id === 'final_report' ? R_FINAL : R) + 16)
-      .attr('font-size', 11)
+      .attr('dy', d => (d.id === 'final_report' ? R_FINAL : R) + 20)
+      .attr('font-size', 13)
       .attr('font-family', "'JetBrains Mono', monospace")
       .attr('fill', 'rgba(255,255,255,0.22)').attr('pointer-events', 'none')
       .text(d => staticMap[d.id]?.label ?? d.id)
@@ -184,6 +191,12 @@ export default function PipelineGraph({ activeAgent, doneAgents, done, nodes, se
     svg.on('click', () => setSelected(null))
 
     sim.on('tick', () => {
+      simNodes.forEach(d => {
+        const bp = (d.id === 'final_report' ? R_FINAL : R) + 30
+        d.x = Math.max(bp, Math.min(W - bp, d.x ?? W / 2))
+        d.y = Math.max(bp, Math.min(H - bp, d.y ?? H / 2))
+      })
+
       linkPaths.attr('d', (d: D3Link) => {
         const s = d.source as D3Node, t = d.target as D3Node
         const dr = Math.sqrt(((t.x ?? 0) - (s.x ?? 0)) ** 2 + ((t.y ?? 0) - (s.y ?? 0)) ** 2) * 1.3
@@ -195,7 +208,17 @@ export default function PipelineGraph({ activeAgent, doneAgents, done, nodes, se
       nodeG.attr('transform', d => `translate(${d.x ?? 0},${d.y ?? 0})`)
     })
 
-    return () => { sim.stop() }
+    }
+
+    timeoutId = setTimeout(() => {
+      rafId = requestAnimationFrame(build)
+    }, 450)
+
+    return () => { 
+      clearTimeout(timeoutId)
+      cancelAnimationFrame(rafId)
+      sim?.stop() 
+    }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Update visuals when state changes ───────────────────────────────────────
@@ -207,20 +230,20 @@ export default function PipelineGraph({ activeAgent, doneAgents, done, nodes, se
       const isDone   = isFinal ? done : doneAgents.includes(id)
       const sel      = d3.select(el)
 
-      sel.select('.main-circle')
+      sel.select('.main-poly')
         .attr('fill',         isDone   ? `${meta.color}28` : isActive ? `${meta.color}30` : 'rgba(255,255,255,0.03)')
         .attr('stroke',       isDone || isActive ? meta.color : 'rgba(255,255,255,0.1)')
         .attr('stroke-width', isActive ? 3 : isDone ? 2.5 : 1.5)
         .attr('filter',       isActive ? 'url(#pg-glow)' : isDone ? 'url(#pg-glow-done)' : null)
 
-      sel.select('.pulse-ring')
+      sel.select('.pulse-poly')
         .attr('stroke',       isActive ? meta.color : 'none')
         .attr('stroke-width', isActive ? 2 : 0)
         .attr('opacity',      isActive ? 0.4 : 0)
 
       sel.select('.icon-text')
         .attr('fill',      isDone || isActive ? meta.color : 'rgba(255,255,255,0.3)')
-        .attr('font-size', isFinal ? 20 : isActive ? 18 : 16)
+        .attr('font-size', isFinal ? 26 : isActive ? 24 : 22)
         .text(isDone ? '✓' : meta.icon)
 
       sel.select('.label-text')
@@ -288,16 +311,6 @@ export default function PipelineGraph({ activeAgent, doneAgents, done, nodes, se
 
       {/* Legend */}
       <div style={{ position: 'absolute', bottom: 20, left: 20, display: 'flex', gap: 18, alignItems: 'center' }}>
-        {[
-          { color: 'rgba(255,255,255,0.2)', label: 'Pending' },
-          { color: '#3b82f6',               label: 'Active'  },
-          { color: '#34d399',               label: 'Done'    },
-        ].map(l => (
-          <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: l.color, boxShadow: l.label === 'Active' ? `0 0 8px ${l.color}` : 'none' }} />
-            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontFamily: "'JetBrains Mono',monospace" }}>{l.label}</span>
-          </div>
-        ))}
         <span style={{ fontSize: 9.5, color: 'rgba(255,255,255,0.15)', fontFamily: "'JetBrains Mono',monospace", marginLeft: 8 }}>
           {done ? 'click node to view output' : 'drag · scroll to zoom · click node'}
         </span>

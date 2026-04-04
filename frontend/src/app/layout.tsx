@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import GlobalBackground from '@/components/GlobalBackground'
+import PageTransition from '@/components/PageTransition'
 
 export const metadata: Metadata = {
   title: 'Multi-Agent DS',
@@ -18,7 +20,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        {children}
+        <GlobalBackground />
+        <PageTransition>
+          {children}
+        </PageTransition>
       </body>
     </html>
   )

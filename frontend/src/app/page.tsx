@@ -3,9 +3,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import dynamic from 'next/dynamic'
-
-const Background = dynamic(() => import('@/components/Background'), { ssr: false })
 
 const API = 'http://localhost:8000'
 const PROVIDERS = [
@@ -85,6 +82,13 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const dirInputRef  = useRef<HTMLInputElement>(null)
 
+  // Hydrate mode state so pressing 'back' doesn't switch to Phase 1 randomly
+  useEffect(() => {
+    if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('redMode') === 'true') {
+      setIsRedMode(true)
+    }
+  }, [])
+
   const tagline = useTypewriter(
     isRedMode ? '20 real experts debate your analysis' : 'Autonomous multi-agent data science pipeline',
     45, 600
@@ -102,6 +106,11 @@ export default function Home() {
       setServerUrl(d.serverUrl ?? ''); setModelName(d.model ?? '')
     }).catch(() => {})
   }, [])
+
+  // Sync mode with global background
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('setAppMode', { detail: isRedMode ? 'red' : 'blue' }))
+  }, [isRedMode])
 
 
 
@@ -173,16 +182,15 @@ export default function Home() {
     } catch { setLaunching(false); setErrors(['Cannot reach server at localhost:8000']) }
   }
 
-  const accentColor = isRedMode ? '#dc2626' : '#3b82f6'
-  const accentRgb   = isRedMode ? '220,38,38' : '59,130,246'
+  const accentColor = isRedMode ? '#e11d48' : '#ffffff'
+  const accentRgb   = isRedMode ? '225,29,72' : '255,255,255'
 
   return (
     <>
-      <Background mode={isRedMode ? 'red' : 'blue'} />
       {/* Red Mode overlay — smooth colour tint during canvas transition */}
       <div style={{
         position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
-        background: isRedMode ? 'rgba(12,1,1,0.45)' : 'transparent',
+        background: isRedMode ? 'rgba(5,0,0,0.5)' : 'transparent',
         transition: 'background 1.1s cubic-bezier(0.4,0,0.2,1)',
       }} />
     <div data-mode={isRedMode ? 'red' : 'blue'} style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
@@ -218,7 +226,7 @@ export default function Home() {
             transition: 'all 0.6s ease',
           }}>
             <span className="gradient-text">{isRedMode ? 'Debate any' : 'Analyse any'}</span><br />
-            <span style={{ color: isRedMode ? '#dc2626' : '#3b82f6', transition: 'color 0.6s ease' }}>
+            <span style={{ color: isRedMode ? '#e11d48' : '#ffffff', transition: 'color 0.6s ease' }}>
               {isRedMode ? 'analysis.' : 'dataset.'}
             </span>
           </h1>
@@ -250,15 +258,22 @@ export default function Home() {
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
             {/* Red Mode toggle */}
             <motion.button
-              onClick={() => { setIsRedMode(v => !v); setErrors([]) }}
+              onClick={() => {
+                setIsRedMode(v => {
+                  const n = !v
+                  if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('redMode', String(n))
+                  return n
+                })
+                setErrors([])
+              }}
               whileTap={{ scale: 0.95 }}
               style={{
                 fontSize: 11, padding: '5px 14px', borderRadius: 8, cursor: 'pointer',
                 fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, letterSpacing: '0.04em',
-                background: isRedMode ? 'rgba(220,38,38,0.18)' : 'rgba(255,255,255,0.04)',
-                border: `1px solid ${isRedMode ? 'rgba(220,38,38,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                color: isRedMode ? '#dc2626' : 'rgba(255,255,255,0.35)',
-                boxShadow: isRedMode ? '0 0 14px rgba(220,38,38,0.25)' : 'none',
+                background: isRedMode ? 'rgba(225,29,72,0.1)' : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${isRedMode ? 'rgba(225,29,72,0.4)' : 'rgba(255,255,255,0.1)'}`,
+                color: isRedMode ? '#e11d48' : 'rgba(255,255,255,0.4)',
+                boxShadow: isRedMode ? '0 0 16px rgba(225,29,72,0.3)' : 'none',
                 transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
               }}
             >
@@ -268,9 +283,10 @@ export default function Home() {
               onClick={() => setTestMode(v => !v)}
               style={{
                 fontSize: 11, padding: '5px 12px', borderRadius: 8, cursor: 'pointer', fontFamily: "'JetBrains Mono',monospace",
-                background: testMode ? 'rgba(52,211,153,0.12)' : 'rgba(255,255,255,0.04)',
-                border: `1px solid ${testMode ? 'rgba(52,211,153,0.35)' : 'rgba(255,255,255,0.1)'}`,
-                color: testMode ? '#34d399' : 'rgba(255,255,255,0.35)',
+                background: testMode ? `rgba(${accentRgb},0.12)` : 'rgba(255,255,255,0.04)',
+                border: `1px solid ${testMode ? `rgba(${accentRgb},0.4)` : 'rgba(255,255,255,0.1)'}`,
+                color: testMode ? accentColor : 'rgba(255,255,255,0.35)',
+                boxShadow: testMode ? `0 0 16px rgba(${accentRgb},0.2)` : 'none',
                 transition: 'all 0.18s',
               }}
             >
@@ -283,7 +299,7 @@ export default function Home() {
           <AnimatePresence>
             {showCreds && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden' }}>
-                <div style={{ background: 'rgba(2,8,20,0.7)', backdropFilter: 'blur(20px)', border: `1px solid rgba(${accentRgb},0.2)`, borderRadius: 14, padding: 16, display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 4 }}>
+                <div style={{ background: 'rgba(10,10,10,0.8)', border: `1px solid rgba(${accentRgb},0.15)`, borderRadius: 10, padding: 16, display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 4 }}>
                   <div className="label">Override API Key</div>
                   <input className="field" type="password" placeholder="Paste new key…" value={ovKey} onChange={e => setOvKey(e.target.value)} />
                   <button className="btn" style={{ padding: '9px 16px', fontSize: 12.5 }} onClick={saveCreds}>Save</button>
@@ -293,7 +309,7 @@ export default function Home() {
           </AnimatePresence>
 
           {/* Provider */}
-          <div style={{ background: 'rgba(2,8,20,0.55)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 18px' }}>
+          <div style={{ background: 'rgba(10,10,10,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '16px 18px' }}>
             <div className="label" style={{ marginBottom: 10 }}>Provider</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
               {PROVIDERS.map(p => (
@@ -302,6 +318,7 @@ export default function Home() {
                   background: provider === p.id ? `rgba(${accentRgb},0.12)` : 'rgba(255,255,255,0.02)',
                   border: `1px solid ${provider === p.id ? `rgba(${accentRgb},0.4)` : 'rgba(255,255,255,0.06)'}`,
                   color: provider === p.id ? accentColor : 'rgba(255,255,255,0.28)',
+                  boxShadow: provider === p.id ? `0 0 16px rgba(${accentRgb},0.2)` : 'none',
                   transition: 'all 0.18s',
                   backdropFilter: 'blur(8px)',
                 }}>
@@ -314,7 +331,7 @@ export default function Home() {
           </div>
 
           {/* Auth */}
-          <div style={{ background: 'rgba(2,8,20,0.55)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 18px' }}>
+          <div style={{ background: 'rgba(10,10,10,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '16px 18px' }}>
             {provider === 'local' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div className="label" style={{ marginBottom: 2 }}>Server Config</div>
@@ -326,7 +343,7 @@ export default function Home() {
                 <div className="label" style={{ marginBottom: 8 }}>API Key</div>
                 <div style={{ position: 'relative' }}>
                   <input className="field" type="password" placeholder={provider === 'claude' ? 'sk-ant-…' : 'sk-…'} value={apiKey} onChange={e => setApiKey(e.target.value)} style={{ paddingRight: hasKey && !apiKey ? 72 : 14 }} />
-                  {hasKey && !apiKey && <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 10.5, color: '#34d399', fontFamily: "'JetBrains Mono',monospace", fontWeight: 600 }}>✓ saved</span>}
+                  {hasKey && !apiKey && <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 10.5, color: accentColor, fontFamily: "'JetBrains Mono',monospace", fontWeight: 600 }}>✓ saved</span>}
                 </div>
               </>
             )}
@@ -367,16 +384,16 @@ export default function Home() {
             <AnimatePresence>
               {datasetName && (
                 <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                  style={{ marginTop: 8, padding: '7px 12px', borderRadius: 8, background: 'rgba(52,211,153,0.07)', border: '1px solid rgba(52,211,153,0.18)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ color: '#34d399', fontSize: 11 }}>✓</span>
-                  <span style={{ fontSize: 11, color: 'rgba(52,211,153,0.8)', fontFamily: "'JetBrains Mono',monospace", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{datasetPath}</span>
+                  style={{ marginTop: 8, padding: '7px 12px', borderRadius: 8, background: `rgba(${accentRgb},0.07)`, border: `1px solid rgba(${accentRgb},0.25)`, display: 'flex', alignItems: 'center', gap: 8, boxShadow: `0 0 12px rgba(${accentRgb},0.15)` }}>
+                  <span style={{ color: accentColor, fontSize: 11 }}>✓</span>
+                  <span style={{ fontSize: 11, color: `rgba(${accentRgb},0.8)`, fontFamily: "'JetBrains Mono',monospace", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{datasetPath}</span>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
           {/* Goal */}
-          <div style={{ background: 'rgba(2,8,20,0.55)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 18px' }}>
+          <div style={{ background: 'rgba(10,10,10,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '16px 18px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.15)', fontFamily: "'JetBrains Mono',monospace" }}>&gt;</span>
               <div className="label">Task Description <span style={{ textTransform: 'none', fontSize: 10, color: 'rgba(255,255,255,0.15)', letterSpacing: 0 }}>— optional</span></div>
@@ -401,7 +418,7 @@ export default function Home() {
               padding: '14px 20px', fontSize: 14, fontWeight: 600, letterSpacing: '0.02em',
               fontFamily: "'Space Grotesk',sans-serif",
               background: isRedMode ? '#dc2626' : undefined,
-              boxShadow: isRedMode ? '0 0 28px rgba(220,38,38,0.35)' : undefined,
+              boxShadow: isRedMode ? '0 4px 16px rgba(225,29,72,0.2)' : undefined,
               transition: 'background 0.6s ease, box-shadow 0.6s ease',
             }}>
             {launching ? (

@@ -1,30 +1,30 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as d3 from 'd3'
 
 // ── Persona palette ───────────────────────────────────────────────────
 export const PERSONA_COLORS: Record<string, string> = {
-  andrej_karpathy:     '#f97316',
-  yann_lecun:          '#ec4899',
-  sam_altman:          '#8b5cf6',
-  geoffrey_hinton:     '#06b6d4',
-  francois_chollet:    '#10b981',
-  andrew_ng:           '#f59e0b',
-  chip_huyen:          '#60a5fa',
-  jeremy_howard:       '#84cc16',
-  chris_olah:          '#a78bfa',
-  edward_yang:         '#2dd4bf',
-  ethan_mollick:       '#fb923c',
-  jay_alammar:         '#38bdf8',
-  jonas_mueller:       '#34d399',
-  lilian_weng:         '#f472b6',
-  matei_zaharia:       '#818cf8',
-  santiago_valdarrama: '#fbbf24',
-  sebastian_raschka:   '#4ade80',
-  shreya_rajpal:       '#fb7185',
-  tim_dettmers:        '#c084fc',
-  vicki_boykis:        '#e2e8f0',
+  andrej_karpathy:     '#e11d48',
+  yann_lecun:          '#be123c',
+  sam_altman:          '#f43f5e',
+  geoffrey_hinton:     '#9f1239',
+  francois_chollet:    '#e11d48',
+  andrew_ng:           '#be123c',
+  chip_huyen:          '#f43f5e',
+  jeremy_howard:       '#fb7185',
+  chris_olah:          '#e11d48',
+  edward_yang:         '#be123c',
+  ethan_mollick:       '#f43f5e',
+  jay_alammar:         '#fb7185',
+  jonas_mueller:       '#e11d48',
+  lilian_weng:         '#be123c',
+  matei_zaharia:       '#9f1239',
+  santiago_valdarrama: '#e11d48',
+  sebastian_raschka:   '#be123c',
+  shreya_rajpal:       '#f43f5e',
+  tim_dettmers:        '#fb7185',
+  vicki_boykis:        '#e11d48',
 }
 
 const PERSONA_META: Record<string, { icon: string; role: string }> = {
@@ -50,16 +50,16 @@ const PERSONA_META: Record<string, { icon: string; role: string }> = {
   vicki_boykis:        { icon: 'VB', role: 'ML Engineer & Writer'        },
 }
 
-export const P1_META: Record<string, { label: string; icon: string; color: string }> = {
-  explorer:         { label: 'Explorer',      icon: '◉', color: '#38bdf8' },
-  skeptic:          { label: 'Skeptic',        icon: '⚠', color: '#fb7185' },
-  statistician:     { label: 'Statistician',   icon: '∑', color: '#3b82f6' },
-  ethicist:         { label: 'Ethicist',       icon: '⚖', color: '#34d399' },
-  feature_engineer: { label: 'Feature Eng.',   icon: '⟁', color: '#818cf8' },
-  pragmatist:       { label: 'Pragmatist',     icon: '◈', color: '#fbbf24' },
-  devil_advocate:   { label: "Devil's Adv.",   icon: '⛧', color: '#f97316' },
-  optimizer:        { label: 'Optimizer',      icon: '⚡', color: '#2dd4bf' },
-  architect:        { label: 'Architect',      icon: '⬡', color: '#c084fc' },
+export const P1_META: Record<string, { label: string; icon: string; color: string; role: string; description: string }> = {
+  explorer:         { label: 'Explorer',      icon: '◉', color: '#a1a1aa', role: 'Data Scout',        description: 'Scans structure, finds patterns and key features.' },
+  skeptic:          { label: 'Skeptic',       icon: '⚠', color: '#71717a', role: 'Quality Guard',     description: 'Challenges assumptions, flags anomalies and leakage.' },
+  statistician:     { label: 'Statistician',  icon: '∑', color: '#d4d4d8', role: 'Numbers Expert',    description: 'Distributions, correlations, hypothesis testing.' },
+  ethicist:         { label: 'Ethicist',      icon: '⚖', color: '#a1a1aa', role: 'Bias Detector',     description: 'Evaluates fairness and ethical implications.' },
+  feature_engineer: { label: 'Feature Eng.',  icon: '⟁', color: '#e4e4e7', role: 'Signal Extractor',  description: 'New features, encodings, and transformations.' },
+  pragmatist:       { label: 'Pragmatist',    icon: '◈', color: '#d4d4d8', role: 'Reality Check',     description: 'Model plan — which models, eval metric, split.' },
+  devil_advocate:   { label: "Devil's Adv.",  icon: '⛧', color: '#71717a', role: 'Critical Thinker',  description: 'Stress-tests the plan, proposes alternatives.' },
+  optimizer:        { label: 'Optimizer',     icon: '⚡', color: '#a1a1aa', role: 'Efficiency Expert', description: 'Hyperparameter tuning, CV strategy, ensembles.' },
+  architect:        { label: 'Architect',     icon: '⬡', color: '#e4e4e7', role: 'System Designer',   description: 'Research-backed architecture with arxiv references.' },
 }
 export const P1_ORDER = [
   'explorer','skeptic','statistician','ethicist',
@@ -85,6 +85,7 @@ interface Props {
   currentRound:     number
   synthesisDone:    boolean
   onSelectPersona?: (name: string) => void
+  onSelectSynthesis?: () => void
   selectedPersona?: string
   phase:            'phase1' | 'debate'
   phase1Agents:     string[]
@@ -93,7 +94,7 @@ interface Props {
 
 export default function RedModeGraph({
   personas, activePersona, doneR1, doneR2, currentRound, synthesisDone,
-  onSelectPersona, selectedPersona, phase, phase1Agents, activeAgent,
+  onSelectPersona, onSelectSynthesis, selectedPersona, phase, phase1Agents, activeAgent,
 }: Props) {
   const svgRef      = useRef<SVGSVGElement>(null)
   const nodeEls     = useRef<Map<string, SVGGElement>>(new Map())
@@ -104,6 +105,11 @@ export default function RedModeGraph({
   const r2PairsRef  = useRef<R2Pair[]>([])
   const personasRef = useRef<string[]>([])
   const selected    = selectedPersona ?? null
+  const [selectedP1, setSelectedP1] = useState<string | null>(null)
+  
+  // Track state for the D3 closure
+  const stateRef = useRef({ synthesisDone, selected, onSelectSynthesis, onSelectPersona })
+  stateRef.current = { synthesisDone, selected, onSelectSynthesis, onSelectPersona }
 
   // ── Build scene once (deferred one rAF for real SVG dimensions) ───
   useEffect(() => {
@@ -114,6 +120,7 @@ export default function RedModeGraph({
     const svg   = d3.select(svgEl)
     let sim: ReturnType<typeof d3.forceSimulation<SimNode>>
     let rafId: number
+    let timeoutId: NodeJS.Timeout
 
     const build = () => {
       const W = svgEl.clientWidth  || 900
@@ -174,24 +181,32 @@ export default function RedModeGraph({
           pairs.push({ a: personas[i], b: personas[j] })
       r2PairsRef.current = pairs
 
+      // ── Link topology (mirrors visible arcs) ──────────────────
+      const simLinks: SimLink[] = [
+        ...P1_ORDER.map(k => ({ source: `__p1_${k}__`, target: '__brief__' })),
+        ...personas.map(p  => ({ source: '__brief__',   target: p           })),
+        ...personas.map(p  => ({ source: p,              target: '__synthesis__' })),
+      ]
+
       // ── Simulation ────────────────────────────────────────────
       sim = d3.forceSimulation<SimNode>(simNodes)
         .alphaDecay(0.012)
         .velocityDecay(0.45)
-        .force('charge',  d3.forceManyBody().strength(-500))
+        .force('link',    d3.forceLink<SimNode, SimLink>(simLinks).id(d => d.id).distance(260).strength(0.08))
+        .force('charge',  d3.forceManyBody().strength(-700))
         .force('collide', d3.forceCollide((d: SimNode) =>
-          d.id === '__brief__' || d.id === '__synthesis__' ? RB + 22 :
-          d.id.startsWith('__p1_') ? RP1 + 18 : R + 18
-        ).strength(0.85))
-        .force('cx', d3.forceX(W * 0.52).strength(0.04))
-        .force('cy', d3.forceY(H * 0.50).strength(0.04))
+          d.id === '__brief__' || d.id === '__synthesis__' ? RB + 18 :
+          d.id.startsWith('__p1_') ? RP1 + 14 : R + 14
+        ).strength(0.8))
+        .force('cx', d3.forceX(W * 0.52).strength(0.03))
+        .force('cy', d3.forceY(H * 0.50).strength(0.03))
 
       // ── Groups ────────────────────────────────────────────────
       const g    = svg.append('g')
       const zoom = d3.zoom<SVGSVGElement, unknown>()
         .scaleExtent([0.15, 3])
         .on('zoom', e => g.attr('transform', e.transform))
-      svg.call(zoom).call(zoom.transform, d3.zoomIdentity.translate(W * 0.01, H * 0.04).scale(0.93))
+      svg.call(zoom).call(zoom.transform, d3.zoomIdentity.translate(W * 0.09, H * 0.04).scale(0.93))
 
       const r2Group   = g.append('g')
       const arcGroup  = g.append('g')
@@ -229,7 +244,7 @@ export default function RedModeGraph({
       // ── Node groups ───────────────────────────────────────────
       const nodeG = nodeGroup.selectAll<SVGGElement, SimNode>('g')
         .data(simNodes, d => d.id).join('g')
-        .attr('cursor', d => d.id.startsWith('__') ? 'default' : 'grab')
+        .attr('cursor', d => d.id === '__synthesis__' && synthesisDone ? 'pointer' : d.id.startsWith('__') ? 'default' : 'grab')
         .call(
           d3.drag<SVGGElement, SimNode>()
             .on('start', (ev, d) => {
@@ -245,22 +260,41 @@ export default function RedModeGraph({
         )
         .on('click', (ev, d) => {
           ev.stopPropagation()
-          if (d.id.startsWith('__')) return
-          onSelectPersona?.(d.id === selected ? '' : d.id)
+          const st = stateRef.current
+          if (d.id === '__synthesis__' && st.synthesisDone) {
+            st.onSelectSynthesis?.()
+            setSelectedP1(null)
+            return
+          }
+          if (d.id.startsWith('__p1_') || d.id === '__brief__') {
+            setSelectedP1(prev => d.id === prev ? null : d.id)
+            st.onSelectPersona?.('') // Close debate panels if open
+            return
+          }
+          if (d.id === '__synthesis__') return
+          
+          setSelectedP1(null)
+          st.onSelectPersona?.(d.id === st.selected ? '' : d.id)
         })
 
       nodeG.each(function(d) { nodeEls.current.set(d.id, this) })
 
-      nodeG.append('circle').attr('class','pulse-ring')
-        .attr('r', d =>
-          d.id === '__brief__' || d.id === '__synthesis__' ? RB + 10 :
-          d.id.startsWith('__p1_') ? RP1 + 8 : R + 10)
+      const getHex = (r: number) => [0, 1, 2, 3, 4, 5].map(i => `${Math.sin(i * Math.PI / 3) * r},${-Math.cos(i * Math.PI / 3) * r}`).join(' ')
+
+      nodeG.append('polygon').attr('class','pulse-poly')
+        .attr('points', d => {
+          const r = d.id === '__brief__' || d.id === '__synthesis__' ? RB + 10 :
+                    d.id.startsWith('__p1_') ? RP1 + 8 : R + 10;
+          return getHex(r);
+        })
         .attr('fill','none').attr('stroke','none').attr('stroke-width', 0)
 
-      nodeG.append('circle').attr('class','main-circle')
-        .attr('r', d =>
-          d.id === '__brief__' || d.id === '__synthesis__' ? RB :
-          d.id.startsWith('__p1_') ? RP1 : R)
+      nodeG.append('polygon').attr('class','main-poly')
+        .attr('points', d => {
+          const r = d.id === '__brief__' || d.id === '__synthesis__' ? RB :
+                    d.id.startsWith('__p1_') ? RP1 : R;
+          return getHex(r);
+        })
         .attr('fill','rgba(255,255,255,0.02)')
         .attr('stroke','rgba(255,255,255,0.08)')
         .attr('stroke-width', 1.5)
@@ -344,8 +378,15 @@ export default function RedModeGraph({
       })
     }
 
-    rafId = requestAnimationFrame(build)
-    return () => { cancelAnimationFrame(rafId); sim?.stop() }
+    timeoutId = setTimeout(() => {
+      rafId = requestAnimationFrame(build)
+    }, 450)
+    
+    return () => { 
+      clearTimeout(timeoutId)
+      cancelAnimationFrame(rafId)
+      sim?.stop() 
+    }
   }, [personas]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Update visuals ─────────────────────────────────────────────────
@@ -357,38 +398,38 @@ export default function RedModeGraph({
 
       if (id === '__brief__') {
         const allDone = phase1Agents.length === P1_ORDER.length
-        sel.select('.main-circle')
-          .attr('fill',         allDone ? 'rgba(220,38,38,0.22)' : 'rgba(220,38,38,0.1)')
-          .attr('stroke',       '#dc2626')
-          .attr('stroke-width', allDone ? 3 : 2)
+        sel.select('.main-poly')
+          .attr('fill',         allDone ? 'rgba(225,29,72,0.18)' : 'rgba(225,29,72,0.06)')
+          .attr('stroke',       '#e11d48')
+          .attr('stroke-width', allDone ? 2 : 1)
           .attr('filter',       allDone ? 'url(#rm-glow)' : 'url(#rm-glow-done)')
-        sel.select('.icon-text').attr('fill', '#dc2626')
-        sel.select('.label-text').attr('fill', '#dc2626').attr('font-weight','600')
+        sel.select('.icon-text').attr('fill', '#e11d48')
+        sel.select('.label-text').attr('fill', '#e11d48').attr('font-weight','600')
         return
       }
 
       if (id === '__synthesis__') {
-        sel.select('.main-circle')
-          .attr('fill',         synthesisDone ? 'rgba(245,158,11,0.22)' : 'rgba(245,158,11,0.07)')
-          .attr('stroke',       '#f59e0b')
-          .attr('stroke-width', synthesisDone ? 3 : 2)
+        sel.select('.main-poly')
+          .attr('fill',         synthesisDone ? 'rgba(225,29,72,0.18)' : 'rgba(225,29,72,0.06)')
+          .attr('stroke',       '#e11d48')
+          .attr('stroke-width', synthesisDone ? 2 : 1)
           .attr('filter',       synthesisDone ? 'url(#rm-glow)' : 'url(#rm-glow-done)')
-        sel.select('.icon-text').attr('fill', '#f59e0b')
-        sel.select('.label-text').attr('fill', '#f59e0b').attr('font-weight','600')
+        sel.select('.icon-text').attr('fill', '#e11d48')
+        sel.select('.label-text').attr('fill', '#e11d48').attr('font-weight','600')
         return
       }
 
       if (id.startsWith('__p1_')) {
         const k      = id.slice(5, -2)
-        const color  = P1_META[k]?.color ?? '#38bdf8'
+        const color  = P1_META[k]?.color ?? '#a1a1aa'
         const isDone = phase1Agents.includes(k)
         const isAct  = activeAgent === k
-        sel.select('.main-circle')
+        sel.select('.main-poly')
           .attr('fill',         isAct ? `${color}30` : isDone ? `${color}18` : 'rgba(255,255,255,0.02)')
           .attr('stroke',       isAct || isDone ? color : 'rgba(255,255,255,0.07)')
-          .attr('stroke-width', isAct ? 2.5 : isDone ? 1.8 : 1)
+          .attr('stroke-width', isAct ? 2 : isDone ? 1.5 : 1)
           .attr('filter',       isAct ? 'url(#rm-glow)' : isDone ? 'url(#rm-glow-done)' : null)
-        sel.select('.pulse-ring')
+        sel.select('.pulse-poly')
           .attr('stroke', isAct ? color : 'none').attr('stroke-width', isAct ? 1.5 : 0).attr('opacity', isAct ? 0.4 : 0)
         sel.select('.icon-text')
           .attr('fill', isAct || isDone ? color : 'rgba(255,255,255,0.18)')
@@ -400,18 +441,18 @@ export default function RedModeGraph({
       }
 
       // Persona node
-      const color    = PERSONA_COLORS[id] ?? '#dc2626'
+      const color    = PERSONA_COLORS[id] ?? '#e11d48'
       const isActive = id === activePersona
       const r1done   = doneR1.includes(id)
       const r2done   = doneR2.includes(id)
       const inDebate = phase === 'debate'
 
-      sel.select('.main-circle')
+      sel.select('.main-poly')
         .attr('fill',         isActive ? `${color}35` : r1done ? `${color}18` : 'rgba(255,255,255,0.015)')
         .attr('stroke',       inDebate && (isActive || r1done) ? color : 'rgba(255,255,255,0.06)')
-        .attr('stroke-width', isActive ? 3 : r1done ? 2 : 1)
+        .attr('stroke-width', isActive ? 2 : r1done ? 1.5 : 1)
         .attr('filter',       isActive ? 'url(#rm-glow)' : r1done ? 'url(#rm-glow-done)' : null)
-      sel.select('.pulse-ring')
+      sel.select('.pulse-poly')
         .attr('stroke', isActive ? color : 'none').attr('stroke-width', isActive ? 2 : 0).attr('opacity', isActive ? 0.45 : 0)
       sel.select('.icon-text')
         .attr('fill', inDebate && (isActive || r1done) ? color : 'rgba(255,255,255,0.15)')
@@ -474,20 +515,45 @@ export default function RedModeGraph({
 
   }, [activePersona, doneR1, doneR2, currentRound, synthesisDone, personas, selected, phase, phase1Agents, activeAgent])
 
+  let tooltipNode = null
+  if (selectedP1 === '__brief__') {
+    tooltipNode = { key: 'brief', label: 'Analysis Brief', icon: '◈', color: '#e11d48', role: 'State Payload', description: 'The aggregate knowledge generated by the Phase 1 agents. This is passed directly into the context window for all debating personas.' }
+  } else if (selectedP1?.startsWith('__p1_')) {
+    const k = selectedP1.slice(5, -2)
+    tooltipNode = { key: k, ...P1_META[k] }
+  }
+
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100%' }} onClick={() => setSelectedP1(null)}>
       <svg ref={svgRef} width="100%" height="100%" style={{ display: 'block' }} />
-      <div style={{ position: 'absolute', bottom: 16, left: 16, display: 'flex', gap: 16, alignItems: 'center' }}>
-        {[
-          { color: 'rgba(255,255,255,0.15)', label: 'Pending' },
-          { color: '#dc2626',                label: 'Active'  },
-          { color: '#4ade80',                label: 'Done'    },
-        ].map(l => (
-          <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: l.color }} />
-            <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.2)', fontFamily: "'JetBrains Mono',monospace" }}>{l.label}</span>
+      
+      {/* Description card for Phase 1 and Context nodes */}
+      {tooltipNode && (
+        <div onClick={e => e.stopPropagation()} style={{
+          position: 'absolute', top: 16, right: 16, width: 260, zIndex: 20,
+          background: 'rgba(5,1,1,0.95)', backdropFilter: 'blur(24px)',
+          border: `1px solid ${tooltipNode.color}40`, borderRadius: 14, overflow: 'hidden',
+          boxShadow: `0 16px 48px rgba(0,0,0,0.8), 0 0 32px ${tooltipNode.color}15`,
+        }}>
+          <div style={{ height: 2, background: `linear-gradient(90deg, ${tooltipNode.color}, transparent)` }} />
+          <div style={{ padding: '14px 16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+              <div style={{ width: 38, height: 38, borderRadius: 10, flexShrink: 0, background: `${tooltipNode.color}15`, border: `1px solid ${tooltipNode.color}35`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, color: tooltipNode.color }}>
+                {tooltipNode.icon}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: tooltipNode.color, fontFamily: "'Space Grotesk',sans-serif" }}>{tooltipNode.label}</div>
+                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.28)', marginTop: 1 }}>{tooltipNode.role}</div>
+              </div>
+              <button onClick={e => { e.stopPropagation(); setSelectedP1(null) }} style={{ width: 22, height: 22, borderRadius: 6, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+            </div>
+            <div style={{ height: 1, background: `${tooltipNode.color}15`, marginBottom: 10 }} />
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)', lineHeight: 1.65, margin: 0 }}>{tooltipNode.description}</p>
           </div>
-        ))}
+        </div>
+      )}
+
+      <div style={{ position: 'absolute', bottom: 16, left: 16, display: 'flex', gap: 16, alignItems: 'center' }}>
         <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.1)', fontFamily: "'JetBrains Mono',monospace", marginLeft: 4 }}>
           drag · scroll · click
         </span>

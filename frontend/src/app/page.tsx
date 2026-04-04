@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import dynamic from 'next/dynamic'
+
+const Background = dynamic(() => import('@/components/Background'), { ssr: false })
 
 const API = 'http://localhost:8000'
 const PROVIDERS = [
@@ -52,6 +55,14 @@ function useTypewriter(text: string, speed = 60, delay = 800) {
   return { displayed, done }
 }
 
+// All 20 persona handles — auto-used in Red Mode, no selection needed
+const ALL_PERSONA_HANDLES = [
+  'andrej_karpathy','yann_lecun','sam_altman','geoffrey_hinton','francois_chollet',
+  'andrew_ng','chip_huyen','jeremy_howard','chris_olah','edward_yang',
+  'ethan_mollick','jay_alammar','jonas_mueller','lilian_weng','matei_zaharia',
+  'santiago_valdarrama','sebastian_raschka','shreya_rajpal','tim_dettmers','vicki_boykis',
+]
+
 export default function Home() {
   const router = useRouter()
   const [provider,    setProvider]    = useState('local')
@@ -67,16 +78,23 @@ export default function Home() {
   const [errors,      setErrors]      = useState<string[]>([])
   const [showCreds,   setShowCreds]   = useState(false)
   const [ovKey,       setOvKey]       = useState('')
+  // ── Red Mode state ────────────────────────────────────────────────
+  const [isRedMode, setIsRedMode] = useState(false)
   const runIdRef     = useRef('')
   const canNavRef    = useRef(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const dirInputRef  = useRef<HTMLInputElement>(null)
 
-  const tagline = useTypewriter('Autonomous multi-agent data science pipeline', 45, 600)
+  const tagline = useTypewriter(
+    isRedMode ? '20 real experts debate your analysis' : 'Autonomous multi-agent data science pipeline',
+    45, 600
+  )
 
   const tryNavigate = useCallback(() => {
-    if (runIdRef.current && canNavRef.current) router.push(`/run/${runIdRef.current}`)
-  }, [router])
+    if (runIdRef.current && canNavRef.current) {
+      router.push(isRedMode ? `/red/${runIdRef.current}` : `/run/${runIdRef.current}`)
+    }
+  }, [router, isRedMode])
 
   useEffect(() => {
     fetch(`${API}/api/creds`).then(r => r.json()).then(d => {
@@ -84,6 +102,7 @@ export default function Home() {
       setServerUrl(d.serverUrl ?? ''); setModelName(d.model ?? '')
     }).catch(() => {})
   }, [])
+
 
 
   const pickPath = async (e: React.ChangeEvent<HTMLInputElement>, isDir: boolean) => {
@@ -117,10 +136,9 @@ export default function Home() {
   }
 
   const launch = async () => {
-    // Test mode — skip API entirely, navigate to mock run
     if (testMode) {
       const mockId = `test-${Math.random().toString(36).slice(2, 8)}`
-      router.push(`/run/${mockId}`)
+      router.push(isRedMode ? `/red/${mockId}` : `/run/${mockId}`)
       return
     }
 
@@ -131,21 +149,43 @@ export default function Home() {
     if (provider === 'local' && !modelName)          errs.push('Model name is required.')
     if (errs.length) { setErrors(errs); return }
     setErrors([]); setLaunching(true)
+
     try {
       if (provider === 'local' || apiKey) {
         await fetch(`${API}/api/creds`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ provider, api_key: apiKey, server_url: serverUrl, model: modelName }) })
       }
-      const r = await fetch(`${API}/api/run`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider, api_key: apiKey, server_url: serverUrl, model: modelName, dataset_path: datasetPath, task_description: task }) })
+
+      const endpoint = isRedMode ? `${API}/api/red-mode` : `${API}/api/run`
+      const allPersonaHandles = ALL_PERSONA_HANDLES
+      const body = isRedMode
+        ? { provider, api_key: apiKey, server_url: serverUrl, model: modelName,
+            dataset_path: datasetPath, task_description: task,
+            persona_names: allPersonaHandles }
+        : { provider, api_key: apiKey, server_url: serverUrl, model: modelName,
+            dataset_path: datasetPath, task_description: task }
+
+      const r = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body) })
       const d = await r.json()
       if (d.runId) { runIdRef.current = d.runId; canNavRef.current = true; tryNavigate() }
       else { setLaunching(false); setErrors([d.detail ?? 'Failed to start.']) }
     } catch { setLaunching(false); setErrors(['Cannot reach server at localhost:8000']) }
   }
 
+  const accentColor = isRedMode ? '#dc2626' : '#3b82f6'
+  const accentRgb   = isRedMode ? '220,38,38' : '59,130,246'
+
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
+    <>
+      <Background mode={isRedMode ? 'red' : 'blue'} />
+      {/* Red Mode overlay — smooth colour tint during canvas transition */}
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+        background: isRedMode ? 'rgba(12,1,1,0.45)' : 'transparent',
+        transition: 'background 1.1s cubic-bezier(0.4,0,0.2,1)',
+      }} />
+    <div data-mode={isRedMode ? 'red' : 'blue'} style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
 
       {/* Main content — 3-column layout */}
       <div style={{ flex: 1, display: 'flex', paddingTop: 90, paddingBottom: 40, gap: 24, maxWidth: 1200, margin: '0 auto', width: '100%', padding: '40px 32px' }}>
@@ -159,8 +199,15 @@ export default function Home() {
         >
           {/* Tagline with typewriter */}
           <div style={{ marginBottom: 24 }}>
-            <span className="tag tag-red" style={{ fontSize: 10, letterSpacing: '0.1em' }}>
-              {tagline.displayed}<span className="cursor-blink" />
+            <span className="tag" style={{
+              fontSize: 10, letterSpacing: '0.1em',
+              background: `rgba(${accentRgb},0.1)`,
+              border:     `1px solid rgba(${accentRgb},0.25)`,
+              color:      accentColor,
+              transition: 'all 0.6s ease',
+            }}>
+              {tagline.displayed}
+              <span style={{ display: 'inline-block', width: 1, height: '0.85em', background: accentColor, marginLeft: 1, verticalAlign: 'text-bottom', animation: 'blink-cursor 0.9s step-end infinite' }} />
             </span>
           </div>
 
@@ -168,13 +215,18 @@ export default function Home() {
             fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700,
             fontSize: 'clamp(40px,5vw,64px)', lineHeight: 1.0,
             letterSpacing: '-0.04em', marginBottom: 20,
+            transition: 'all 0.6s ease',
           }}>
-            <span className="gradient-text">Analyse any</span><br />
-            <span style={{ color: '#3b82f6' }}>dataset.</span>
+            <span className="gradient-text">{isRedMode ? 'Debate any' : 'Analyse any'}</span><br />
+            <span style={{ color: isRedMode ? '#dc2626' : '#3b82f6', transition: 'color 0.6s ease' }}>
+              {isRedMode ? 'analysis.' : 'dataset.'}
+            </span>
           </h1>
 
-          <p style={{ color: 'rgba(255,255,255,0.28)', fontSize: 14.5, lineHeight: 1.75, maxWidth: 420, marginBottom: 40 }}>
-            A team of 10 specialised AI agents explores your data, identifies patterns, builds models, and generates complete analysis — autonomously, with zero human intervention.
+          <p style={{ color: 'rgba(255,255,255,0.28)', fontSize: 14.5, lineHeight: 1.75, maxWidth: 420, marginBottom: 40, transition: 'all 0.4s ease' }}>
+            {isRedMode
+              ? '20 real AI experts — Karpathy, LeCun, Hinton, Chollet and more — debate your analysis in 3 rounds and synthesise a verdict.'
+              : 'A team of 10 specialised AI agents explores your data, identifies patterns, builds models, and generates complete analysis — autonomously, with zero human intervention.'}
           </p>
 
           {/* Scroll indicator */}
@@ -196,6 +248,22 @@ export default function Home() {
         >
           {/* Top controls */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            {/* Red Mode toggle */}
+            <motion.button
+              onClick={() => { setIsRedMode(v => !v); setErrors([]) }}
+              whileTap={{ scale: 0.95 }}
+              style={{
+                fontSize: 11, padding: '5px 14px', borderRadius: 8, cursor: 'pointer',
+                fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, letterSpacing: '0.04em',
+                background: isRedMode ? 'rgba(220,38,38,0.18)' : 'rgba(255,255,255,0.04)',
+                border: `1px solid ${isRedMode ? 'rgba(220,38,38,0.5)' : 'rgba(255,255,255,0.1)'}`,
+                color: isRedMode ? '#dc2626' : 'rgba(255,255,255,0.35)',
+                boxShadow: isRedMode ? '0 0 14px rgba(220,38,38,0.25)' : 'none',
+                transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
+              }}
+            >
+              red mode
+            </motion.button>
             <button
               onClick={() => setTestMode(v => !v)}
               style={{
@@ -215,7 +283,7 @@ export default function Home() {
           <AnimatePresence>
             {showCreds && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden' }}>
-                <div style={{ background: 'rgba(2,8,20,0.7)', backdropFilter: 'blur(20px)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 14, padding: 16, display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 4 }}>
+                <div style={{ background: 'rgba(2,8,20,0.7)', backdropFilter: 'blur(20px)', border: `1px solid rgba(${accentRgb},0.2)`, borderRadius: 14, padding: 16, display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 4 }}>
                   <div className="label">Override API Key</div>
                   <input className="field" type="password" placeholder="Paste new key…" value={ovKey} onChange={e => setOvKey(e.target.value)} />
                   <button className="btn" style={{ padding: '9px 16px', fontSize: 12.5 }} onClick={saveCreds}>Save</button>
@@ -231,9 +299,9 @@ export default function Home() {
               {PROVIDERS.map(p => (
                 <button key={p.id} onClick={() => setProvider(p.id)} style={{
                   padding: '10px 6px', borderRadius: 10, cursor: 'pointer', textAlign: 'center',
-                  background: provider === p.id ? 'rgba(59,130,246,0.12)' : 'rgba(255,255,255,0.02)',
-                  border: `1px solid ${provider === p.id ? 'rgba(59,130,246,0.4)' : 'rgba(255,255,255,0.06)'}`,
-                  color: provider === p.id ? '#3b82f6' : 'rgba(255,255,255,0.28)',
+                  background: provider === p.id ? `rgba(${accentRgb},0.12)` : 'rgba(255,255,255,0.02)',
+                  border: `1px solid ${provider === p.id ? `rgba(${accentRgb},0.4)` : 'rgba(255,255,255,0.06)'}`,
+                  color: provider === p.id ? accentColor : 'rgba(255,255,255,0.28)',
                   transition: 'all 0.18s',
                   backdropFilter: 'blur(8px)',
                 }}>
@@ -320,21 +388,28 @@ export default function Home() {
           <AnimatePresence>
             {errors.length > 0 && (
               <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(59,130,246,0.07)', border: '1px solid rgba(59,130,246,0.22)', backdropFilter: 'blur(8px)' }}>
+                style={{ padding: '10px 14px', borderRadius: 10, background: `rgba(${accentRgb},0.07)`, border: `1px solid rgba(${accentRgb},0.22)`, backdropFilter: 'blur(8px)' }}>
                 {errors.map((e, i) => <p key={i} style={{ fontSize: 12.5, color: '#f87171' }}>✕ {e}</p>)}
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Launch */}
-          <motion.button className="btn" onClick={launch} disabled={launching} whileTap={{ scale: 0.98 }}
-            style={{ padding: '14px 20px', fontSize: 14, fontWeight: 600, letterSpacing: '0.02em', fontFamily: "'Space Grotesk',sans-serif" }}>
+
+          <motion.button
+            className="btn" onClick={launch} disabled={launching} whileTap={{ scale: 0.98 }}
+            style={{
+              padding: '14px 20px', fontSize: 14, fontWeight: 600, letterSpacing: '0.02em',
+              fontFamily: "'Space Grotesk',sans-serif",
+              background: isRedMode ? '#dc2626' : undefined,
+              boxShadow: isRedMode ? '0 0 28px rgba(220,38,38,0.35)' : undefined,
+              transition: 'background 0.6s ease, box-shadow 0.6s ease',
+            }}>
             {launching ? (
               <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
                 <span style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.25)', borderTopColor: '#fff', display: 'inline-block' }} className="spin-slow" />
-                Initialising Pipeline…
+                {isRedMode ? 'Starting Debate…' : 'Initialising Pipeline…'}
               </span>
-            ) : 'Launch Analysis →'}
+            ) : isRedMode ? 'Launch Red Mode →' : 'Launch Analysis →'}
           </motion.button>
         </motion.div>
       </div>
@@ -343,11 +418,14 @@ export default function Home() {
       <div style={{ padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span className="mono" style={{ fontSize: 10 }}>DS-AGENT-TEAM v2.0</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <span className="mono" style={{ fontSize: 10 }}>10 agents</span>
-          <span className="mono" style={{ fontSize: 10 }}>3 phases</span>
+          {isRedMode
+            ? <><span className="mono" style={{ fontSize: 10, color: '#dc2626' }}>20 personas</span><span className="mono" style={{ fontSize: 10, color: '#dc2626' }}>3 rounds</span></>
+            : <><span className="mono" style={{ fontSize: 10 }}>10 agents</span><span className="mono" style={{ fontSize: 10 }}>3 phases</span></>
+          }
           <span className="mono" style={{ fontSize: 10 }}>localhost:8000</span>
         </div>
       </div>
     </div>
+    </>
   )
 }

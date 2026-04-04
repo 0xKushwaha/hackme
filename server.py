@@ -190,6 +190,82 @@ runs: dict[str, RunState] = {}
 
 
 # ─────────────────────────────────────────────────────────────────────
+# Red Mode run state  (extends RunState with per-round persona tracking)
+# ─────────────────────────────────────────────────────────────────────
+_RED_ROUND_RE    = _re.compile(r'\[RED_ROUND:(\d+)\]')
+_PERSONA_RE      = _re.compile(r'\[PERSONA:([a-z_]+)\]')
+_PERSONA_DONE_RE = _re.compile(r'\[PERSONA_DONE:([a-z_]+)\]')
+
+
+class RedRunState(RunState):
+    def __init__(self):
+        super().__init__()
+        self.phase:          str               = "phase1"   # "phase1" | "debate"
+        self.phase1_agents:  list[str]         = []         # Phase 1 agents completed
+        self.current_round:  int               = 0
+        self.round_personas: dict[str, list[str]] = {"1": [], "2": [], "3": []}
+        self.synthesis_done: bool              = False
+
+    def add_text(self, text: str):
+        new_lines = [l for l in text.splitlines() if l.strip()]
+        with self._lock:
+            self.lines.extend(new_lines)
+            for line in new_lines:
+
+                # Phase transition marker
+                if "[RED_PHASE1_DONE]" in line:
+                    self.phase = "debate"
+
+                if self.phase == "phase1":
+                    # Track Phase 1 agent progress separately from personas
+                    m = _AGENT_START_RE.search(line)
+                    if m:
+                        self.agent = m.group(1)
+                    m = _AGENT_DONE_RE.search(line)
+                    if m:
+                        name = m.group(1)
+                        if name not in self.phase1_agents:
+                            self.phase1_agents.append(name)
+
+                else:
+                    # Debate phase: track personas
+                    m = _RED_ROUND_RE.search(line)
+                    if m:
+                        self.current_round = int(m.group(1))
+
+                    m = _PERSONA_RE.search(line)
+                    if m:
+                        name = m.group(1)
+                        self.agent = name
+                        if name not in self.ever_active:
+                            self.ever_active.append(name)
+
+                    m = _PERSONA_DONE_RE.search(line)
+                    if m:
+                        name = m.group(1)
+                        if name not in self.done_agents:
+                            self.done_agents.append(name)
+                        rk = str(self.current_round)
+                        if rk in self.round_personas and name not in self.round_personas[rk]:
+                            self.round_personas[rk].append(name)
+
+                    if "[RED_SYNTHESIS_DONE]" in line:
+                        self.synthesis_done = True
+
+    def snapshot(self, cursor: int) -> dict:
+        snap = super().snapshot(cursor)
+        snap["phase"]         = self.phase
+        snap["phase1Agents"]  = list(self.phase1_agents)
+        snap["currentRound"]  = self.current_round
+        snap["roundPersonas"] = dict(self.round_personas)
+        snap["synthesisDone"] = self.synthesis_done
+        return snap
+
+
+red_runs: dict[str, RedRunState] = {}
+
+
+# ─────────────────────────────────────────────────────────────────────
 # Stdout tee  (writes to RunState directly)
 # ─────────────────────────────────────────────────────────────────────
 class _Tee:
@@ -466,6 +542,145 @@ def get_result(run_id: str):
     if saved:
         return saved
     return {"error": "Unknown run ID"}
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Red Mode — Persona Debate Engine (Phase 2)
+# ─────────────────────────────────────────────────────────────────────
+
+def _run_red_mode(cfg: dict) -> dict:
+    """
+    Red Mode pipeline — two stages:
+      Stage 1: Run all Phase 1 agents (Explorer, Skeptic, Statistician, etc.)
+               to gather a full analysis of the dataset.
+      Stage 2: Feed that analysis as a brief to 20 expert personas who debate
+               it across 3 rounds and synthesise a verdict.
+    """
+    from backends.llm_backends  import get_llm, get_fast_llm
+    from red_mode.orchestrator  import RedModeOrchestrator
+    from red_mode.brief_builder import build_brief_from_result
+
+    # ── API keys ──────────────────────────────────────────────────────
+    if cfg["provider"] == "claude" and cfg.get("api_key"):
+        os.environ["ANTHROPIC_API_KEY"] = cfg["api_key"]
+    if cfg["provider"] == "openai" and cfg.get("api_key"):
+        os.environ["OPENAI_API_KEY"] = cfg["api_key"]
+
+    # ── Stage 1: Phase 1 agents analyse the dataset ───────────────────
+    print("\n[RED_PHASE1_START]")
+    print("🔬 Phase 1 — Agents gathering analysis...\n")
+    sys.stdout.flush()
+
+    pipeline_cfg = {
+        **cfg,
+        "mode":           "phases",
+        "max_agents":     9,
+        "enable_memory":  False,
+        "experiment_dir": "experiments",
+        "target_col":     cfg.get("target_col") or None,
+        "model":          cfg.get("model") or None,
+    }
+    phase1_result = _run_pipeline(pipeline_cfg)
+
+    print(f"\n[RED_PHASE1_DONE]")
+    print("✓ Phase 1 complete — handing off to persona debate\n")
+    sys.stdout.flush()
+
+    # ── Stage 2: Build brief + run persona debate ─────────────────────
+    brief = build_brief_from_result(phase1_result, cfg.get("task_description", ""))
+    print(f"   Brief: {len(brief)} chars  |  Personas: {len(cfg['persona_names'])}\n")
+    sys.stdout.flush()
+
+    llm_kw = {}
+    if cfg.get("server_url"):
+        llm_kw["base_url"] = cfg["server_url"]
+    explicit_model = cfg.get("model") or None
+    llm      = get_llm(cfg["provider"], model=explicit_model, **llm_kw)
+    fast_llm = get_fast_llm(cfg["provider"], **llm_kw) if not explicit_model else llm
+
+    orch = RedModeOrchestrator(llm=llm, fast_llm=fast_llm)
+    debate = orch.run(persona_names=cfg["persona_names"], brief=brief)
+
+    return {
+        "phase1":    phase1_result,
+        "personas":  debate["personas"],
+        "round1":    debate["round1"],
+        "round2":    debate["round2"],
+        "synthesis": debate["synthesis"],
+    }
+
+
+def _thread_runner_red(run_id: str, cfg: dict):
+    state  = red_runs[run_id]
+    orig   = sys.stdout
+    sys.stdout = _Tee(state, orig)
+    try:
+        state.result = _run_red_mode(cfg)
+        state.done   = True
+    except Exception:
+        state.error = traceback.format_exc()
+        state.done  = True
+        print(f"\n[RED_MODE_ERROR] {state.error}")
+    finally:
+        sys.stdout = orig
+
+
+# ── Red Mode payload ──────────────────────────────────────────────────
+
+class RedModePayload(BaseModel):
+    provider:         str
+    api_key:          str       = ""
+    server_url:       str       = ""
+    model:            str       = ""
+    persona_names:    list[str]
+    dataset_path:     str       = ""
+    task_description: str       = ""
+
+
+# ── Endpoints ─────────────────────────────────────────────────────────
+
+@app.get("/api/personas")
+def get_personas():
+    """Return the full personas index for the frontend selector."""
+    import json
+    from pathlib import Path
+    idx_path = Path(__file__).parent / "personas" / "personas_index.json"
+    with open(idx_path) as f:
+        return json.load(f)
+
+
+@app.post("/api/red-mode")
+def start_red_mode(body: RedModePayload):
+    run_id = "rm_" + str(uuid.uuid4())[:8]
+    red_runs[run_id] = RedRunState()
+
+    cfg = body.model_dump()
+    cfg["provider"] = "local" if cfg["provider"] == "local (vLLM)" else cfg["provider"]
+    cfg["model"]    = cfg["model"] or None
+
+    t = threading.Thread(target=_thread_runner_red, args=(run_id, cfg), daemon=True)
+    t.start()
+    return {"runId": run_id}
+
+
+@app.get("/api/red-mode/poll/{run_id}")
+def poll_red_mode(run_id: str, cursor: int = 0):
+    state = red_runs.get(run_id)
+    if not state:
+        return {"error": "Unknown red mode run ID", "done": True}
+    return state.snapshot(cursor)
+
+
+@app.get("/api/red-mode/result/{run_id}")
+def get_red_mode_result(run_id: str):
+    state = red_runs.get(run_id)
+    if not state:
+        return {"error": "Unknown run ID"}
+    if not state.done:
+        return {"error": "Still running"}
+    if state.error:
+        return {"error": state.error}
+    return state.result
 
 
 # ─────────────────────────────────────────────────────────────────────

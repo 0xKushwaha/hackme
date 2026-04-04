@@ -1,8 +1,5 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import dynamic from 'next/dynamic'
-
-const Background = dynamic(() => import('@/components/Background'), { ssr: false })
 
 export const metadata: Metadata = {
   title: 'Multi-Agent DS',
@@ -21,7 +18,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <Background />
         {children}
       </body>
     </html>

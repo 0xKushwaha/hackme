@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{}"
+self.__REACT_LOADABLE_MANIFEST="{\"app/page.tsx -> @/components/Background\":{\"id\":\"app/page.tsx -> @/components/Background\",\"files\":[\"static/chunks/_app-pages-browser_src_components_Background_tsx.js\"]},\"app/run/[id]/page.tsx -> @/components/Background\":{\"id\":\"app/run/[id]/page.tsx -> @/components/Background\",\"files\":[\"static/chunks/_app-pages-browser_src_components_Background_tsx.js\"]}}"

@@ -11,8 +11,38 @@ interface Particle {
   pulseSpeed: number
 }
 
-export default function Background() {
+// Blue palette (Phase 1)
+const BLUE = {
+  bg:       ['rgba(6,18,40,1)', 'rgba(3,10,26,1)', 'rgba(2,8,18,1)'] as const,
+  grid:     'rgba(20,60,160,0.05)',
+  scan:     [59, 130, 246] as const,   // rgb
+  glow0:    'rgba(100,160,255,',
+  glow1:    'rgba(59,130,246,0)',
+  core:     [140, 180, 255] as const,  // rgb base
+  conn:     [59, 130, 246] as const,
+  mouse:    'rgba(80,150,255,',
+  cursor:   [60, 120, 255] as const,
+}
+
+// Red palette (Phase 2 — Red Mode)
+const RED = {
+  bg:       ['rgba(18,2,2,1)', 'rgba(12,1,1,1)', 'rgba(8,1,1,1)'] as const,
+  grid:     'rgba(160,20,20,0.05)',
+  scan:     [220, 38, 38] as const,
+  glow0:    'rgba(220,80,60,',
+  glow1:    'rgba(220,38,38,0)',
+  core:     [220, 60, 60] as const,
+  conn:     [220, 38, 38] as const,
+  mouse:    'rgba(200,40,40,',
+  cursor:   [200, 30, 30] as const,
+}
+
+export default function Background({ mode = 'blue' }: { mode?: 'blue' | 'red' }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const modeRef   = useRef(mode)
+
+  // Update ref on every render so the draw loop reads latest mode
+  useEffect(() => { modeRef.current = mode }, [mode])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -59,27 +89,28 @@ export default function Background() {
     const MOUSE_DIST    = 160
 
     const draw = () => {
+      // Pick palette every frame from ref — no restart needed on mode change
+      const pal = modeRef.current === 'red' ? RED : BLUE
+
       ctx.clearRect(0, 0, W, H)
 
-      // Deep radial background — dark navy
       const bg = ctx.createRadialGradient(W * 0.5, H * 0.3, 0, W * 0.5, H * 0.3, Math.max(W, H) * 0.85)
-      bg.addColorStop(0,   'rgba(6,18,40,1)')
-      bg.addColorStop(0.5, 'rgba(3,10,26,1)')
-      bg.addColorStop(1,   'rgba(2,8,18,1)')
+      bg.addColorStop(0,   pal.bg[0])
+      bg.addColorStop(0.5, pal.bg[1])
+      bg.addColorStop(1,   pal.bg[2])
       ctx.fillStyle = bg
       ctx.fillRect(0, 0, W, H)
 
       t += 0.008
 
-      // Smoothly ramp brightness up when mouse active, down when not
       mouse.brightness += mouse.active
         ? (1 - mouse.brightness) * 0.08
         : (0 - mouse.brightness) * 0.05
-      const B = mouse.brightness  // 0 → 1
+      const B = mouse.brightness
 
       // ── Moving grid ──────────────────────────────────────────────────
       const gridShift = (t * 18) % 60
-      ctx.strokeStyle = 'rgba(20,60,160,0.05)'
+      ctx.strokeStyle = pal.grid
       ctx.lineWidth = 0.5
       for (let x = -60 + (gridShift % 60); x < W + 60; x += 60) {
         ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke()
@@ -89,11 +120,12 @@ export default function Background() {
       }
 
       // ── Scan line ────────────────────────────────────────────────────
+      const [sr, sg, sb] = pal.scan
       const scanY = ((t * 60) % (H + 80)) - 40
       const scanGrad = ctx.createLinearGradient(0, scanY - 40, 0, scanY + 40)
-      scanGrad.addColorStop(0,   'rgba(59,130,246,0)')
-      scanGrad.addColorStop(0.5, 'rgba(59,130,246,0.04)')
-      scanGrad.addColorStop(1,   'rgba(59,130,246,0)')
+      scanGrad.addColorStop(0,   `rgba(${sr},${sg},${sb},0)`)
+      scanGrad.addColorStop(0.5, `rgba(${sr},${sg},${sb},0.04)`)
+      scanGrad.addColorStop(1,   `rgba(${sr},${sg},${sb},0)`)
       ctx.fillStyle = scanGrad
       ctx.fillRect(0, scanY - 40, W, 80)
 
@@ -106,7 +138,6 @@ export default function Background() {
         if (p.y < -10) p.y = H + 10
         if (p.y > H + 10) p.y = -10
 
-        // Mouse repulsion
         if (mouse.active) {
           const dx = p.x - mouse.x
           const dy = p.y - mouse.y
@@ -118,7 +149,6 @@ export default function Background() {
           }
         }
 
-        // Clamp velocity
         const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy)
         if (speed > 0.8) { p.vx = (p.vx / speed) * 0.8; p.vy = (p.vy / speed) * 0.8 }
 
@@ -126,25 +156,25 @@ export default function Background() {
         const boost = 1 + B * 2.2
         const finalOpacity = Math.min(1, p.opacity * pulse * boost)
 
-        // Draw particle glow (grows on hover)
         const glowR = p.radius * (3 + B * 4)
         const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR)
-        grad.addColorStop(0, `rgba(100,160,255,${finalOpacity})`)
-        grad.addColorStop(1, `rgba(59,130,246,0)`)
+        grad.addColorStop(0, `${pal.glow0}${finalOpacity})`)
+        grad.addColorStop(1, pal.glow1)
         ctx.beginPath()
         ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2)
         ctx.fillStyle = grad
         ctx.fill()
 
-        // Bright core
-        const coreR = (140 + B * 80) | 0
+        const [cr, cg, cb] = pal.core
+        const coreBoost = (B * 80) | 0
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.radius * (1 + B * 0.6), 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(${coreR},${coreR + 40},255,${finalOpacity})`
+        ctx.fillStyle = `rgba(${cr + coreBoost},${cg},${cb},${finalOpacity})`
         ctx.fill()
       }
 
       // ── Draw connections ──────────────────────────────────────────────
+      const [connR, connG, connB] = pal.conn
       for (let i = 0; i < particles.length; i++) {
         const a = particles[i]
         for (let j = i + 1; j < particles.length; j++) {
@@ -155,16 +185,15 @@ export default function Background() {
           if (d > CONNECT_DIST) continue
 
           const alpha = (1 - d / CONNECT_DIST) * (0.22 + B * 0.4)
-          const g = (130 + B * 40) | 0
+          const mid = (connG + B * 40) | 0
           ctx.beginPath()
           ctx.moveTo(a.x, a.y)
           ctx.lineTo(b.x, b.y)
-          ctx.strokeStyle = `rgba(59,${g},246,${alpha})`
+          ctx.strokeStyle = `rgba(${connR},${mid},${connB},${alpha})`
           ctx.lineWidth = 0.7 + B * 0.6
           ctx.stroke()
         }
 
-        // Mouse connections
         if (mouse.active) {
           const dx = a.x - mouse.x
           const dy = a.y - mouse.y
@@ -174,7 +203,7 @@ export default function Background() {
             ctx.beginPath()
             ctx.moveTo(a.x, a.y)
             ctx.lineTo(mouse.x, mouse.y)
-            ctx.strokeStyle = `rgba(80,150,255,${alpha})`
+            ctx.strokeStyle = `${pal.mouse}${alpha})`
             ctx.lineWidth   = 0.9 + B * 0.8
             ctx.stroke()
           }
@@ -183,11 +212,12 @@ export default function Background() {
 
       // ── Mouse cursor glow ─────────────────────────────────────────────
       if (B > 0.01) {
+        const [cr, cg, cb] = pal.cursor
         const r1 = MOUSE_DIST * (1 + B * 0.5)
         const mg = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, r1)
-        mg.addColorStop(0,   `rgba(60,120,255,${0.10 * B})`)
-        mg.addColorStop(0.4, `rgba(59,130,246,${0.06 * B})`)
-        mg.addColorStop(1,   'rgba(59,130,246,0)')
+        mg.addColorStop(0,   `rgba(${cr},${cg},${cb},${0.10 * B})`)
+        mg.addColorStop(0.4, `rgba(${connR},${connG},${connB},${0.06 * B})`)
+        mg.addColorStop(1,   `rgba(${connR},${connG},${connB},0)`)
         ctx.beginPath()
         ctx.arc(mouse.x, mouse.y, r1, 0, Math.PI * 2)
         ctx.fillStyle = mg

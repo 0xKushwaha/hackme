@@ -2,7 +2,9 @@
 
 An autonomous data science pipeline where a team of specialized AI agents collaborates to analyse **any dataset** — CSV, Parquet, images, audio, JSON, multi-file directories. Browse the dataset, understand patterns, design models, and generate architectural recommendations. All backed by a persistent memory system to learn from prior runs.
 
-**Current Status:** Phases 1–2 (Data Understanding & Model Design) fully implemented. Phases 3–5 in development. FastAPI + Next.js frontend with live agent graph visualization.
+Plus a **Red Mode** tournament where 20 real-world AI researcher personas debate the dataset in a structured multi-stage competition.
+
+**Current Status:** Phase 1 (Data Understanding), Phase 2 (Model Design), and Red Mode fully implemented. Phases 3–5 in development. FastAPI + Next.js frontend with live D3 agent graph visualization.
 
 ---
 
@@ -18,7 +20,7 @@ pip install -r requirements.txt
 
 ### 2. Set up API key
 
-Create a `.env` file in the root directory:
+Copy `.env` and fill in your key:
 
 ```bash
 ANTHROPIC_API_KEY=sk-ant-...
@@ -26,7 +28,7 @@ ANTHROPIC_API_KEY=sk-ant-...
 OPENAI_API_KEY=sk-...
 
 # For local vLLM (optional)
-VLLM_URL=http://localhost:8000/v1
+VLLM_URL=http://localhost:8080/v1
 VLLM_MODEL=mistral-7b-instruct
 ```
 
@@ -50,17 +52,46 @@ npm run dev
 
 ## Web UI
 
-Modern Next.js frontend with dark blue/black theme and animated background.
+Modern Next.js frontend with animated matrix-rain background.
 
-**Home** — Select your LLM provider (Claude, OpenAI, or local vLLM), enter your API key, pick a dataset file or folder, optionally describe your goal. Click **Launch Analysis**.
+**Home** — Select your LLM provider (Claude, OpenAI, or local vLLM), enter your API key, pick a dataset file or folder, optionally describe your goal. Choose between **Standard Analysis** or **Red Mode** debate. Click **Launch**.
 
 **Live Run** — Watch agents work in real time on a D3 force-directed graph. Each agent node is color-coded and lights up as it becomes active. Click any node to see:
 - Running description card while agent is active
 - Full markdown output in a side drawer once complete
 
-**Summary View** — After pipeline finishes, browse every agent's output as expandable cards. Click to expand inline full-width with smooth animation. Export analysis as `.md`.
+**Summary View** — After pipeline finishes, switch to the `SYNTHESIS` tab to browse every agent's output as expandable cards. Click to expand inline. Export the full analysis as `.md`.
 
-Results persist to disk and cache in `localStorage` — refresh to restore full state instantly.
+Results persist to disk and cache in `sessionStorage` — switch tabs to restore state.
+
+---
+
+## Red Mode
+
+A structured multi-stage AI researcher debate tournament. 20 personas (Andrej Karpathy, Geoffrey Hinton, Yann LeCun, etc.) compete to produce the best analysis of your dataset.
+
+```
+Phase 1  — Standard pipeline (all 9 agents analyse the dataset)
+             │
+             ▼
+Stage A  — Group debates (5 groups × 4 personas each)
+           Each persona argues their take on the dataset
+           Group champion selected per round
+             │
+             ▼
+Stage B  — Champions debate (5 winners cross-examine each other)
+             │
+             ▼
+Stage C  — Synthesis (final report combining all perspectives)
+```
+
+**Red Mode UI:**
+- Animated crimson matrix background during the debate
+- Force-directed graph showing all 20 personas, group clusters, and champion connections
+- Real-time glow on active personas; checkmark on completed ones
+- Side panel per persona: Round 1 output, champion debate, group election summary
+- `GRAPH` / `SYNTHESIS` tabs on completion
+- Download full report as `.md` (all stages + champion outputs + synthesis)
 
 ---
 
@@ -74,7 +105,7 @@ python main.py --dataset data.csv --provider claude --mode phases --target SaleP
 python main.py --dataset ./my_dataset/ --provider claude --mode phases
 
 # Local vLLM
-python main.py --dataset ./data/ --provider local --base-url http://localhost:8000/v1 --mode phases
+python main.py --dataset ./data/ --provider local --base-url http://localhost:8080/v1 --mode phases
 
 # Manual mode (fixed agent sequence, no LLM-driven routing)
 python main.py --dataset data.csv --provider claude --mode manual
@@ -185,6 +216,16 @@ Agent personalities adapt at runtime — if data quality is low or errors occur,
 
 ---
 
+## Red Mode Personas
+
+20 researcher personas drawn from real AI practitioners:
+
+Andrej Karpathy · Andrew Ng · Chip Huyen · Chris Olah · Edward Yang · Ethan Mollick · François Chollet · Geoffrey Hinton · Jay Alammar · Jeremy Howard · Jonas Mueller · Lilian Weng · Matei Zaharia · Sam Altman · Santiago Valdarrama · Sebastian Raschka · Shreya Rajpal · Tim Dettmers · Vicki Boykis · Yann LeCun
+
+Each persona has a distinct analytical style, communication voice, and area of expertise that influences how they debate the dataset.
+
+---
+
 ## Supported Formats
 
 Point `--dataset` at any file or directory. DatasetDiscovery auto-detects:
@@ -198,7 +239,7 @@ Point `--dataset` at any file or directory. DatasetDiscovery auto-detects:
 | Multi-table | Directory with multiple CSVs or parquet files |
 | Mixed | Images + CSV labels, audio + metadata, etc. |
 
-For non-tabular data, **UnknownFormatAgent** inspects the directory structure and content, then decides on analysis strategy. Large Parquet files are streamed via PyArrow — never fully loaded into memory for initial profiling.
+For non-tabular or unrecognised formats, **UnknownFormatAgent** runs a 3-phase investigation (magic-byte sniff → 30+ parser probe → deep schema extraction) and reports what it finds. Large Parquet files are streamed via PyArrow — never fully loaded into memory for initial profiling.
 
 ---
 
@@ -226,7 +267,25 @@ Knowledge Graph (SQLite)
   └─ Query interface for analyzing causality
 ```
 
-**Why This Matters:** Agents don't start from scratch each time. If Feature Engineer found a good encoding last run, Pragma­matist will reference it. If a retry strategy failed, that memory is marked as poisoned and won't be suggested again.
+**Why This Matters:** Agents don't start from scratch each time. If Feature Engineer found a good encoding last run, Pragmatist will reference it. If a retry strategy failed, that memory is marked as poisoned and won't be suggested again.
+
+---
+
+## Security
+
+The backend is hardened for local development use:
+
+- **CORS** restricted to `localhost:3000` with explicit method/header allowlist
+- **Server binding** on `127.0.0.1` only — not exposed on LAN
+- **Input validation** on all endpoints: path traversal rejected, field length limits enforced, persona names allowlisted
+- **Credentials file** written with `chmod 600` — owner-read only
+- **Error responses** return generic messages; full stack traces logged server-side only
+- **Pickle deserialization disabled** — `UnknownFormatAgent` will not load `.pkl` files
+- **No LLM-generated code execution** — the adaptive parser feature that wrote and ran LLM-generated scripts has been removed entirely
+- **XSS** — all markdown rendered via `react-markdown`, no `dangerouslySetInnerHTML`
+- **Session data** stored in `sessionStorage` (cleared on tab close), not `localStorage`
+
+> The `.env` file is gitignored. Never commit real API keys.
 
 ---
 
@@ -238,16 +297,16 @@ hackathon/
 ├── main.py                    ← CLI entry point
 ├── requirements.txt
 │
-├── frontend/                  ← Next.js web UI (Typescript + Tailwind)
+├── frontend/                  ← Next.js web UI (TypeScript + Tailwind)
 │   └── src/
 │       ├── app/
 │       │   ├── page.tsx           # Home — provider + dataset + launch
 │       │   ├── run/[id]/page.tsx  # Live run + summary view
-│       │   └── red/[id]/page.tsx  # Red mode variant
+│       │   └── red/[id]/page.tsx  # Red Mode debate view
 │       ├── components/
 │       │   ├── PipelineGraph.tsx  # D3 force-directed agent graph
-│       │   ├── RedModeGraph.tsx   # Red mode graph variant
-│       │   ├── Background.tsx     # Three.js animated background
+│       │   ├── RedModeGraph.tsx   # Red Mode persona tournament graph
+│       │   ├── Background.tsx     # Animated matrix-rain background
 │       │   ├── GlobalBackground.tsx
 │       │   └── PageTransition.tsx # Smooth page transitions
 │       └── lib/
@@ -261,7 +320,7 @@ hackathon/
 │   ├── planner_agents.py      # Pragmatist, Devil's Advocate, Architect
 │   ├── storyteller_agent.py   # Final report synthesis
 │   ├── installer_agent.py     # Auto pip-install missing packages
-│   └── unknown_format_agent.py # Non-tabular format handling
+│   └── unknown_format_agent.py # Non-tabular format detection (3-phase)
 │
 ├── orchestration/
 │   ├── orchestrator.py        # Core: manual/auto/phases modes
@@ -274,6 +333,15 @@ hackathon/
 │   ├── data_understanding.py  # Phase 1 ✅
 │   └── model_design.py        # Phase 2 ✅
 │
+├── red_mode/                  # ✅ Red Mode tournament
+│   ├── orchestrator.py        # Tournament coordinator
+│   ├── rounds.py              # Group + champion debate logic
+│   ├── grouping.py            # Persona grouping + champion election
+│   ├── brief_builder.py       # Phase 1 → Red Mode brief handoff
+│   └── persona_loader.py      # Load persona markdown files
+│
+├── personas/                  # 20 researcher persona markdown files
+│
 ├── memory/
 │   ├── context_manager.py     # Working memory + token management
 │   ├── agent_memory.py        # Per-agent interface
@@ -283,24 +351,17 @@ hackathon/
 │   └── compaction.py          # LLM-based summarization + audit
 │
 ├── analysis/
-│   ├── data_profiler.py       # Pre-LLM dataset statistics
-│   └── __init__.py
+│   └── data_profiler.py       # Pre-LLM dataset statistics
 │
 ├── backends/
 │   ├── llm_backends.py        # Claude / OpenAI / vLLM routing
 │   └── fallback.py            # Multi-provider fallback on rate limit
 │
 ├── tools/
-│   ├── format_sniffer.py      # File format detection
-│   ├── content_sampler.py     # Sample file contents
-│   ├── structure_prober.py    # Directory structure analysis
-│   └── schema_extractor.py    # Dataset schema detection
-│
-├── personas/                  # Agent persona data (extracted)
-├── personas_data/             # Reference personas for behavioral tuning
-│   ├── Andrej Karpathy/
-│   ├── Andrew Ng/
-│   └── ... (20+ researcher personas)
+│   ├── format_sniffer.py      # Magic-byte file format detection
+│   ├── content_sampler.py     # Raw content sampling
+│   ├── structure_prober.py    # 30+ format probers
+│   └── schema_extractor.py    # Column/schema analysis
 │
 ├── prompts/
 │   ├── analyst_prompts.py     # Explorer, Skeptic, Statistician prompts
@@ -312,8 +373,7 @@ hackathon/
     ├── registry.json          # Agent execution history
     ├── chroma_db/             # ✅ Per-agent vector store
     ├── graph.db               # ✅ Knowledge graph
-    ├── tool_registry/         # 🚧 Custom tools written by agents
-    └── results/               # 🚧 Persisted run results
+    └── results/               # Persisted run results
 ```
 
 **Legend:** ✅ = Implemented, 🚧 = In Development
@@ -325,13 +385,15 @@ hackathon/
 ### ✅ Completed
 
 - **Frontend:** Home, Live Run, Summary, and Red Mode pages with D3 graph visualization
-- **Backend:** FastAPI with credentials, file browse, run polling, result retrieval
+- **Backend:** FastAPI with credentials, file browse, run polling, result retrieval, input validation
 - **Phase 1 (Data Understanding):** All EDA agents (Explorer, Skeptic, Statistician, Ethicist)
 - **Phase 2 (Model Design):** Feature Engineer, Pragmatist, Devil's Advocate, Optimizer
+- **Red Mode:** 20-persona tournament (group debates → champion round → synthesis), full report download
 - **Memory System:** ChromaDB (per-agent), SQLite graph, hybrid search, temporal decay, compaction
 - **Agent Framework:** Base agent class, behavioral configs, registry, context manager
 - **Dataset Discovery:** Format detection, profiling, multi-file handling
 - **Multi-Provider Support:** Claude, OpenAI, local vLLM with fallback routing
+- **Security Hardening:** CORS, path traversal, input validation, no pickle, no LLM code exec, XSS protection
 
 ### 🚧 In Development
 
@@ -380,7 +442,7 @@ For critique/planning agents (Skeptic, Ethicist, Devil's Advocate, Pragmatist), 
 ## Environment & Dependencies
 
 **Python:** 3.8+
-**Main Stack:** LangChain, ChromaDB, FastAPI, Next.js, D3.js, Three.js
+**Main Stack:** LangChain, ChromaDB, FastAPI, Next.js, D3.js
 **ML Libraries:** scikit-learn, XGBoost, pandas, PyArrow
 
 See `requirements.txt` for pinned versions.

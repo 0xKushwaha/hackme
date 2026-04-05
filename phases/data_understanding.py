@@ -18,8 +18,13 @@ Stage 2 — Ethicist (optional, with retry)
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from memory.context_manager import ROLE_ANALYSIS, ROLE_META
+from runtime.thread_state import propagate_to_worker
 from agents.installer_agent import LibraryInstallerAgent
+from agents.validator_agent import ValidatorAgent
+from agents.constraint_discovery_agent import ConstraintDiscoveryAgent
 from analysis.data_profiler import DataProfiler
+from analysis.relationship_extractor import RelationshipExtractor
+from analysis.sampler import DataSampler
 from .base import BasePhase, PhaseResult
 
 
@@ -40,6 +45,12 @@ class DataUnderstandingPhase(BasePhase):
         super().__init__(orchestrator)
         self.installer = LibraryInstallerAgent()
         self.profiler  = DataProfiler()
+        self.validator = ValidatorAgent(orchestrator.llm) if orchestrator.llm else None
+        # ConstraintDiscoveryAgent uses purely computational methods (no LLM needed for discovery)
+        self.constraint_discoverer = ConstraintDiscoveryAgent(orchestrator.llm)
+        self.extractor = RelationshipExtractor()
+        self.sampler = DataSampler()
+        self._dataset = None  # loaded dataset for validation
 
     def _run(
         self,
@@ -148,11 +159,13 @@ class DataUnderstandingPhase(BasePhase):
         # ── Run Explorer, Skeptic, Statistician concurrently ─────────────
         # These three are independent — none reads another's output.
         # Orchestrator.step() is thread-safe (context writes use a lock).
+        # propagate_to_worker() ensures worker threads inherit _thread_local.run_state
+        # so their print() calls are routed to RunState and visible in the frontend.
         with ThreadPoolExecutor(max_workers=3) as pool:
             futures = {
-                pool.submit(self._step_with_retry, "explorer",     explorer_task,     ROLE_ANALYSIS): "explorer",
-                pool.submit(self._step_with_retry, "skeptic",      skeptic_task,      ROLE_ANALYSIS): "skeptic",
-                pool.submit(self._step_with_retry, "statistician", statistician_task, ROLE_ANALYSIS): "statistician",
+                pool.submit(propagate_to_worker(self._step_with_retry, "explorer",     explorer_task,     ROLE_ANALYSIS)): "explorer",
+                pool.submit(propagate_to_worker(self._step_with_retry, "skeptic",      skeptic_task,      ROLE_ANALYSIS)): "skeptic",
+                pool.submit(propagate_to_worker(self._step_with_retry, "statistician", statistician_task, ROLE_ANALYSIS)): "statistician",
             }
             for fut in as_completed(futures):
                 name = futures[fut]
@@ -186,9 +199,18 @@ class DataUnderstandingPhase(BasePhase):
             else:
                 print(f"\n⚡ [DataUnderstanding] Ethicist skipped (data quality={data_metrics.data_quality_score:.2f}, no sensitive signals detected)")
 
+        # ── Stage 3: Constraint Discovery (find mathematical relationships) ──
+        constraint_results = {}
+        if dataset_path:
+            try:
+                print("\n⚡ [DataUnderstanding] Constraint discovery starting...")
+                constraint_results = self._run_constraint_discovery(dataset_path)
+            except Exception as exc:
+                print(f"[DataUnderstanding] ⚠️  Constraint discovery failed: {exc}")
+
         # ── Summary ───────────────────────────────────────────────────────
         explorer_out = self._last_output("explorer")
-        n_agents = 3 + (1 if ethics_notes else 0)
+        n_agents = 3 + (1 if ethics_notes else 0) + (1 if constraint_results else 0)
 
         return PhaseResult(
             phase_name=self.name,
@@ -196,6 +218,7 @@ class DataUnderstandingPhase(BasePhase):
             summary=(
                 f"Data understanding complete ({n_agents} agents). "
                 + (f"Quality={data_metrics.data_quality_score:.2f}. " if data_metrics else "")
+                + (f"Constraints found: {len(constraint_results.get('constraint_discovery', {}).validated_constraints if constraint_results.get('constraint_discovery') else [])}. " if constraint_results else "")
                 + f"EDA: {explorer_out[:100]}..."
             ),
             outputs={
@@ -204,8 +227,133 @@ class DataUnderstandingPhase(BasePhase):
                 "stats_report":   self._last_output("statistician"),
                 "ethics_notes":   ethics_notes,
                 "data_metrics":   data_metrics,
+                "constraint_discovery": constraint_results.get("constraint_discovery"),
             },
         )
+
+    # ------------------------------------------------------------------ #
+    # Validation & refinement                                               #
+    # ------------------------------------------------------------------ #
+
+    def _run_validation_round(
+        self,
+        dataset_path: str = "",
+        target_col: str = None,
+    ) -> dict:
+        """
+        Run validation round: compute ground truth relationships and
+        validate agent outputs against them.
+
+        Returns:
+            {agent_name: ValidationResult}
+        """
+        if not self.validator or not dataset_path:
+            return {}
+
+        print("\n🔍 [DataUnderstanding] Validation round starting...")
+
+        # Load dataset if not already loaded
+        if self._dataset is None:
+            try:
+                import pandas as pd
+                self._dataset = pd.read_csv(dataset_path) if dataset_path.endswith(".csv") else pd.read_parquet(dataset_path)
+                print(f"[DataUnderstanding] Loaded dataset: {self._dataset.shape}")
+            except Exception as e:
+                print(f"[DataUnderstanding] Failed to load dataset for validation: {e}")
+                return {}
+
+        # Set data access for validator
+        self.validator.set_data_access(
+            self._dataset,
+            self.sampler,
+            self.extractor,
+        )
+
+        # Compute ground truth relationships
+        print("[DataUnderstanding] Computing ground-truth relationships...")
+        sample = self.sampler.get_sample(self._dataset, target_col=target_col, n=min(5000, len(self._dataset)))
+        relationships = self.extractor.extract_all_relationships(sample, target_col)
+        print(f"[DataUnderstanding] Found {len(relationships)} relationships")
+
+        # Validate agent outputs
+        agent_outputs = {
+            "explorer": self.orch.agent_results.get("explorer", ""),
+            "skeptic": self.orch.agent_results.get("skeptic", ""),
+            "statistician": self.orch.agent_results.get("statistician", ""),
+        }
+
+        ground_truth = {f"{r.feature_a}_{r.feature_b}": r for r in relationships}
+
+        # Run validator
+        print("[DataUnderstanding] Validator analyzing outputs...")
+        validation_result = self.validator.validate_phase(
+            agent_outputs,
+            ground_truth,
+            phase="data_understanding",
+        )
+
+        # Store result
+        self.orch.context.add(
+            "validator", ROLE_ANALYSIS,
+            validation_result.to_text_summary(),
+        )
+
+        print(f"[DataUnderstanding] ✓ Validation complete (accuracy: {validation_result.overall_accuracy:.1%})")
+        return {"validator": validation_result}
+
+    def _run_constraint_discovery(
+        self,
+        dataset_path: str = "",
+    ) -> dict:
+        """
+        Run constraint discovery: find mathematical relationships in data.
+
+        Returns:
+            {agent_name: ConstraintAnalysis}
+        """
+        if not self.constraint_discoverer or not dataset_path:
+            return {}
+
+        print("\n⚡ [AGENT:constraint_discovery]")
+        print("\n🔍 [DataUnderstanding] Constraint discovery starting...")
+
+        # Load dataset if not already loaded
+        if self._dataset is None:
+            try:
+                import pandas as pd
+                self._dataset = pd.read_csv(dataset_path) if dataset_path.endswith(".csv") else pd.read_parquet(dataset_path)
+                print(f"[DataUnderstanding] Loaded dataset: {self._dataset.shape}")
+            except Exception as e:
+                print(f"[DataUnderstanding] Failed to load dataset for constraint discovery: {e}")
+                return {}
+
+        # Set data access for constraint discoverer
+        self.constraint_discoverer.set_data_access(
+            self._dataset,
+            self.sampler,
+            self.extractor,
+        )
+
+        # Run discovery
+        print("[DataUnderstanding] Running constraint discovery pipeline...")
+        try:
+            constraint_analysis = self.constraint_discoverer.discover_constraints()
+        except Exception as e:
+            print(f"[DataUnderstanding] ⚠️  Engine error: {e}")
+            print(f"\n✅ [AGENT_DONE:constraint_discovery]")
+            return {}
+
+        # Store result
+        self.orch.context.add(
+            "constraint_discovery", ROLE_ANALYSIS,
+            constraint_analysis.to_text_summary(),
+        )
+
+        num_constraints = len(constraint_analysis.validated_constraints)
+        print(f"[DataUnderstanding] ✓ Found {num_constraints} validated constraints")
+        print(f"\n✅ [AGENT_DONE:constraint_discovery]")
+
+        return {"constraint_discovery": constraint_analysis}
 
     # ------------------------------------------------------------------ #
     # Retry helpers                                                         #

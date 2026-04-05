@@ -45,11 +45,13 @@ def get_llm(
     if provider == "claude":
         key    = api_key or os.getenv("ANTHROPIC_API_KEY")
         chosen = model or _CLAUDE_MODELS.get(tier, _CLAUDE_MODELS["full"])
+        kwargs.setdefault("max_tokens", 4096)
         return ChatAnthropic(model=chosen, api_key=key, **kwargs)
 
     if provider == "openai":
         key    = api_key or os.getenv("OPENAI_API_KEY")
         chosen = model or _OPENAI_MODELS.get(tier, _OPENAI_MODELS["full"])
+        kwargs.setdefault("max_tokens", 4096)
         return ChatOpenAI(model=chosen, api_key=key, **kwargs)
 
     if provider == "local":

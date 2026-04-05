@@ -56,13 +56,15 @@ export default function RedModePage() {
   const [activeAgent,  setActiveAgent]  = useState('')
 
   // Tournament state
-  const [lastLine,        setLastLine]        = useState('')
-  const [activeGroup,     setActiveGroup]     = useState('')
-  const [doneGroups,      setDoneGroups]      = useState<string[]>([])
-  const [groupChampions,  setGroupChampions]  = useState<Record<string, string>>({})
-  const [activePersonas,  setActivePersonas]  = useState<string[]>([])
-  const [donePersonas,    setDonePersonas]    = useState<string[]>([])
-  const [synthesisDone,   setSynthesisDone]   = useState(false)
+  const [lastLine,             setLastLine]             = useState('')
+  const [activeGroup,          setActiveGroup]          = useState('')
+  const [doneGroups,           setDoneGroups]           = useState<string[]>([])
+  const [groupChampions,       setGroupChampions]       = useState<Record<string, string>>({})
+  const [activePersonas,       setActivePersonas]       = useState<string[]>([])
+  const [donePersonas,         setDonePersonas]         = useState<string[]>([])
+  const [synthesisDone,        setSynthesisDone]        = useState(false)
+  const [championDebateTimes,  setChampionDebateTimes]  = useState<Record<string, { start: number; end: number | null; duration: number | null }>>({})
+  const [nowTs,                setNowTs]                = useState(() => Date.now() / 1000)
   const [done,           setDone]           = useState(false)
   const [error,          setError]          = useState('')
   const [result,         setResult]         = useState<RedResult | null>(null)
@@ -77,6 +79,13 @@ export default function RedModePage() {
 
   const [leaving, setLeaving] = useState(false)
   const goHome = useCallback(() => setLeaving(true), [])
+
+  // Tick every second so live elapsed times update
+  useEffect(() => {
+    if (done) return
+    const ticker = setInterval(() => setNowTs(Date.now() / 1000), 1000)
+    return () => clearInterval(ticker)
+  }, [done])
 
   const downloadReport = useCallback(() => {
     if (!result) return
@@ -190,12 +199,19 @@ export default function RedModePage() {
       setPhase('champions')
       setLastLine('STAGE B — Champion Cross-Debate')
       const champList = Object.values(champions)
+      const debateTimes: Record<string, { start: number; end: number | null; duration: number | null }> = {}
       for (const champ of champList) {
         if (cancelled) return
+        const startSec = Date.now() / 1000
+        debateTimes[champ] = { start: startSec, end: null, duration: null }
+        setChampionDebateTimes({ ...debateTimes })
         setActivePersonas([champ])
         setLastLine(`${champ.replace(/_/g, ' ')} entering cross-debate`)
         await delay(600)
         if (cancelled) return
+        const endSec = Date.now() / 1000
+        debateTimes[champ] = { start: startSec, end: endSec, duration: Math.round(endSec - startSec) }
+        setChampionDebateTimes({ ...debateTimes })
       }
       setActivePersonas([])
 
@@ -252,7 +268,8 @@ export default function RedModePage() {
       if (data.groupChampions)      setGroupChampions(data.groupChampions)
       if (data.donePersonas)        setDonePersonas(data.donePersonas)
       else if (data.everActive)     setDonePersonas(data.everActive)
-      if (data.synthesisDone)       setSynthesisDone(data.synthesisDone)
+      if (data.synthesisDone)          setSynthesisDone(data.synthesisDone)
+      if (data.championDebateTimes)    setChampionDebateTimes(data.championDebateTimes)
 
       if (data.done) {
         setDone(true)
@@ -565,6 +582,41 @@ export default function RedModePage() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* ── Champion debate timeline (champions phase) ──────────── */}
+        {!done && phase === 'champions' && Object.keys(championDebateTimes).length > 0 && (
+          <div style={{
+            position: 'absolute', bottom: 36, left: 16, zIndex: 10,
+            background: 'rgba(4,0,0,0.82)', backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(220,38,38,0.18)', borderRadius: 12,
+            padding: '10px 14px', minWidth: 220,
+          }}>
+            <div style={{ fontSize: 9, fontFamily: 'JetBrains Mono', color: 'rgba(220,38,38,0.55)', letterSpacing: '0.1em', marginBottom: 8 }}>
+              STAGE B — CHAMPION DEBATE TIMES
+            </div>
+            {Object.entries(championDebateTimes).map(([persona, timing]) => {
+              const color = PERSONA_COLORS[persona] ?? '#e11d48'
+              const isActive = activePersonas.includes(persona)
+              const elapsed = timing.duration != null
+                ? timing.duration
+                : isActive ? Math.round(nowTs - timing.start) : null
+              const label = persona.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+              const fmtTime = (s: number) => { const n = Math.round(s); return n >= 60 ? `${Math.floor(n / 60)}m ${n % 60}s` : `${n}s` }
+              return (
+                <div key={persona} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
+                  <div style={{ width: 5, height: 5, borderRadius: '50%', background: isActive ? color : 'rgba(255,255,255,0.2)', flexShrink: 0, boxShadow: isActive ? `0 0 6px ${color}` : 'none' }} />
+                  <span style={{ fontSize: 10, fontFamily: 'JetBrains Mono', color: isActive ? color : 'rgba(255,255,255,0.4)', flex: 1 }}>
+                    {label}
+                  </span>
+                  <span style={{ fontSize: 10, fontFamily: 'JetBrains Mono', color: timing.duration != null ? 'rgba(255,255,255,0.35)' : isActive ? color : 'rgba(255,255,255,0.18)' }}>
+                    {elapsed != null ? fmtTime(elapsed) : '—'}
+                    {isActive && timing.duration == null && <span style={{ opacity: 0.5 }}> ●</span>}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        )}
 
         {/* ── Live log ticker (bottom, during run) ──────────────── */}
         {!done && (

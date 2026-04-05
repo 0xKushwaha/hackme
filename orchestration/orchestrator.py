@@ -22,6 +22,9 @@ from memory.graph_store      import INFORMED_BY
 from orchestration.registry  import AgentRegistry, OUTCOME_SUCCESS, OUTCOME_FAILURE
 from prompts.orchestrator_prompt import ORCHESTRATOR_PROMPT
 
+# Async compaction support
+import queue
+
 
 MAX_AUTO_STEPS    = 10
 MAX_STEP_RETRIES  = 2
@@ -29,6 +32,10 @@ MAX_STEP_RETRIES  = 2
 # Agents that only need recent context (pinned entries + last 2 outputs)
 # rather than the full growing log — saves tokens and LLM latency
 SLIM_CONTEXT_AGENTS = {"skeptic", "ethicist", "devil_advocate", "pragmatist"}
+
+# Async compaction settings
+ENABLE_ASYNC_COMPACTION = True  # Set to False to disable async compaction
+COMPACTION_TIMEOUT = 30  # seconds to wait for compaction to complete
 
 
 class Orchestrator:
@@ -53,6 +60,12 @@ class Orchestrator:
         self._data_metrics    = {}
         self._ctx_lock        = threading.Lock()   # guards context writes during parallel steps
         self._cancel_event    = cancel_event       # FIX #7: cancellation support
+
+        # Async compaction support
+        self._compaction_thread: Optional[threading.Thread] = None
+        self._compaction_complete = threading.Event()
+        self._enable_async_compaction = ENABLE_ASYNC_COMPACTION
+        self._compaction_count = 0
 
         # Stores full agent outputs — never touched by compactor.
         # Keyed by agent_name; value is the LAST successful output string.
@@ -166,15 +179,60 @@ class Orchestrator:
         ) from last_exc
 
     def _maybe_compact(self):
+        """Compact context, either sync or async depending on settings."""
         if self.memory and self.memory.compactor:
             compactor = self.memory.compactor
             with self._ctx_lock:
                 total_tokens = sum(e.token_estimate() for e in self.context.entries)
-                needs_compact = total_tokens > self.context.max_tokens * 0.85
+                # Increased trigger threshold from 0.85 to 0.95 to reduce compaction frequency
+                needs_compact = total_tokens > self.context.max_tokens * 0.95
+
             if needs_compact:
-                print(f"\n[Compactor] Context near limit — compacting...")
+                if self._enable_async_compaction:
+                    self._compact_async(compactor)
+                else:
+                    self._compact_sync(compactor)
+
+    def _compact_sync(self, compactor):
+        """Synchronous compaction (blocking)."""
+        print(f"\n[Compactor] Context near limit — compacting (sync)...")
+        with self._ctx_lock:
+            compactor.compact(self.context)
+        self._compaction_count += 1
+        print(f"[Compactor] Compaction #{self._compaction_count} complete")
+
+    def _compact_async(self, compactor):
+        """Asynchronous compaction (non-blocking)."""
+        # Wait for previous compaction if still running
+        if self._compaction_thread and self._compaction_thread.is_alive():
+            print(f"[Compactor] Waiting for previous compaction to finish...")
+            if self._compaction_complete.wait(timeout=COMPACTION_TIMEOUT):
+                print(f"[Compactor] Previous compaction completed")
+            else:
+                print(f"[Compactor] Warning: Compaction timeout after {COMPACTION_TIMEOUT}s")
+
+        # Start new compaction in background
+        print(f"\n[Compactor] Context near limit — compacting (async in background)...")
+        self._compaction_complete.clear()
+
+        def _do_compaction():
+            try:
                 with self._ctx_lock:
                     compactor.compact(self.context)
+                self._compaction_count += 1
+                print(f"[Compactor] Background compaction #{self._compaction_count} complete")
+            except Exception as e:
+                print(f"[Compactor] Error during background compaction: {e}")
+            finally:
+                self._compaction_complete.set()
+
+        self._compaction_thread = threading.Thread(
+            target=_do_compaction,
+            daemon=True,
+            name=f"Compactor-{self._compaction_count + 1}"
+        )
+        self._compaction_thread.start()
+        print(f"[Compactor] Background compaction started (non-blocking)")
 
     def parallel_step(self, steps: list[tuple[str, str, str]], max_workers: int = 8):
         """Run multiple (agent_name, task, role) steps concurrently."""
@@ -313,7 +371,10 @@ class Orchestrator:
         # --- Phase 2: ModelDesign ---
         p = self._get_phase(phases, "model_design")
         if p:
-            r = p.run()
+            r = p.run(
+                dataset_path=dataset_path,
+                target_col=target_col,
+            )
             results["model_design"] = r
             if not r.success:
                 print(f"\n⚠️  ModelDesign failed: {r.error}. Continuing anyway.")
@@ -323,11 +384,17 @@ class Orchestrator:
             print("\n⚡ [Architecture] Architect researching and designing...")
             research_ctx = self._research_search(dataset_profile, dataset_path)
             architect_task = (
-                "Based on the full analysis above, design the complete deployment architecture.\n"
-                "Consider the full spectrum of model architectures — classical ML, tree-based models,\n"
-                "AND deep learning (Transformers, CNNs, LSTMs, etc.) — choose what fits best.\n"
-                "Include: model architecture recommendation, serving pattern, stack, latency estimates,\n"
-                "training-serving skew risks, monitoring strategy, and memory footprint.\n"
+                "Based on the full analysis above, design a COMPLETE competition architecture.\n"
+                "You MUST produce TWO tracks:\n\n"
+                "TRACK 1 — BASELINE: The simplest solid approach to get on the board fast.\n"
+                "  A competitor should be able to implement this in < 2 hours and score in top 40%.\n\n"
+                "TRACK 2 — ADVANCED: The full competitive architecture to fight for a medal.\n"
+                "  Include: exact model stack, ensemble/stacking design, OOF strategy, every marginal\n"
+                "  gain technique (pseudo-labeling, TTA, custom loss, post-processing, feature selection),\n"
+                "  hyperparameter search plan, and a day-by-day implementation roadmap.\n\n"
+                "Consider the FULL spectrum: classical ML, gradient boosting (LightGBM/XGBoost/CatBoost),\n"
+                "deep learning (Transformers, CNNs, LSTMs, TabNet, SAINT), and multi-modal approaches.\n"
+                "For this competition, 0.001 on the metric matters. Be brutally specific.\n"
             )
             if research_ctx:
                 architect_task += (
@@ -347,6 +414,9 @@ class Orchestrator:
         self.agent_results["final_report"] = self._synthesize_final_report()
         print("\n✅ [AGENT_DONE:final_report]")
 
+        # --- Wait for any pending async compaction ---
+        self._wait_for_compaction()
+
         # --- Persist context ---
         log_path = os.path.join(experiment_dir, f"context_{self.run_id}.json")
         self.context.save(log_path)
@@ -355,6 +425,8 @@ class Orchestrator:
         if self.memory:
             self.memory.print_stats()
             self.memory.graph_store.print_run(self.run_id)
+
+        print(f"\n[Orchestrator] Total background compactions: {self._compaction_count}")
 
         return results
 
@@ -537,8 +609,25 @@ class Orchestrator:
         self.context.save(path)
         print(f"\n📄 Log saved to {path}")
 
+    def _wait_for_compaction(self):
+        """Wait for any pending background compaction to complete."""
+        if self._compaction_thread and self._compaction_thread.is_alive():
+            print(f"\n[Orchestrator] Waiting for background compaction to finish...")
+            if self._compaction_complete.wait(timeout=COMPACTION_TIMEOUT):
+                print(f"[Orchestrator] Background compaction completed")
+            else:
+                print(f"[Orchestrator] Warning: Compaction timeout after {COMPACTION_TIMEOUT}s")
+                print(f"[Orchestrator] Proceeding anyway...")
+
     def print_summary(self):
+        # Ensure any background compaction is complete before summary
+        self._wait_for_compaction()
+
         self.context.print_summary()
         if self.memory:
             self.memory.print_stats()
         self.registry.print_summary()
+
+        print(f"\n[Orchestrator] Total compactions: {self._compaction_count}")
+        if self._enable_async_compaction:
+            print(f"[Orchestrator] Async compaction: ENABLED")

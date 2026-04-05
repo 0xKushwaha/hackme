@@ -4,7 +4,7 @@ import GlobalBackground from '@/components/GlobalBackground'
 import PageTransition from '@/components/PageTransition'
 
 export const metadata: Metadata = {
-  title: 'Multi-Agent DS',
+  title: 'Hackme',
   description: 'Autonomous · Adaptive · Intelligent',
 }
 

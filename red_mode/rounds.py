@@ -574,7 +574,7 @@ async def run_tournament_async(
         groups           = groups,
         personas         = personas,
         brief            = brief,
-        llm              = llm,
+        llm              = fast_llm,
         semaphore        = semaphore,
         on_group_start   = on_group_start,
         on_persona_start = on_persona_start,

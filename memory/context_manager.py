@@ -28,7 +28,7 @@ ROLE_NARRATIVE = "narrative"         # storyteller final summary
 ROLE_META      = "meta"              # orchestrator decisions, misc
 
 
-MAX_CONTEXT_TOKENS = 6000   # ~24K chars before trimming kicks in
+MAX_CONTEXT_TOKENS = 12000  # ~48K chars before trimming kicks in (doubled to reduce compaction frequency)
 CHARS_PER_TOKEN    = 4
 
 

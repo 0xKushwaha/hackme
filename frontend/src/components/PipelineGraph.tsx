@@ -9,35 +9,38 @@ export interface NodeData {
 }
 
 export const PIPELINE_NODES: Omit<NodeData, 'content'>[] = [
-  { key: 'explorer',         label: 'Explorer',        icon: '◉', color: '#a1a1aa', role: 'Data Scout',        description: 'Scans structure, finds patterns and key features.' },
-  { key: 'skeptic',          label: 'Skeptic',          icon: '⚠', color: '#71717a', role: 'Quality Guard',     description: 'Challenges assumptions, flags anomalies and leakage.' },
-  { key: 'statistician',     label: 'Statistician',     icon: '∑', color: '#d4d4d8', role: 'Numbers Expert',    description: 'Distributions, correlations, hypothesis testing.' },
-  { key: 'ethicist',         label: 'Ethicist',         icon: '⚖', color: '#a1a1aa', role: 'Bias Detector',     description: 'Evaluates fairness and ethical implications.' },
-  { key: 'feature_engineer', label: 'Feature Eng.',     icon: '⟁', color: '#e4e4e7', role: 'Signal Extractor',  description: 'New features, encodings, and transformations.' },
-  { key: 'pragmatist',       label: 'Pragmatist',       icon: '◈', color: '#d4d4d8', role: 'Reality Check',     description: 'Model plan — which models, eval metric, split.' },
-  { key: 'devil_advocate',   label: 'Devil Adv.',       icon: '⛧', color: '#71717a', role: 'Critical Thinker',  description: 'Stress-tests the plan, proposes alternatives.' },
-  { key: 'optimizer',        label: 'Optimizer',        icon: '⚡', color: '#a1a1aa', role: 'Efficiency Expert', description: 'Hyperparameter tuning, CV strategy, ensembles.' },
-  { key: 'architect',        label: 'Architect',        icon: '⬡', color: '#e4e4e7', role: 'System Designer',   description: 'Research-backed architecture with arxiv references.' },
-  { key: 'final_report',     label: 'Final Report',     icon: '◎', color: '#fafafa', role: 'Pipeline Output',   description: 'Complete analysis: findings, metrics, recommendations.' },
+  { key: 'explorer',              label: 'Explorer',          icon: '◉', color: '#a1a1aa', role: 'Data Scout',           description: 'Scans structure, finds patterns and key features.' },
+  { key: 'skeptic',               label: 'Skeptic',            icon: '⚠', color: '#71717a', role: 'Quality Guard',        description: 'Challenges assumptions, flags anomalies and leakage.' },
+  { key: 'statistician',          label: 'Statistician',       icon: '∑', color: '#d4d4d8', role: 'Numbers Expert',       description: 'Distributions, correlations, hypothesis testing.' },
+  { key: 'ethicist',              label: 'Ethicist',           icon: '⚖', color: '#a1a1aa', role: 'Bias Detector',        description: 'Evaluates fairness and ethical implications.' },
+  { key: 'constraint_discovery',  label: 'Constraints',        icon: '⧖', color: '#818cf8', role: 'Structure Detector',   description: 'Finds compositional rules: A = B + C, algebraic dependencies.' },
+  { key: 'feature_engineer',      label: 'Feature Eng.',       icon: '⟁', color: '#e4e4e7', role: 'Signal Extractor',     description: 'New features, encodings, and transformations.' },
+  { key: 'pragmatist',            label: 'Pragmatist',         icon: '◈', color: '#d4d4d8', role: 'Reality Check',        description: 'Model plan — which models, eval metric, split.' },
+  { key: 'devil_advocate',        label: 'Devil Adv.',         icon: '⛧', color: '#71717a', role: 'Critical Thinker',     description: 'Stress-tests the plan, proposes alternatives.' },
+  { key: 'optimizer',             label: 'Optimizer',          icon: '⚡', color: '#a1a1aa', role: 'Efficiency Expert',    description: 'Hyperparameter tuning, CV strategy, ensembles.' },
+  { key: 'architect',             label: 'Architect',          icon: '⬡', color: '#e4e4e7', role: 'System Designer',      description: 'Research-backed architecture with arxiv references.' },
+  { key: 'final_report',          label: 'Final Report',       icon: '◎', color: '#fafafa', role: 'Pipeline Output',      description: 'Complete analysis: findings, metrics, recommendations.' },
 ]
 
 interface D3Node { id: string; x?: number; y?: number; fx?: number | null; fy?: number | null }
 interface D3Link { source: string | D3Node; target: string | D3Node; label: string }
 
 const LINKS: D3Link[] = [
-  { source: 'explorer',         target: 'feature_engineer', label: 'EDA'     },
-  { source: 'explorer',         target: 'pragmatist',        label: 'context' },
-  { source: 'skeptic',          target: 'pragmatist',        label: 'quality' },
-  { source: 'statistician',     target: 'pragmatist',        label: 'stats'   },
-  { source: 'statistician',     target: 'optimizer',         label: 'metrics' },
-  { source: 'ethicist',         target: 'pragmatist',        label: 'ethics'  },
-  { source: 'feature_engineer', target: 'pragmatist',        label: 'features'},
-  { source: 'pragmatist',       target: 'devil_advocate',    label: 'plan'    },
-  { source: 'pragmatist',       target: 'optimizer',         label: 'plan'    },
-  { source: 'pragmatist',       target: 'architect',         label: 'design'  },
-  { source: 'devil_advocate',   target: 'architect',         label: 'critique'},
-  { source: 'optimizer',        target: 'architect',         label: 'tuning'  },
-  { source: 'architect',        target: 'final_report',      label: 'architecture' },
+  { source: 'explorer',             target: 'feature_engineer',    label: 'EDA'         },
+  { source: 'explorer',             target: 'pragmatist',           label: 'context'     },
+  { source: 'skeptic',              target: 'pragmatist',           label: 'quality'     },
+  { source: 'statistician',         target: 'pragmatist',           label: 'stats'       },
+  { source: 'statistician',         target: 'optimizer',            label: 'metrics'     },
+  { source: 'ethicist',             target: 'pragmatist',           label: 'ethics'      },
+  { source: 'constraint_discovery', target: 'feature_engineer',     label: 'constraints' },
+  { source: 'constraint_discovery', target: 'pragmatist',           label: 'structure'   },
+  { source: 'feature_engineer',     target: 'pragmatist',           label: 'features'    },
+  { source: 'pragmatist',           target: 'devil_advocate',       label: 'plan'        },
+  { source: 'pragmatist',           target: 'optimizer',            label: 'plan'        },
+  { source: 'pragmatist',           target: 'architect',            label: 'design'      },
+  { source: 'devil_advocate',       target: 'architect',            label: 'critique'    },
+  { source: 'optimizer',            target: 'architect',            label: 'tuning'      },
+  { source: 'architect',            target: 'final_report',         label: 'architecture'},
 ]
 
 const R = 44

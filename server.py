@@ -23,6 +23,7 @@ import os
 import subprocess
 import sys
 import threading
+import time
 import traceback
 import uuid
 from collections import OrderedDict
@@ -110,17 +111,19 @@ root.destroy(); print(p or "", end="")
 # Log → agent state parser
 # ─────────────────────────────────────────────────────────────────────
 _AGENT_KEYS = {
-    "explorer":         "Explorer",
-    "skeptic":          "Skeptic",
-    "statistician":     "Statistician",
-    "feature_engineer": "Feat.Eng",
-    "feature engineer": "Feat.Eng",
-    "ethicist":         "Ethicist",
-    "pragmatist":       "Pragmatist",
-    "devil_advocate":   "Devil's Adv",
-    "devil's advocate": "Devil's Adv",
-    "optimizer":        "Optimizer",
-    "architect":        "Architect",
+    "explorer":              "Explorer",
+    "skeptic":               "Skeptic",
+    "statistician":          "Statistician",
+    "feature_engineer":      "Feat.Eng",
+    "feature engineer":      "Feat.Eng",
+    "ethicist":              "Ethicist",
+    "constraint_discovery":  "Constraint_Discovery",
+    "constraint discovery":  "Constraint_Discovery",
+    "pragmatist":            "Pragmatist",
+    "devil_advocate":        "Devil's Adv",
+    "devil's advocate":      "Devil's Adv",
+    "optimizer":             "Optimizer",
+    "architect":             "Architect",
 }
 
 import re as _re
@@ -155,7 +158,7 @@ def _parse_log_line(line: str) -> dict:
 # Worker threads bind their RunState via _thread_local, so print() from
 # each thread goes to the right log. No nesting, no cross-contamination.
 # ─────────────────────────────────────────────────────────────────────
-_thread_local = threading.local()
+from runtime.thread_state import _thread_local
 
 
 class _RoutingTee:
@@ -261,6 +264,8 @@ class RedRunState(RunState):
         self.group_champions: dict[str, str] = {}
         self.active_personas: list[str]      = []
         self.synthesis_done:  bool           = False
+        # champion_debate_times: { persona: { start: float, end: float|None, duration: float|None } }
+        self.champion_debate_times: dict[str, dict] = {}
 
     def add_text(self, text: str):
         new_lines = [l for l in text.splitlines() if l.strip()]
@@ -312,12 +317,25 @@ class RedRunState(RunState):
                             self.ever_active.append(name)
                         if name not in self.active_personas:
                             self.active_personas.append(name)
+                        # Track champion debate start time
+                        if self.phase == "champions" and name not in self.champion_debate_times:
+                            self.champion_debate_times[name] = {
+                                "start": time.time(),
+                                "end": None,
+                                "duration": None,
+                            }
 
                     m = _PERSONA_DONE_RE.search(line)
                     if m:
                         name = m.group(1)
                         if name not in self.done_agents:
                             self.done_agents.append(name)
+                        # Track champion debate end time
+                        if self.phase == "champions" and name in self.champion_debate_times:
+                            entry = self.champion_debate_times[name]
+                            if entry["end"] is None:
+                                entry["end"] = time.time()
+                                entry["duration"] = round(entry["end"] - entry["start"], 1)
 
                     if "[RED_SYNTHESIS_DONE]" in line:
                         self.synthesis_done = True
@@ -330,9 +348,10 @@ class RedRunState(RunState):
         snap["activeGroup"]     = self.active_group
         snap["doneGroups"]      = list(self.done_groups)
         snap["groupChampions"]  = dict(self.group_champions)
-        snap["activePersonas"]  = list(self.active_personas)
-        snap["synthesisDone"]   = self.synthesis_done
-        snap["donePersonas"]    = list(self.done_agents)
+        snap["activePersonas"]       = list(self.active_personas)
+        snap["synthesisDone"]        = self.synthesis_done
+        snap["donePersonas"]         = list(self.done_agents)
+        snap["championDebateTimes"]  = dict(self.champion_debate_times)
         return snap
 
 

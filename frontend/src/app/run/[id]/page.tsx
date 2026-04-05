@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import dynamic from 'next/dynamic'
@@ -51,9 +51,10 @@ export default function RunPage() {
 
   const goHome = useCallback(() => setLeaving(true), [])
 
-  const doneRef   = useRef(false)
-  const cursorRef = useRef(0)
-  const timerRef  = useRef<NodeJS.Timeout | null>(null)
+  const doneRef          = useRef(false)
+  const cursorRef        = useRef(0)
+  const timerRef         = useRef<NodeJS.Timeout | null>(null)
+  const summaryScrollRef = useRef<HTMLDivElement | null>(null)
 
   const downloadReport = useCallback(() => {
     const lines: string[] = []
@@ -222,7 +223,7 @@ export default function RunPage() {
 
         {/* Summary view */}
         {view === 'summary' && done && (
-          <div style={{ position: 'absolute', inset: 0, overflowY: 'auto', zIndex: 1 }}>
+          <div ref={summaryScrollRef} style={{ position: 'absolute', inset: 0, overflowY: 'auto', zIndex: 1 }}>
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ padding: '28px 32px 8px' }}>
               <h1 style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 22, letterSpacing: '-0.02em' }}>
                 Analysis Complete
@@ -231,7 +232,7 @@ export default function RunPage() {
                 {nodes.filter(n => n.content).length} agents — run <span style={{ fontFamily: "'JetBrains Mono',monospace", color: 'rgba(255,255,255,0.4)' }}>{id}</span>
               </p>
             </motion.div>
-            <SummaryView nodes={nodes} />
+            <SummaryView nodes={nodes} scrollRef={summaryScrollRef} />
           </div>
         )}
 
@@ -387,7 +388,7 @@ function SummaryCard({ node, expanded, onToggle, cardRef }: {
 
 const SUMMARY_ORDER = ['final_report', 'statistician', 'skeptic', 'ethicist', 'optimizer', 'architect', 'devil_advocate', 'feature_engineer', 'explorer', 'pragmatist']
 
-function SummaryView({ nodes }: { nodes: NodeData[] }) {
+function SummaryView({ nodes, scrollRef }: { nodes: NodeData[]; scrollRef: React.RefObject<HTMLDivElement | null> }) {
   const [expanded, setExpanded] = useState<string | null>(null)
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const nodeMap  = Object.fromEntries(nodes.map(n => [n.key, n]))
@@ -397,7 +398,17 @@ function SummaryView({ nodes }: { nodes: NodeData[] }) {
   const toggle = (key: string) => {
     const opening = expanded !== key
     setExpanded(opening ? key : null)
-    if (opening) setTimeout(() => cardRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
+    if (opening) {
+      setTimeout(() => {
+        const card      = cardRefs.current[key]
+        const container = scrollRef.current
+        if (!card || !container) return
+        const cardTop  = card.getBoundingClientRect().top
+        const contTop  = container.getBoundingClientRect().top
+        const scrollTo = container.scrollTop + (cardTop - contTop) - 16
+        container.scrollTo({ top: Math.max(0, scrollTo), behavior: 'smooth' })
+      }, 60)
+    }
   }
 
   const heroExpanded = expanded === (hero?.key ?? '')

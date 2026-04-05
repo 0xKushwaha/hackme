@@ -74,7 +74,7 @@ export default function RunPage() {
   useEffect(() => {
     if (isTest) return
     try {
-      const cached = localStorage.getItem(`run_result_${id}`)
+      const cached = sessionStorage.getItem(`run_result_${id}`)
       if (cached) {
         const data = JSON.parse(cached)
         if (data.agent_results || data.entries) {
@@ -131,7 +131,7 @@ export default function RunPage() {
             const data = await res.json()
             if (data.entries || data.agent_results) {
               setNodes(buildNodes(data.entries ?? [], data.agent_results))
-              try { localStorage.setItem(`run_result_${id}`, JSON.stringify(data)) } catch {}
+              try { sessionStorage.setItem(`run_result_${id}`, JSON.stringify(data)) } catch {}
             }
           } catch {}
         }

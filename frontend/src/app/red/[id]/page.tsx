@@ -38,25 +38,10 @@ interface RedResult {
 
 // ── Markdown renderer ───────────────────────────────────────────────
 function Markdown({ text }: { text: string }) {
-  const html = text
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/^### (.+)$/gm,  '<h3>$1</h3>')
-    .replace(/^## (.+)$/gm,   '<h2>$1</h2>')
-    .replace(/^# (.+)$/gm,    '<h1>$1</h1>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g,    '<em>$1</em>')
-    .replace(/`(.+?)`/g,      '<code>$1</code>')
-    .replace(/^---$/gm,       '<hr/>')
-    .replace(/^- (.+)$/gm,    '<li>$1</li>')
-    .replace(/(<li>.*<\/li>\n?)+/g, s => `<ul>${s}</ul>`)
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/^(?!<[huli]|<\/[huli]|<p|<\/p|<hr)(.+)$/gm, '<p>$1</p>')
   return (
-    <div
-      className="report"
-      style={{ lineHeight: 1.75, fontSize: 13.5, color: 'rgba(255,255,255,0.82)' }}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
+    <div className="report" style={{ lineHeight: 1.75, fontSize: 13.5, color: 'rgba(255,255,255,0.82)' }}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+    </div>
   )
 }
 

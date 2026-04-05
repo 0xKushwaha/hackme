@@ -44,8 +44,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "DELETE"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 # ─────────────────────────────────────────────────────────────────────
@@ -66,6 +66,7 @@ def _save_creds(data: dict):
         existing = _load_creds()
         existing.update(data)
         CREDS_FILE.write_text(json.dumps(existing, indent=2))
+        os.chmod(CREDS_FILE, 0o600)
     except Exception:
         pass
 
@@ -563,6 +564,9 @@ def resolve_path(name: str, dir: bool = False):
     Browser file pickers don't expose the absolute path.
     Searches common locations and returns the first match.
     """
+    # Reject path traversal attempts
+    if ".." in name or name.startswith("/") or name.startswith("~"):
+        return {"path": "", "name": ""}
     root_name = Path(name).parts[0] if Path(name).parts else name
 
     search_roots = [
@@ -612,6 +616,12 @@ class RunPayload(BaseModel):
 
 @app.post("/api/run")
 def start_run(body: RunPayload):
+    # Validate dataset_path to prevent path traversal
+    dp = body.dataset_path
+    if dp and (".." in dp or dp.startswith("~")):
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="Invalid dataset path")
+
     run_id = str(uuid.uuid4())[:8]
     runs[run_id] = RunState()
 
@@ -820,4 +830,4 @@ if __name__ == "__main__":
             return "/api/poll/" not in record.getMessage()
 
     logging.getLogger("uvicorn.access").addFilter(_FilterPoll())
-    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=False)
+    uvicorn.run("server:app", host="127.0.0.1", port=8000, reload=False)

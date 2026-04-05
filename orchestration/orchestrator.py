@@ -168,14 +168,17 @@ class Orchestrator:
     def _maybe_compact(self):
         if self.memory and self.memory.compactor:
             compactor = self.memory.compactor
-            total_tokens = sum(e.token_estimate() for e in self.context.entries)
-            if total_tokens > self.context.max_tokens * 0.85:
+            with self._ctx_lock:
+                total_tokens = sum(e.token_estimate() for e in self.context.entries)
+                needs_compact = total_tokens > self.context.max_tokens * 0.85
+            if needs_compact:
                 print(f"\n[Compactor] Context near limit — compacting...")
-                compactor.compact(self.context)
+                with self._ctx_lock:
+                    compactor.compact(self.context)
 
-    def parallel_step(self, steps: list[tuple[str, str, str]]):
+    def parallel_step(self, steps: list[tuple[str, str, str]], max_workers: int = 8):
         """Run multiple (agent_name, task, role) steps concurrently."""
-        with ThreadPoolExecutor() as ex:
+        with ThreadPoolExecutor(max_workers=max_workers) as ex:
             futures = [ex.submit(self.step, name, task, role) for name, task, role in steps]
             for f in futures:
                 f.result()
@@ -417,63 +420,72 @@ class Orchestrator:
         task_suffix = self.task_description[:60] if self.task_description else ""
         arxiv_query = f"{primary_query} {task_suffix}".strip()
 
-        # ── arxiv ──────────────────────────────────────────────────────
         import urllib.request
         import urllib.parse
         import xml.etree.ElementTree as ET
         import json as _json
 
-        try:
-            encoded = urllib.parse.quote(arxiv_query)
-            url = (
-                f"http://export.arxiv.org/api/query?search_query=all:{encoded}"
-                f"&start=0&max_results=5&sortBy=relevance"
-            )
-            req = urllib.request.Request(url, headers={"User-Agent": "DSAgentTeam/1.0"})
-            with urllib.request.urlopen(req, timeout=12) as resp:
-                xml_data = resp.read().decode("utf-8")
-
-            root = ET.fromstring(xml_data)
-            ns = {"atom": "http://www.w3.org/2005/Atom"}
-            papers = []
-            for entry in root.findall("atom:entry", ns):
-                title   = entry.find("atom:title", ns).text.strip().replace("\n", " ")
-                summary = entry.find("atom:summary", ns).text.strip()[:250]
-                authors = [a.find("atom:name", ns).text for a in entry.findall("atom:author", ns)][:3]
-                link    = entry.find("atom:id", ns).text.strip()
-                year    = entry.find("atom:published", ns).text[:4]
-                papers.append(
-                    f"[ARXIV] [{', '.join(authors)}, {year}] \"{title}\"\n"
-                    f"  URL: {link}\n"
-                    f"  Abstract: {summary}..."
+        def _fetch_arxiv():
+            try:
+                encoded = urllib.parse.quote(arxiv_query)
+                url = (
+                    f"http://export.arxiv.org/api/query?search_query=all:{encoded}"
+                    f"&start=0&max_results=5&sortBy=relevance"
                 )
-            if papers:
-                print(f"[Architect] arxiv: found {len(papers)} papers")
-                results.append("### arxiv Research Papers\n\n" + "\n\n".join(papers))
-        except Exception as exc:
-            print(f"[Architect] arxiv search failed: {exc}")
+                req = urllib.request.Request(url, headers={"User-Agent": "DSAgentTeam/1.0"})
+                with urllib.request.urlopen(req, timeout=12) as resp:
+                    xml_data = resp.read().decode("utf-8")
+                root = ET.fromstring(xml_data)
+                ns = {"atom": "http://www.w3.org/2005/Atom"}
+                papers = []
+                for entry in root.findall("atom:entry", ns):
+                    title   = entry.find("atom:title", ns).text.strip().replace("\n", " ")
+                    summary = entry.find("atom:summary", ns).text.strip()[:250]
+                    authors = [a.find("atom:name", ns).text for a in entry.findall("atom:author", ns)][:3]
+                    link    = entry.find("atom:id", ns).text.strip()
+                    year    = entry.find("atom:published", ns).text[:4]
+                    papers.append(
+                        f"[ARXIV] [{', '.join(authors)}, {year}] \"{title}\"\n"
+                        f"  URL: {link}\n"
+                        f"  Abstract: {summary}..."
+                    )
+                if papers:
+                    print(f"[Architect] arxiv: found {len(papers)} papers")
+                    return "### arxiv Research Papers\n\n" + "\n\n".join(papers)
+            except Exception as exc:
+                print(f"[Architect] arxiv search failed: {exc}")
+            return ""
 
-        # ── Wikipedia ──────────────────────────────────────────────────
-        wiki_articles = []
-        for topic in wiki_topics:
+        def _fetch_wiki(topic):
             try:
                 safe = urllib.parse.quote(topic.replace(" ", "_"))
                 url  = f"https://en.wikipedia.org/api/rest_v1/page/summary/{safe}"
                 req  = urllib.request.Request(url, headers={"User-Agent": "DSAgentTeam/1.0"})
                 with urllib.request.urlopen(req, timeout=8) as resp:
                     data = _json.loads(resp.read().decode("utf-8"))
-                title   = data.get("title", topic)
-                extract = data.get("extract", "")[:300]
+                title    = data.get("title", topic)
+                extract  = data.get("extract", "")[:300]
                 page_url = data.get("content_urls", {}).get("desktop", {}).get("page", "")
                 if extract:
-                    wiki_articles.append(
+                    return (
                         f"[WIKIPEDIA] \"{title}\"\n"
                         f"  URL: {page_url}\n"
                         f"  Summary: {extract}..."
                     )
             except Exception as exc:
                 print(f"[Architect] Wikipedia '{topic}' failed: {exc}")
+            return ""
 
+        # ── Fire all requests concurrently ─────────────────────────────
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            arxiv_future = pool.submit(_fetch_arxiv)
+            wiki_futures = [pool.submit(_fetch_wiki, t) for t in wiki_topics]
+
+            arxiv_result  = arxiv_future.result()
+            wiki_articles = [f.result() for f in wiki_futures if f.result()]
+
+        if arxiv_result:
+            results.append(arxiv_result)
         if wiki_articles:
             print(f"[Architect] Wikipedia: found {len(wiki_articles)} articles")
             results.append("### Wikipedia Articles\n\n" + "\n\n".join(wiki_articles))

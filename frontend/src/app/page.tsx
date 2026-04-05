@@ -158,6 +158,7 @@ export default function Home() {
 
     const errs: string[] = []
     if (!datasetPath)                               errs.push('Select a dataset first.')
+    if (!task.trim())                               errs.push('Task description is required.')
     if (provider !== 'local' && !apiKey && !hasKey) errs.push('API key is required.')
     if (provider === 'local' && !serverUrl)          errs.push('vLLM server URL is required.')
     if (provider === 'local' && !modelName)          errs.push('Model name is required.')
@@ -199,7 +200,14 @@ export default function Home() {
         background: isRedMode ? 'rgba(5,0,0,0.5)' : 'transparent',
         transition: 'background 1.1s cubic-bezier(0.4,0,0.2,1)',
       }} />
-    <div data-mode={isRedMode ? 'red' : 'blue'} style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
+    <motion.div
+      data-mode={isRedMode ? 'red' : 'blue'}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: leaving ? 0 : 1 }}
+      transition={{ duration: 0.28, ease: 'easeInOut' }}
+      onAnimationComplete={() => { if (leaving && leaveDest) router.push(leaveDest) }}
+      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}
+    >
 
       {/* Main content — 3-column layout */}
       <div style={{ flex: 1, display: 'flex', paddingTop: 90, paddingBottom: 40, gap: 24, maxWidth: 1200, margin: '0 auto', width: '100%', padding: '40px 32px' }}>
@@ -397,9 +405,9 @@ export default function Home() {
           <div style={{ background: 'rgba(10,10,10,0.6)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '16px 18px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.15)', fontFamily: "'JetBrains Mono',monospace" }}>&gt;</span>
-              <div className="label">Task Description <span style={{ textTransform: 'none', fontSize: 10, color: 'rgba(255,255,255,0.15)', letterSpacing: 0 }}>— optional</span></div>
+              <div className="label">Task Description</div>
             </div>
-            <textarea className="field" rows={2} placeholder="e.g. Predict churn. Metric: AUC." value={task} onChange={e => setTask(e.target.value)} style={{ resize: 'none', lineHeight: 1.55, fontFamily: "'JetBrains Mono',monospace", fontSize: 12 }} />
+            <textarea className="field" rows={2} placeholder="e.g. Predict customer churn. Optimise for AUC." value={task} onChange={e => setTask(e.target.value)} style={{ resize: 'none', lineHeight: 1.55, fontFamily: "'JetBrains Mono',monospace", fontSize: 12 }} />
           </div>
 
           {/* Errors */}
@@ -443,24 +451,7 @@ export default function Home() {
           <span className="mono" style={{ fontSize: 10 }}>localhost:8000</span>
         </div>
       </div>
-    </div>
-
-    {/* ── Page-enter overlay (fades out on mount) ────────────────── */}
-    <motion.div
-      initial={{ opacity: 1 }}
-      animate={{ opacity: 0 }}
-      transition={{ duration: 0.35, ease: 'easeInOut' }}
-      style={{ position: 'fixed', inset: 0, zIndex: 998, background: '#000', pointerEvents: 'none' }}
-    />
-
-    {/* ── Page-leave overlay ──────────────────────────────────────── */}
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: leaving ? 1 : 0 }}
-      transition={{ duration: 0.35, ease: 'easeInOut' }}
-      onAnimationComplete={() => { if (leaving && leaveDest) router.push(leaveDest) }}
-      style={{ position: 'fixed', inset: 0, zIndex: 999, background: '#000', pointerEvents: leaving ? 'all' : 'none' }}
-    />
+    </motion.div>
     </>
   )
 }

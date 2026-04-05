@@ -310,13 +310,18 @@ export default function RedModePage() {
   }
 
   return (
-    <div style={{
-      height: '100vh', overflow: 'hidden',
-      background: 'transparent',
-      color: '#f0f0f0', fontFamily: 'Inter, sans-serif',
-      display: 'flex', flexDirection: 'column',
-      position: 'relative',
-    }}>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: leaving ? 0 : 1 }}
+      transition={{ duration: 0.28, ease: 'easeInOut' }}
+      onAnimationComplete={() => { if (leaving) router.push('/') }}
+      style={{
+        height: '100vh', overflow: 'hidden',
+        background: 'transparent',
+        color: '#f0f0f0', fontFamily: 'Inter, sans-serif',
+        display: 'flex', flexDirection: 'column',
+        position: 'relative',
+      }}>
       <GlobalBackground />
 
       {/* ── Header ────────────────────────────────────────────────── */}
@@ -579,22 +584,6 @@ export default function RedModePage() {
         )}
       </div>
 
-      {/* ── Page-enter overlay (fades out on mount) ──────────────── */}
-      <motion.div
-        initial={{ opacity: 1 }}
-        animate={{ opacity: 0 }}
-        transition={{ duration: 0.35, ease: 'easeInOut' }}
-        style={{ position: 'fixed', inset: 0, zIndex: 998, background: '#000', pointerEvents: 'none' }}
-      />
-
-      {/* ── Page-leave overlay ────────────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: leaving ? 1 : 0 }}
-        transition={{ duration: 0.35, ease: 'easeInOut' }}
-        onAnimationComplete={() => { if (leaving) router.push('/') }}
-        style={{ position: 'fixed', inset: 0, zIndex: 999, background: '#000', pointerEvents: leaving ? 'all' : 'none' }}
-      />
 
       <style>{`
         @keyframes pulse-dot {
@@ -617,7 +606,7 @@ export default function RedModePage() {
         .report td { padding: 7px 12px; border: 1px solid rgba(255,255,255,0.07); color: rgba(255,255,255,0.65); vertical-align: top; }
         .report tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
       `}</style>
-    </div>
+    </motion.div>
   )
 }
 

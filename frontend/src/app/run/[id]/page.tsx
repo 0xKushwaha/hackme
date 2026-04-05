@@ -150,12 +150,17 @@ export default function RunPage() {
   const panelOpen = !!(selNode?.content)
 
   return (
-    <div style={{
-      height: '100vh', overflow: 'hidden',
-      background: 'transparent',
-      color: '#f0f0f0', fontFamily: 'Inter, sans-serif',
-      display: 'flex', flexDirection: 'column',
-    }}>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: leaving ? 0 : 1 }}
+      transition={{ duration: 0.28, ease: 'easeInOut' }}
+      onAnimationComplete={() => { if (leaving) router.push('/') }}
+      style={{
+        height: '100vh', overflow: 'hidden',
+        background: 'transparent',
+        color: '#f0f0f0', fontFamily: 'Inter, sans-serif',
+        display: 'flex', flexDirection: 'column',
+      }}>
 
       {/* ── Header ─────────────────────────────────────────────────── */}
       <div style={{
@@ -315,22 +320,6 @@ export default function RunPage() {
         </motion.div>
       )}
 
-      {/* ── Page-enter overlay (fades out on mount) ──────────────── */}
-      <motion.div
-        initial={{ opacity: 1 }}
-        animate={{ opacity: 0 }}
-        transition={{ duration: 0.35, ease: 'easeInOut' }}
-        style={{ position: 'fixed', inset: 0, zIndex: 998, background: '#000', pointerEvents: 'none' }}
-      />
-
-      {/* ── Page-leave overlay ────────────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: leaving ? 1 : 0 }}
-        transition={{ duration: 0.35, ease: 'easeInOut' }}
-        onAnimationComplete={() => { if (leaving) router.push('/') }}
-        style={{ position: 'fixed', inset: 0, zIndex: 999, background: '#000', pointerEvents: leaving ? 'all' : 'none' }}
-      />
 
       <style>{`
         @keyframes pulse-dot {
@@ -349,7 +338,7 @@ export default function RunPage() {
         .report hr { border: none; border-top: 1px solid ${ACCENT}18; margin: 14px 0; }
         .report blockquote { border-left: 2px solid ${ACCENT}40; padding-left: 12px; color: rgba(255,255,255,0.4); font-style: italic; margin: 10px 0; }
       `}</style>
-    </div>
+    </motion.div>
   )
 }
 

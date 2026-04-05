@@ -83,39 +83,59 @@ def group_label(group_key: str) -> str:
 
 # ── Champion election ─────────────────────────────────────────────────
 
-_STRONGEST_RE = re.compile(
-    r"STRONGEST\s+POSITION\s*:\s*\[?\s*([A-Za-z_\s]+?)\s*\]?$",
-    re.IGNORECASE | re.MULTILINE,
+# Matches: ## Champion: [andrej_karpathy] or ## Champion: [Andrej Karpathy]
+_CHAMPION_RE = re.compile(
+    r"##\s*Champion\s*:\s*\[([A-Za-z_\s]+?)\]",
+    re.IGNORECASE,
 )
 
 
-def elect_champion(
-    panel_output: str,
-    group_members: list[str],
+def _fuzzy_match(raw: str, group_members: list[str]) -> Optional[str]:
+    """Match a raw name string against group member handles."""
+    raw_norm = raw.strip().lower().replace(" ", "_")
+    # Exact match first
+    for member in group_members:
+        if raw_norm == member:
+            return member
+    # Substring match
+    for member in group_members:
+        if raw_norm in member or member in raw_norm:
+            return member
+    # Last name match (e.g. "karpathy" → "andrej_karpathy")
+    for member in group_members:
+        parts = member.split("_")
+        if any(p in raw_norm for p in parts):
+            return member
+    return None
+
+
+def elect_champion_from_election(
+    election_output: str,
+    group_members:   list[str],
 ) -> str:
     """
-    Extract the champion from a panel debate output.
+    Extract the champion from an election LLM output.
+
+    The election prompt asks the LLM to output:
+      ## Champion: [{exact_handle}]
 
     Strategy (in priority order):
-      1. Parse the "STRONGEST POSITION: [name]" line the LLM was asked to emit.
-      2. Fall back to the persona mentioned most often in the output.
-      3. Fall back to the first member in the group.
+      1. Parse the "## Champion: [name]" line.
+      2. Fall back to mention frequency in the election output.
+      3. Fall back to the first group member.
     """
-    # 1. Explicit marker
-    m = _STRONGEST_RE.search(panel_output)
+    # 1. Explicit ## Champion: [name] marker
+    m = _CHAMPION_RE.search(election_output)
     if m:
-        raw = m.group(1).strip().lower().replace(" ", "_")
-        # Fuzzy match against group members
-        for member in group_members:
-            if raw in member or member in raw:
-                return member
+        matched = _fuzzy_match(m.group(1), group_members)
+        if matched:
+            return matched
 
-    # 2. Mention frequency — count how often each member's name appears
-    #    outside of their own header section
+    # 2. Mention frequency
     best, best_count = group_members[0], 0
     for member in group_members:
         display = member.replace("_", " ").lower()
-        count = panel_output.lower().count(display)
+        count   = election_output.lower().count(display)
         if count > best_count:
             best, best_count = member, count
 

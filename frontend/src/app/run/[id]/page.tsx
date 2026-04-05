@@ -47,6 +47,9 @@ export default function RunPage() {
   const [nodes,        setNodes]        = useState<NodeData[]>([])
   const [view,         setView]         = useState<View>('graph')
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
+  const [leaving,      setLeaving]      = useState(false)
+
+  const goHome = useCallback(() => setLeaving(true), [])
 
   const doneRef   = useRef(false)
   const cursorRef = useRef(0)
@@ -117,6 +120,7 @@ export default function RunPage() {
       cursorRef.current = d.cursor ?? cursorRef.current
       if (d.agent) setActiveAgent(d.agent)
       if (d.doneAgents?.length) setDoneAgents(d.doneAgents as string[])
+      if (d.everActive?.length)  setDoneAgents(d.everActive as string[])
       if (d.done) {
         doneRef.current = true; setDone(true)
         if (d.error) {
@@ -191,7 +195,7 @@ export default function RunPage() {
             ? <span style={{ fontSize: 10, color: '#4ade80', fontFamily: 'JetBrains Mono' }}>✓ complete</span>
             : !error && <span style={{ width: 6, height: 6, borderRadius: '50%', background: ACCENT, display: 'inline-block', animation: 'pulse-dot 1.4s ease-in-out infinite' }} />
           }
-          <button onClick={() => router.push('/')}
+          <button onClick={goHome}
             style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.35)', cursor: 'pointer', fontSize: 17, padding: 0, lineHeight: 1 }}>
             ←
           </button>
@@ -302,7 +306,7 @@ export default function RunPage() {
           <div style={{ maxWidth: 480, width: '100%', margin: '0 24px', background: 'rgba(1,8,20,0.96)', border: `1px solid ${ACCENT}25`, borderRadius: 18, padding: 28 }}>
             <div style={{ fontSize: 13, color: '#f87171', fontWeight: 600, marginBottom: 12 }}>Pipeline Failed</div>
             <pre style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: 200, overflow: 'auto', fontFamily: "'JetBrains Mono',monospace" }}>{error}</pre>
-            <button onClick={() => router.push('/')} style={{
+            <button onClick={goHome} style={{
               marginTop: 16, width: '100%', padding: '9px', borderRadius: 8, cursor: 'pointer',
               background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
               color: 'rgba(255,255,255,0.4)', fontSize: 12, fontFamily: "'JetBrains Mono',monospace",
@@ -310,6 +314,23 @@ export default function RunPage() {
           </div>
         </motion.div>
       )}
+
+      {/* ── Page-enter overlay (fades out on mount) ──────────────── */}
+      <motion.div
+        initial={{ opacity: 1 }}
+        animate={{ opacity: 0 }}
+        transition={{ duration: 0.35, ease: 'easeInOut' }}
+        style={{ position: 'fixed', inset: 0, zIndex: 998, background: '#000', pointerEvents: 'none' }}
+      />
+
+      {/* ── Page-leave overlay ────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: leaving ? 1 : 0 }}
+        transition={{ duration: 0.35, ease: 'easeInOut' }}
+        onAnimationComplete={() => { if (leaving) router.push('/') }}
+        style={{ position: 'fixed', inset: 0, zIndex: 999, background: '#000', pointerEvents: leaving ? 'all' : 'none' }}
+      />
 
       <style>{`
         @keyframes pulse-dot {

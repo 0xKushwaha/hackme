@@ -1,25 +1,25 @@
 """
 Red Mode Orchestrator — Tournament Architecture
 =================================================
-Runs the hierarchical 2-stage persona debate:
+Runs the real multi-agent persona tournament debate:
 
-  Stage A: 4 group panel debates (parallel, 1 LLM call each)
-  Stage B: Champion cross-debate (parallel, 1 LLM call each)
-  Stage C: Final synthesis (1 LLM call)
+  Stage A:       Each persona responds independently (all parallel, fast_llm)
+  Stage A-elect: Champion elected per group by LLM judge (parallel, fast_llm)
+  Stage B:       Champion cross-debate — each champion reads others' positions (parallel, full llm)
+  Stage C:       Final synthesis + verdict (1 LLM call, full llm)
 
-Total: 9 LLM calls.
+Total: ~29 LLM calls (20 personas × 1 round + 4 elections + 4 champion debates + 1 synthesis).
 
 Stdout markers (parsed by RedRunState in server.py):
-  [RED_STAGE:groups]              — group panels starting
+  [RED_STAGE:groups]              — Stage A starting (individual persona round)
   [RED_GROUP:theory]              — specific group starting
-  [PERSONA:andrej_karpathy]       — persona active in group panel
-  [PERSONA_DONE:andrej_karpathy]  — persona spoke (panel parsed)
-  [RED_GROUP_DONE:theory]         — group panel complete
-  [RED_CHAMPION:andrej_karpathy]  — champion elected
-  [RED_STAGE:champions]           — champion cross-debate starting
-  [PERSONA:andrej_karpathy]       — champion debating
-  [PERSONA_DONE:andrej_karpathy]  — champion done
-  [RED_SYNTHESIS]                 — synthesis starting
+  [PERSONA:andrej_karpathy]       — individual persona responding (Stage A or B)
+  [PERSONA_DONE:andrej_karpathy]  — individual persona done
+  [RED_STAGE:election]            — Stage A-elect starting (champion elections)
+  [RED_CHAMPION:andrej_karpathy]  — champion elected for a group
+  [RED_GROUP_DONE:theory]         — group election complete
+  [RED_STAGE:champions]           — Stage B starting (champion cross-debate)
+  [RED_SYNTHESIS]                 — Stage C starting
   [RED_SYNTHESIS_DONE]            — synthesis done
   [RED_MODE_DONE]                 — complete
 """
@@ -68,12 +68,15 @@ class RedModeOrchestrator:
 
         # ── Callbacks for live stdout streaming ───────────────────────
 
+        n_personas = sum(len(m) for m in groups.values())
+
         def on_stage_start(stage: str):
             print(f"[RED_STAGE:{stage}]")
             labels = {
-                "groups":    f"STAGE A — Group Panel Debates  ({n_groups} parallel calls)",
+                "groups":    f"STAGE A — Individual Persona Round  ({n_personas} parallel calls)",
+                "election":  f"STAGE A-elect — Champion Election  ({n_groups} parallel calls)",
                 "champions": f"STAGE B — Champion Cross-Debate  ({n_groups} parallel calls)",
-                "synthesis": "STAGE C — Final Synthesis",
+                "synthesis": "STAGE C — Final Synthesis + Verdict",
             }
             print(f"\n{'─'*60}")
             print(f"  {labels.get(stage, stage.upper())}")
@@ -83,22 +86,31 @@ class RedModeOrchestrator:
         def on_group_start(group_key: str, member_names: list[str]):
             label = group_label(group_key)
             print(f"[RED_GROUP:{group_key}]")
-            # Emit PERSONA markers for all members in this group
-            for name in member_names:
-                print(f"[PERSONA:{name}]")
-            print(f"\n  ▶ {label} — {len(member_names)} experts debating\n")
+            print(f"\n  ▶ {label} — {len(member_names)} experts responding independently\n")
             sys.stdout.flush()
 
-        def on_group_done(group_key: str, champion: str, output: str):
-            label = group_label(group_key)
+        def on_persona_start(persona_name: str, group_key: str):
+            display = persona_display_name(persona_name)
+            print(f"[PERSONA:{persona_name}]")
+            print(f"  → {display} responding…")
+            sys.stdout.flush()
+
+        def on_persona_done(persona_name: str, group_key: str, output: str):
+            display = persona_display_name(persona_name)
+            print(output)
+            print(f"\n[PERSONA_DONE:{persona_name}]")
+            sys.stdout.flush()
+
+        def on_champion_elected(group_key: str, champion: str):
+            label   = group_label(group_key)
             display = persona_display_name(champion)
-            # Mark all group members as done
-            members = groups.get(group_key, [])
-            for name in members:
-                print(f"[PERSONA_DONE:{name}]")
-            print(f"\n  ✓ {label} complete")
-            print(f"  ★ Champion elected: {display}")
+            print(f"  ★ {label} champion: {display}")
             print(f"[RED_CHAMPION:{champion}]")
+            sys.stdout.flush()
+
+        def on_group_done(group_key: str, champion: str, election_output: str):
+            label = group_label(group_key)
+            print(f"\n  ✓ {label} election complete")
             print(f"[RED_GROUP_DONE:{group_key}]")
             print()
             sys.stdout.flush()
@@ -111,7 +123,6 @@ class RedModeOrchestrator:
             sys.stdout.flush()
 
         def on_champ_done(champion: str, group_key: str, response: str):
-            display = persona_display_name(champion)
             print(response)
             print(f"\n[PERSONA_DONE:{champion}]")
             sys.stdout.flush()
@@ -124,17 +135,20 @@ class RedModeOrchestrator:
         # ── Run tournament ────────────────────────────────────────────
         results = asyncio.run(
             run_tournament_async(
-                groups         = groups,
-                personas       = personas,
-                brief          = brief,
-                llm            = self.llm,
-                fast_llm       = self.fast_llm,
-                on_stage_start = on_stage_start,
-                on_group_start = on_group_start,
-                on_group_done  = on_group_done,
-                on_champ_start = on_champ_start,
-                on_champ_done  = on_champ_done,
-                on_synth_start = on_synth_start,
+                groups               = groups,
+                personas             = personas,
+                brief                = brief,
+                llm                  = self.llm,
+                fast_llm             = self.fast_llm,
+                on_stage_start       = on_stage_start,
+                on_group_start       = on_group_start,
+                on_persona_start     = on_persona_start,
+                on_persona_done      = on_persona_done,
+                on_champion_elected  = on_champion_elected,
+                on_group_done        = on_group_done,
+                on_champ_start       = on_champ_start,
+                on_champ_done        = on_champ_done,
+                on_synth_start       = on_synth_start,
             )
         )
 
@@ -157,10 +171,11 @@ class RedModeOrchestrator:
         champions_list = []
         for gk, result in panel_results.items():
             group_results[gk] = {
-                "label":        group_label(gk),
-                "members":      result["members"],
-                "panel_output": result["output"],
-                "champion":     result["champion"],
+                "label":           group_label(gk),
+                "members":         result["members"],
+                "round1":          result.get("round1", {}),
+                "election_output": result.get("election_output", ""),
+                "champion":        result["champion"],
             }
             champions_list.append(result["champion"])
 

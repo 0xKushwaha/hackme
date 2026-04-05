@@ -38,10 +38,12 @@ AGENT_LABELS = {
 }
 
 
-def _truncate(text: str, max_chars: int = 800) -> str:
+def _truncate(text: str, max_chars: int = 1400) -> str:
     if len(text) <= max_chars:
         return text
-    return text[:max_chars].rsplit(" ", 1)[0] + " …"
+    # Take the LAST max_chars — agent outputs front-load methodology and
+    # put the actual insights, findings, and recommendations at the end.
+    return "…" + text[-max_chars:].lstrip()
 
 
 def build_brief_from_result(pipeline_result: dict, task_description: str = "") -> str:
@@ -60,7 +62,7 @@ def build_brief_from_result(pipeline_result: dict, task_description: str = "") -
         if key not in agent_results:
             continue
         label = AGENT_LABELS.get(key, key.replace("_", " ").title())
-        content = _truncate(agent_results[key], max_chars=700)
+        content = _truncate(agent_results[key], max_chars=1400)
         sections.append(f"## {label} Analysis\n{content}")
 
     if not sections:

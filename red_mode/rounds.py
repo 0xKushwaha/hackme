@@ -1,25 +1,43 @@
 """
 Rounds — Red Mode Tournament Architecture
 ============================================
-Hierarchical 2-stage debate replacing the flat 3-round structure.
+Real multi-agent debate: each persona speaks with their own LLM call.
 
-Stage A: Panel Debates (1 LLM call per group, all groups parallel)
-  - Each group of ~5 personas debates in a single prompt.
-  - The LLM role-plays all members and identifies the strongest position.
-  - Champion is elected from the output.
+Stage A  — Individual Persona Round (all personas in all groups, fully parallel)
+  Each persona reads the brief and responds independently in their own voice.
+  No persona sees another's response at this stage.
+  Uses fast_llm to keep costs down.
 
-Stage B: Champion Cross-Debate (1 LLM call per champion, all parallel)
-  - Each champion responds to the other groups' panel summaries.
+Stage A-elect — Champion Election (1 LLM call per group, parallel)
+  A judge LLM reads all Round 1 responses from one group and elects the
+  strongest voice. Returns champion handle + reasoning.
+  Uses fast_llm.
 
-Stage C: Synthesis (1 LLM call — unchanged)
-  - Moderator synthesises the champion debate.
+Stage B — Champion Cross-Debate (1 LLM call per champion, parallel)
+  Each champion reads their own group's FULL Round 1 discussion.
+  Each champion reads other groups' champion Round 1 responses.
+  Champions push back on each other directly, by name.
+  Uses full llm.
 
-Total: ~9 LLM calls (down from 41).
+Stage C — Synthesis + Final Verdict (1 LLM call)
+  Neutral moderator synthesises the full tournament into:
+  Consensus, Disagreements, Action Items, Minority Report, Final Verdict.
+  Uses full llm.
+
+Total calls (20 personas, 4 groups):
+  Stage A:       20  (all parallel, bounded by semaphore)
+  Stage A-elect:  4  (parallel)
+  Stage B:        4  (parallel)
+  Stage C:        1
+  ─────────────────
+  Total:         29  (vs old 9 simulated calls — these are real)
 
 Execution model:
   asyncio.run() from worker thread — creates its own event loop.
-  asyncio.gather() — groups fire simultaneously, semaphore gates concurrency.
+  asyncio.gather() — all stages use full parallelism within semaphore limits.
   Retry: exponential backoff + jitter on rate-limit errors.
+  Per-persona errors are caught and replaced with fallback text — one bad
+  API call never aborts the whole tournament.
 """
 from __future__ import annotations
 
@@ -28,14 +46,13 @@ import random
 from langchain_core.messages import HumanMessage, SystemMessage
 
 
-# ── Config ────────────────────────────────────────────────────────────
-MAX_CONCURRENT = 8    # semaphore: max concurrent API calls at any moment
-MAX_RETRIES    = 4    # per-call retry limit
-PANEL_TRUNC    = 600  # chars — each panel output truncated for champion context
-CHAMP_TRUNC    = 500  # chars — each champion response truncated for synthesis
+# ── Config ─────────────────────────────────────────────────────────────
+MAX_CONCURRENT = 8      # semaphore: max concurrent API calls at any moment
+MAX_RETRIES    = 4      # per-call retry limit
+OTHERS_TRUNC   = 900    # chars — other groups' champion response shown to each champion in Stage B
 
 
-# ── Core async call with retry + jitter ──────────────────────────────
+# ── Core async call with retry + jitter ────────────────────────────────
 
 async def _acall(
     system:    str,
@@ -72,181 +89,321 @@ async def _acall(
     raise RuntimeError(f"Max retries ({MAX_RETRIES}) exceeded: {last_err}")
 
 
-# ── Prompts ───────────────────────────────────────────────────────────
+# ── Prompts ─────────────────────────────────────────────────────────────
 
-_PANEL_SYSTEM = """\
-You are moderating a panel debate between {n} AI/ML experts.
-Your job is to role-play EACH expert authentically based on their profiles below.
+_PERSONA_ROUND1_SYSTEM = """\
+{persona_prompt}
 
-For each panelist, produce their response under a clearly labeled header.
-Stay true to each expert's thinking style, priorities, and communication patterns.
-
-After all panelists respond, add a final section identifying which panelist
-made the strongest, most substantive case.
-
-PANELIST PROFILES:
-{profiles_block}
-
-OUTPUT FORMAT (follow exactly):
-
-## [{NAME_1}]
-(their authentic response — direct, opinionated, in their voice)
-
-## [{NAME_2}]
-(their authentic response)
-
-...
-
-## STRONGEST POSITION: [{name_of_winner}]
-(1-2 sentences explaining why this position was strongest)\
+You are participating in an expert panel debate about a data science analysis.
+You are {display_name}. Your COMMUNICATION STYLE and RESPONSE FORMAT sections above \
+describe exactly how you write — follow them precisely.
+Do NOT write like a generic AI expert. Do NOT use identical bold headers that every other \
+panelist will use. Write with your actual voice: your sentence rhythm, your characteristic \
+phrases, your format preferences.
+Be direct, opinionated, and specific. Reference actual numbers and claims from the brief.\
 """
 
-_PANEL_USER = """\
+_PERSONA_ROUND1_USER = """\
 ANALYSIS BRIEF:
 {brief}
 
 ---
-Each panelist should address:
-**What stands out to me:** (immediate instinctive reaction)
-**What everyone is probably missing:** (contrarian angle)
-**The assumption I'd challenge:** (pick ONE claim from the brief and push back)
-**What I'd actually do:** (concrete recommendation)
+Cover these four angles — but write in your own format, not a template:
 
-Be specific. Reference actual details from the brief. Don't hedge.\
+1. Your sharpest immediate reaction to the most important finding
+2. What everyone else here will probably overlook or dismiss too quickly
+3. One specific claim from the brief you'd push back on hard — pick one and attack it
+4. What you'd actually do first — concrete, specific, no hedging, in your voice
+
+Do NOT number these 1-2-3-4 in your response. Do NOT write "What stands out to me:" or \
+similar generic headers. The structure and format of your response should be distinctively yours.\
+"""
+
+_ELECTION_SYSTEM = """\
+You are a debate judge reviewing {n} expert responses to the same analysis brief.
+Your job is to identify which expert made the STRONGEST, most substantive argument.
+
+Evaluate each response on:
+1. Originality — did they surface something the others missed?
+2. Specificity — concrete claims grounded in the analysis, not vague platitudes
+3. Reasoning quality — the logic holds up under scrutiny
+4. Actionability — their recommendation is actually useful and non-obvious
+
+Output EXACTLY this format (no deviation):
+
+## Review
+[For each expert, one sentence on what they got right or wrong]
+
+## Champion: [name here]
+[2-3 sentences explaining why this position was strongest and what set it apart]\
+"""
+
+_ELECTION_USER = """\
+ANALYSIS BRIEF:
+{brief}
+
+---
+EXPERT RESPONSES:
+{responses_block}\
 """
 
 _CHAMPION_SYSTEM = """\
 {persona_prompt}
 
-You were selected as the strongest voice from your panel group ({group_label}).
-Now you're debating against champions from other expert groups.
-Stay in character. Be direct and opinionated.\
+You were selected as the strongest voice from your expert group ({group_label}).
+You are now in the final cross-group debate against champions from 3 other groups.
+You have read your group's full Round 1 discussion below. You know what your group argued.
+Now engage with the other groups directly — agree where you must, attack where you should.
+Stay in character. Be direct. Name names.\
 """
 
 _CHAMPION_USER = """\
 ORIGINAL ANALYSIS BRIEF:
 {brief}
 
-YOUR GROUP'S FULL PANEL DEBATE:
-{my_panel}
+YOUR GROUP'S FULL ROUND 1 DISCUSSION:
+{my_group_discussion}
 
-OTHER GROUPS' PANEL SUMMARIES:
+OTHER GROUPS' CHAMPION POSITIONS:
 {others_block}
 
 ---
-Now engage with the other groups' positions:
-**I disagree with [group/person] because:** (pick ONE specific position from another group)
-**[Group/person] got something right — here's what they missed:** (extend one point further)
-**What ALL groups collectively missed:** (the angle the entire debate missed)
-**My final recommendation:** (concrete, actionable, in your voice)\
+Engage directly with the other groups:
+
+**I disagree with [name/group] because:**
+(Quote or closely paraphrase their specific claim, then refute it with your reasoning)
+
+**[Name/group] got something right — here's what they missed:**
+(Extend one of their points further than they took it)
+
+**What ALL groups collectively missed:**
+(The blind spot the entire debate has — the angle nobody addressed)
+
+**My final recommendation:**
+(The single most important thing the practitioner should do first — in your voice, no hedging)\
 """
 
 _SYNTHESIS_SYSTEM = """\
-You are a neutral debate moderator synthesizing a multi-group tournament debate.
-Four expert groups debated independently, then their champions cross-debated.
-Your job is NOT to declare a winner — it is to extract signal from noise.
+You are a neutral debate moderator synthesizing a multi-group expert tournament.
+Four groups debated independently. Each group elected a champion.
+The champions then cross-debated each other.
+Your job is to extract signal from all of this. Do NOT declare a winner.
 
-Output EXACTLY this structure (no deviation):
+Output EXACTLY this structure (no deviation, no extra sections):
 
 ## Consensus Points
-(Things 3+ groups implicitly or explicitly agree on — even if phrased differently)
-- [point] — supported by [group names]
+(Things 3 or more groups implicitly or explicitly agreed on — even if phrased differently)
+- [point] — supported by: [group or champion names]
 
 ## Live Disagreements
-(Unresolved genuine conflicts between groups or champions)
-- [Group A champion] vs [Group B champion]: [what they disagree about and why both have merit]
+(Genuine unresolved conflicts worth caring about — both sides have a point)
+- [Champion A] vs [Champion B]: [what they disagree on and why both perspectives have merit]
 
 ## Action Items (ranked by confidence)
-1. [Highest agreement action] — endorsed by [N] groups
-2. ...
+1. [Highest-confidence action] — endorsed by N groups
+2. [Second action]
+3. [Third action]
 
 ## The Minority Report
-(Takes from the panel debates that nobody else agreed with but might be right)
-- [Expert name] from [Group]: [their contrarian position and why it shouldn't be dismissed]
+(Positions nobody agreed with that might still be correct)
+- [Expert name] from [Group]: [their contrarian position and why it should not be dismissed]
 
-## Bottom Line
-(2-3 sentences. What should the practitioner do FIRST, based on this debate?)\
+## Final Verdict
+(One clear, direct recommendation — the single most important thing the practitioner should do
+FIRST, based on the weight of this entire debate. No hedging. No "it depends". Just the call.)\
 """
 
 
-# ── Stage A: Panel Debates — one call per group, all parallel ────────
+# ── Stage A: Individual Persona Round ──────────────────────────────────
 
-async def _panel_debate_async(
-    group_key:    str,
-    group_label:  str,
-    member_names: list[str],
-    personas:     dict[str, str],   # handle → system prompt text
-    brief:        str,
+async def _persona_respond_async(
+    persona_name:     str,
+    persona_prompt:   str,
+    group_key:        str,
+    brief:            str,
     llm,
-    semaphore:    asyncio.Semaphore,
-    on_group_start: callable | None = None,
-    on_group_done:  callable | None = None,
-) -> dict:
+    semaphore:        asyncio.Semaphore,
+    on_persona_start: callable | None = None,
+    on_persona_done:  callable | None = None,
+) -> tuple[str, str]:
     """
-    Run one panel debate for a single group.
-    All members debate in a single LLM call — the LLM role-plays each.
-    Returns: { "output": str, "champion": str, "members": list[str] }
+    One persona responds to the brief independently.
+    Returns (persona_name, response_text).
+    Errors are caught — a failed call produces a fallback string, never aborts.
     """
-    from red_mode.grouping import elect_champion
+    display = persona_name.replace("_", " ").title()
 
-    # Notify frontend that this group is starting
+    if on_persona_start:
+        on_persona_start(persona_name, group_key)
+
+    system = _PERSONA_ROUND1_SYSTEM.format(
+        persona_prompt=persona_prompt,
+        display_name=display,
+    )
+    user = _PERSONA_ROUND1_USER.format(brief=brief)
+
+    try:
+        response = await _acall(system, user, llm, semaphore)
+    except Exception as exc:
+        response = f"[{display} could not respond: {exc}]"
+
+    if on_persona_done:
+        on_persona_done(persona_name, group_key, response)
+
+    return persona_name, response
+
+
+async def _group_round1_async(
+    group_key:        str,
+    member_names:     list[str],
+    personas:         dict[str, str],
+    brief:            str,
+    llm,
+    semaphore:        asyncio.Semaphore,
+    on_group_start:   callable | None = None,
+    on_persona_start: callable | None = None,
+    on_persona_done:  callable | None = None,
+) -> dict[str, str]:
+    """
+    Fire all personas in a single group in parallel.
+    Returns: { persona_name: response_text }
+    """
     if on_group_start:
         on_group_start(group_key, member_names)
 
-    # Build merged profiles block from persona .md content
-    profiles = []
+    tasks = [
+        _persona_respond_async(
+            persona_name     = name,
+            persona_prompt   = personas.get(name, ""),
+            group_key        = group_key,
+            brief            = brief,
+            llm              = llm,
+            semaphore        = semaphore,
+            on_persona_start = on_persona_start,
+            on_persona_done  = on_persona_done,
+        )
+        for name in member_names
+    ]
+
+    pairs = await asyncio.gather(*tasks, return_exceptions=False)
+    return dict(pairs)
+
+
+async def _all_round1_async(
+    groups:           dict[str, list[str]],
+    personas:         dict[str, str],
+    brief:            str,
+    llm,
+    semaphore:        asyncio.Semaphore,
+    on_group_start:   callable | None = None,
+    on_persona_start: callable | None = None,
+    on_persona_done:  callable | None = None,
+) -> dict[str, dict[str, str]]:
+    """
+    Fire ALL groups' Round 1 in parallel.
+    Returns: { group_key: { persona_name: response_text } }
+    """
+    async def run_group(gk: str, members: list[str]):
+        result = await _group_round1_async(
+            group_key        = gk,
+            member_names     = members,
+            personas         = personas,
+            brief            = brief,
+            llm              = llm,
+            semaphore        = semaphore,
+            on_group_start   = on_group_start,
+            on_persona_start = on_persona_start,
+            on_persona_done  = on_persona_done,
+        )
+        return gk, result
+
+    pairs = await asyncio.gather(
+        *[run_group(gk, members) for gk, members in groups.items()],
+        return_exceptions=False,
+    )
+    return dict(pairs)
+
+
+# ── Stage A-elect: Champion Election ───────────────────────────────────
+
+def _build_responses_block(
+    member_names:   list[str],
+    round1_outputs: dict[str, str],
+) -> str:
+    """Format all group member Round 1 responses for the election judge."""
+    blocks = []
     for name in member_names:
-        display = name.replace("_", " ").title()
-        prompt = personas.get(name, "")
-        # Take first ~1500 chars of the persona prompt for the panel
-        truncated = prompt[:1500] + ("…" if len(prompt) > 1500 else "")
-        profiles.append(f"### {display}\n{truncated}")
+        display  = name.replace("_", " ").title()
+        response = round1_outputs.get(name, "[no response]")
+        blocks.append(f"### {display} (handle: {name})\n{response}")
+    return "\n\n---\n\n".join(blocks)
 
-    profiles_block = "\n\n---\n\n".join(profiles)
-    system = _PANEL_SYSTEM.format(n=len(member_names), profiles_block=profiles_block)
-    user   = _PANEL_USER.format(brief=brief)
 
-    output = await _acall(system, user, llm, semaphore)
+async def _elect_champion_async(
+    group_key:           str,
+    member_names:        list[str],
+    round1_outputs:      dict[str, str],
+    brief:               str,
+    llm,
+    semaphore:           asyncio.Semaphore,
+    on_champion_elected: callable | None = None,
+    on_group_done:       callable | None = None,
+) -> dict:
+    """
+    One LLM call reads all Round 1 responses for a group and elects the champion.
+    Falls back to mention-frequency if the LLM call fails.
+    Returns: { "champion": str, "election_output": str, "round1": dict, "members": list }
+    """
+    from red_mode.grouping import elect_champion_from_election
 
-    # Elect champion from the output
-    champion = elect_champion(output, member_names)
+    responses_block = _build_responses_block(member_names, round1_outputs)
+    system = _ELECTION_SYSTEM.format(n=len(member_names))
+    user   = _ELECTION_USER.format(brief=brief, responses_block=responses_block)
+
+    try:
+        election_output = await _acall(system, user, llm, semaphore)
+    except Exception as exc:
+        election_output = f"[Election call failed: {exc}]"
+
+    champion = elect_champion_from_election(election_output, member_names)
+
+    if on_champion_elected:
+        on_champion_elected(group_key, champion)
 
     if on_group_done:
-        on_group_done(group_key, champion, output)
+        on_group_done(group_key, champion, election_output)
 
     return {
-        "output":   output,
-        "champion": champion,
-        "members":  member_names,
+        "champion":        champion,
+        "election_output": election_output,
+        "round1":          round1_outputs,
+        "members":         member_names,
     }
 
 
-async def _all_panels_async(
-    groups:    dict[str, list[str]],
-    personas:  dict[str, str],
-    brief:     str,
+async def _all_elections_async(
+    groups:              dict[str, list[str]],
+    all_round1:          dict[str, dict[str, str]],
+    brief:               str,
     llm,
-    semaphore: asyncio.Semaphore,
-    on_group_start: callable | None = None,
-    on_group_done:  callable | None = None,
+    semaphore:           asyncio.Semaphore,
+    on_champion_elected: callable | None = None,
+    on_group_done:       callable | None = None,
 ) -> dict[str, dict]:
     """
-    Run all group panels in parallel.
-    Returns: { group_key: { "output", "champion", "members" } }
+    Run champion elections for all groups in parallel.
+    Returns: { group_key: { "champion", "election_output", "round1", "members" } }
     """
-    from red_mode.grouping import group_label as get_label
-
     async def run_one(gk: str, members: list[str]):
-        result = await _panel_debate_async(
-            group_key    = gk,
-            group_label  = get_label(gk),
-            member_names = members,
-            personas     = personas,
-            brief        = brief,
-            llm          = llm,
-            semaphore    = semaphore,
-            on_group_start = on_group_start,
-            on_group_done  = on_group_done,
+        result = await _elect_champion_async(
+            group_key           = gk,
+            member_names        = members,
+            round1_outputs      = all_round1.get(gk, {}),
+            brief               = brief,
+            llm                 = llm,
+            semaphore           = semaphore,
+            on_champion_elected = on_champion_elected,
+            on_group_done       = on_group_done,
         )
         return gk, result
 
@@ -257,59 +414,79 @@ async def _all_panels_async(
     return dict(pairs)
 
 
-# ── Stage B: Champion Cross-Debate — one call per champion ───────────
+# ── Stage B: Champion Cross-Debate ─────────────────────────────────────
 
-def _build_others_panels(
-    my_group: str,
+def _build_my_group_discussion(
+    member_names:   list[str],
+    round1_outputs: dict[str, str],
+) -> str:
+    """Full Round 1 discussion from the champion's own group — no truncation."""
+    blocks = []
+    for name in member_names:
+        display  = name.replace("_", " ").title()
+        response = round1_outputs.get(name, "[no response]")
+        blocks.append(f"### {display}\n{response}")
+    return "\n\n---\n\n".join(blocks)
+
+
+def _build_others_champions(
+    my_group:      str,
     panel_results: dict[str, dict],
 ) -> str:
-    """Build truncated summaries of other groups' panel outputs."""
+    """
+    Other groups' champion Round 1 responses.
+    Each is truncated to OTHERS_TRUNC chars to keep the context manageable
+    while still giving each champion meaningful content to push back on.
+    """
     from red_mode.grouping import group_label as get_label
 
     blocks = []
     for gk, result in panel_results.items():
         if gk == my_group:
             continue
-        label = get_label(gk)
-        champion = result["champion"].replace("_", " ").title()
-        output = result["output"][:PANEL_TRUNC]
-        if len(result["output"]) > PANEL_TRUNC:
-            output += "…"
-        blocks.append(f"### {label} (Champion: {champion})\n{output}")
+        label    = get_label(gk)
+        champion = result["champion"]
+        display  = champion.replace("_", " ").title()
+        response = result["round1"].get(champion, "[no response]")
+        if len(response) > OTHERS_TRUNC:
+            response = response[:OTHERS_TRUNC] + "…"
+        blocks.append(f"### {label} — Champion: {display}\n{response}")
 
     return "\n\n---\n\n".join(blocks)
 
 
 async def _champion_debate_async(
-    panel_results: dict[str, dict],
-    personas:      dict[str, str],
-    brief:         str,
+    panel_results:  dict[str, dict],
+    personas:       dict[str, str],
+    brief:          str,
     llm,
-    semaphore:     asyncio.Semaphore,
+    semaphore:      asyncio.Semaphore,
     on_champ_start: callable | None = None,
     on_champ_done:  callable | None = None,
 ) -> dict[str, str]:
     """
-    Each champion responds to all other groups' positions.
+    Each champion engages with other groups' champion positions.
     Returns: { champion_handle: response_text }
     """
     from red_mode.grouping import group_label as get_label
 
     async def call_one(gk: str, result: dict) -> tuple[str, str]:
-        champion = result["champion"]
+        champion       = result["champion"]
         persona_prompt = personas.get(champion, "")
+        member_names   = result["members"]
+        round1_outputs = result["round1"]
 
         if on_champ_start:
             on_champ_start(champion, gk)
 
         system = _CHAMPION_SYSTEM.format(
-            persona_prompt = persona_prompt,
-            group_label    = get_label(gk),
+            persona_prompt=persona_prompt,
+            group_label=get_label(gk),
         )
         user = _CHAMPION_USER.format(
-            brief        = brief,
-            my_panel     = result["output"][:PANEL_TRUNC * 2],
-            others_block = _build_others_panels(gk, panel_results),
+            brief               = brief,
+            my_group_discussion = _build_my_group_discussion(member_names, round1_outputs),
+            others_block        = _build_others_champions(gk, panel_results),
         )
 
         response = await _acall(system, user, llm, semaphore)
@@ -326,7 +503,7 @@ async def _champion_debate_async(
     return dict(pairs)
 
 
-# ── Stage C: Final Synthesis — single call ───────────────────────────
+# ── Stage C: Final Synthesis + Verdict ─────────────────────────────────
 
 async def _synthesis_async(
     panel_results:   dict[str, dict],
@@ -334,7 +511,7 @@ async def _synthesis_async(
     llm,
     semaphore:       asyncio.Semaphore,
 ) -> str:
-    """Single synthesis call over all panel + champion outputs."""
+    """Single synthesis call over all champion Round 1 positions + cross-debate responses."""
     from red_mode.grouping import group_label as get_label
 
     debate_block = ""
@@ -342,13 +519,14 @@ async def _synthesis_async(
         label    = get_label(gk)
         champion = result["champion"]
         display  = champion.replace("_", " ").title()
-        panel    = result["output"][:CHAMP_TRUNC]
-        champ_r  = champion_debate.get(champion, "")[:CHAMP_TRUNC]
+
+        champ_r1    = result["round1"].get(champion, "")[:OTHERS_TRUNC]
+        champ_cross = champion_debate.get(champion, "")[:OTHERS_TRUNC]
 
         debate_block += (
-            f"\n## {label}\n"
-            f"**Panel debate (5 experts):** {panel}…\n"
-            f"**Champion ({display}) cross-debate:** {champ_r}…\n"
+            f"\n## {label} — Champion: {display}\n"
+            f"**Round 1 position:** {champ_r1}…\n"
+            f"**Cross-debate response:** {champ_cross}…\n"
             f"---\n"
         )
 
@@ -360,44 +538,64 @@ async def _synthesis_async(
     )
 
 
-# ── Main entry point ─────────────────────────────────────────────────
+# ── Main entry point ────────────────────────────────────────────────────
 
 async def run_tournament_async(
-    groups:          dict[str, list[str]],
-    personas:        dict[str, str],
-    brief:           str,
+    groups:              dict[str, list[str]],
+    personas:            dict[str, str],
+    brief:               str,
     llm,
     fast_llm,
-    on_stage_start:  callable | None = None,  # on_stage_start("groups" | "champions" | "synthesis")
-    on_group_start:  callable | None = None,  # on_group_start(group_key, member_names)
-    on_group_done:   callable | None = None,  # on_group_done(group_key, champion, output)
-    on_champ_start:  callable | None = None,  # on_champ_start(champion_handle, group_key)
-    on_champ_done:   callable | None = None,  # on_champ_done(champion_handle, group_key, response)
-    on_synth_start:  callable | None = None,  # on_synth_start()
+    on_stage_start:      callable | None = None,
+    on_group_start:      callable | None = None,
+    on_persona_start:    callable | None = None,
+    on_persona_done:     callable | None = None,
+    on_champion_elected: callable | None = None,
+    on_group_done:       callable | None = None,
+    on_champ_start:      callable | None = None,
+    on_champ_done:       callable | None = None,
+    on_synth_start:      callable | None = None,
 ) -> dict:
     """
-    Run the full tournament debate:
-      Stage A: Group panels (parallel, 1 call each)  — full LLM
-      Stage B: Champion cross-debate (parallel, 1 call each) — full LLM
-      Stage C: Synthesis (1 call) — full LLM
+    Run the full tournament debate.
+
+    Stage A:       Individual persona round — fast_llm (all parallel)
+    Stage A-elect: Champion election per group — fast_llm (parallel)
+    Stage B:       Champion cross-debate — full llm (parallel)
+    Stage C:       Synthesis + Final Verdict — full llm (1 call)
     """
     semaphore = asyncio.Semaphore(MAX_CONCURRENT)
 
-    # ── Stage A: Group Panels ─────────────────────────────────────────
+    # ── Stage A: Individual persona round ──────────────────────────────
     if on_stage_start:
         on_stage_start("groups")
 
-    panel_results = await _all_panels_async(
-        groups         = groups,
-        personas       = personas,
-        brief          = brief,
-        llm            = llm,
-        semaphore      = semaphore,
-        on_group_start = on_group_start,
-        on_group_done  = on_group_done,
+    all_round1 = await _all_round1_async(
+        groups           = groups,
+        personas         = personas,
+        brief            = brief,
+        llm              = llm,
+        semaphore        = semaphore,
+        on_group_start   = on_group_start,
+        on_persona_start = on_persona_start,
+        on_persona_done  = on_persona_done,
     )
 
-    # ── Stage B: Champion Cross-Debate ────────────────────────────────
+    # ── Stage A-elect: Champion election ───────────────────────────────
+    if on_stage_start:
+        on_stage_start("election")
+
+    panel_results = await _all_elections_async(
+        groups              = groups,
+        all_round1          = all_round1,
+        brief               = brief,
+        llm                 = fast_llm,
+        semaphore           = semaphore,
+        on_champion_elected = on_champion_elected,
+        on_group_done       = on_group_done,
+    )
+
+    # ── Stage B: Champion cross-debate ─────────────────────────────────
     if on_stage_start:
         on_stage_start("champions")
 
@@ -411,7 +609,7 @@ async def run_tournament_async(
         on_champ_done  = on_champ_done,
     )
 
-    # ── Stage C: Synthesis ────────────────────────────────────────────
+    # ── Stage C: Synthesis ─────────────────────────────────────────────
     if on_synth_start:
         on_synth_start()
 

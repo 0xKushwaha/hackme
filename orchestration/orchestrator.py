@@ -40,6 +40,7 @@ class Orchestrator:
         memory_system:    MemorySystem  = None,
         registry:         AgentRegistry = None,
         task_description: str           = "",
+        cancel_event                    = None,   # threading.Event — set to cancel run
     ):
         self.agents           = agents
         self.llm              = llm
@@ -51,6 +52,7 @@ class Orchestrator:
         self._last_node_id    = None
         self._data_metrics    = {}
         self._ctx_lock        = threading.Lock()   # guards context writes during parallel steps
+        self._cancel_event    = cancel_event       # FIX #7: cancellation support
 
         # Stores full agent outputs — never touched by compactor.
         # Keyed by agent_name; value is the LAST successful output string.
@@ -80,6 +82,10 @@ class Orchestrator:
     ) -> str:
         if agent_name not in self.agents:
             raise ValueError(f"Unknown agent '{agent_name}'. Available: {list(self.agents.keys())}")
+
+        # FIX #7: check for cancellation before each agent step
+        if self._cancel_event and self._cancel_event.is_set():
+            raise RuntimeError(f"Run cancelled by user (before {agent_name})")
 
         allowed, reason = self.registry.can_spawn()
         if not allowed:

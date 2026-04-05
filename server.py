@@ -8,6 +8,8 @@ Endpoints:
   POST /api/run                — start pipeline, returns { runId }
   GET  /api/poll/{run_id}?cursor=N — poll for new log lines + state
   GET  /api/result/{run_id}    — get final result / report
+  DELETE /api/run/{run_id}     — cancel a running pipeline
+  DELETE /api/red-mode/{run_id} — cancel a running Red Mode debate
 
 Run:
   python server.py
@@ -23,6 +25,7 @@ import sys
 import threading
 import traceback
 import uuid
+from collections import OrderedDict
 from pathlib import Path
 from typing import Optional
 
@@ -124,7 +127,6 @@ _AGENT_START_RE = _re.compile(r'\[AGENT:([a-z_]+)\]')
 _AGENT_DONE_RE  = _re.compile(r'\[AGENT_DONE:([a-z_]+)\]')
 
 def _parse_log_line(line: str) -> dict:
-    # Primary: explicit markers emitted by orchestrator
     m = _AGENT_START_RE.search(line)
     if m:
         return {"agent": m.group(1), "agent_done": None}
@@ -133,7 +135,6 @@ def _parse_log_line(line: str) -> dict:
     if m:
         return {"agent": None, "agent_done": m.group(1)}
 
-    # Fallback: heuristic name detection for lines that don't carry markers
     low = line.lower()
     agent = ""
     for key, name in _AGENT_KEYS.items():
@@ -145,18 +146,66 @@ def _parse_log_line(line: str) -> dict:
 
 
 # ─────────────────────────────────────────────────────────────────────
-# In-memory run store  (log lines list, not queue — supports random access)
+# FIX #1: Thread-local log routing
+#
+# Previously each worker thread redirected the global sys.stdout to a
+# _Tee, causing nested tees when two runs overlapped — both runs' logs
+# mixed together. Now a single _RoutingTee is installed once at startup.
+# Worker threads bind their RunState via _thread_local, so print() from
+# each thread goes to the right log. No nesting, no cross-contamination.
+# ─────────────────────────────────────────────────────────────────────
+_thread_local = threading.local()
+
+
+class _RoutingTee:
+    """
+    Permanent sys.stdout replacement installed once at startup.
+    Routes print() to the current thread's RunState via _thread_local.
+    Threads with no bound state pass output straight to original stdout.
+    """
+    def __init__(self, orig):
+        self._orig = orig
+
+    def write(self, text: str):
+        state = getattr(_thread_local, "run_state", None)
+        if state and text:
+            state.add_text(text)
+        try:
+            self._orig.write(text)
+            self._orig.flush()
+        except Exception:
+            pass
+
+    def flush(self):
+        try:
+            self._orig.flush()
+        except Exception:
+            pass
+
+    def fileno(self): return self._orig.fileno()
+    def isatty(self): return False
+
+
+# Install once — all threads share this, routed by thread-local state
+sys.stdout = _RoutingTee(sys.__stdout__)
+
+
+# ─────────────────────────────────────────────────────────────────────
+# In-memory run store
 # ─────────────────────────────────────────────────────────────────────
 class RunState:
     def __init__(self):
-        self.lines:        list[str] = []
-        self.agent:        str       = ""
-        self.ever_active:  list[str] = []
-        self.done_agents:  list[str] = []
-        self.result:       Optional[dict] = None
-        self.error:        Optional[str]  = None
-        self.done:         bool           = False
-        self._lock = threading.Lock()
+        self.lines:        list[str]       = []
+        self.agent:        str             = ""
+        self.ever_active:  list[str]       = []
+        self.done_agents:  list[str]       = []
+        self.result:       Optional[dict]  = None
+        self.error:        Optional[str]   = None
+        self.done:         bool            = False
+        # FIX #7: cancellation support
+        self.cancel_event  = threading.Event()
+        self.cancelled:    bool            = False
+        self._lock         = threading.Lock()
 
     def add_text(self, text: str):
         new_lines = [l for l in text.splitlines() if l.strip()]
@@ -184,13 +233,12 @@ class RunState:
                 "doneAgents":  list(self.done_agents),
                 "done":        self.done,
                 "error":       self.error,
+                "cancelled":   self.cancelled,
             }
-
-runs: dict[str, RunState] = {}
 
 
 # ─────────────────────────────────────────────────────────────────────
-# Red Mode run state  (extends RunState with tournament stage tracking)
+# Red Mode run state
 # ─────────────────────────────────────────────────────────────────────
 _RED_STAGE_RE      = _re.compile(r'\[RED_STAGE:([a-z_]+)\]')
 _RED_GROUP_RE      = _re.compile(r'\[RED_GROUP:([a-z_]+)\]')
@@ -203,13 +251,15 @@ _PERSONA_DONE_RE   = _re.compile(r'\[PERSONA_DONE:([a-z_]+)\]')
 class RedRunState(RunState):
     def __init__(self):
         super().__init__()
-        self.phase:           str               = "phase1"     # "phase1" | "groups" | "champions" | "synthesis"
-        self.phase1_agents:   list[str]         = []           # Phase 1 agents completed
-        self.stage:           str               = ""           # current tournament stage
-        self.active_group:    str               = ""           # currently running group key
-        self.done_groups:     list[str]         = []           # completed group panels
-        self.group_champions: dict[str, str]    = {}           # group_key → champion handle
-        self.synthesis_done:  bool              = False
+        # "phase1" | "groups" | "election" | "champions" | "synthesis"
+        self.phase:           str            = "phase1"
+        self.phase1_agents:   list[str]      = []
+        self.stage:           str            = ""
+        self.active_group:    str            = ""
+        self.done_groups:     list[str]      = []
+        self.group_champions: dict[str, str] = {}
+        self.active_personas: list[str]      = []
+        self.synthesis_done:  bool           = False
 
     def add_text(self, text: str):
         new_lines = [l for l in text.splitlines() if l.strip()]
@@ -217,12 +267,10 @@ class RedRunState(RunState):
             self.lines.extend(new_lines)
             for line in new_lines:
 
-                # Phase 1 → debate transition
                 if "[RED_PHASE1_DONE]" in line:
                     self.phase = "groups"
 
                 if self.phase == "phase1":
-                    # Track Phase 1 agent progress
                     m = _AGENT_START_RE.search(line)
                     if m:
                         self.agent = m.group(1)
@@ -233,11 +281,11 @@ class RedRunState(RunState):
                             self.phase1_agents.append(name)
 
                 else:
-                    # Tournament debate stages
                     m = _RED_STAGE_RE.search(line)
                     if m:
                         self.stage = m.group(1)
-                        self.phase = m.group(1)  # "groups" | "champions" | "synthesis"
+                        self.phase = m.group(1)
+                        self.active_personas = []  # clear on stage transition
 
                     m = _RED_GROUP_RE.search(line)
                     if m:
@@ -261,6 +309,8 @@ class RedRunState(RunState):
                         self.agent = name
                         if name not in self.ever_active:
                             self.ever_active.append(name)
+                        if name not in self.active_personas:
+                            self.active_personas.append(name)
 
                     m = _PERSONA_DONE_RE.search(line)
                     if m:
@@ -279,125 +329,63 @@ class RedRunState(RunState):
         snap["activeGroup"]     = self.active_group
         snap["doneGroups"]      = list(self.done_groups)
         snap["groupChampions"]  = dict(self.group_champions)
+        snap["activePersonas"]  = list(self.active_personas)
         snap["synthesisDone"]   = self.synthesis_done
+        snap["donePersonas"]    = list(self.done_agents)
         return snap
 
 
-red_runs: dict[str, RedRunState] = {}
+# ─────────────────────────────────────────────────────────────────────
+# FIX #3: Bounded run stores — evict oldest completed runs at MAX_RUNS
+# ─────────────────────────────────────────────────────────────────────
+MAX_RUNS = 50
+
+
+class _RunStore:
+    """
+    Thread-safe bounded dict for RunState objects.
+    When over MAX_RUNS, evicts oldest completed (done=True) entries first,
+    then oldest entries regardless of status. Results are on disk so
+    evicting from memory loses nothing.
+    """
+    def __init__(self, maxsize: int = MAX_RUNS):
+        self._store: OrderedDict[str, RunState] = OrderedDict()
+        self._lock  = threading.Lock()
+        self._max   = maxsize
+
+    def __setitem__(self, key: str, value: RunState):
+        with self._lock:
+            self._store[key] = value
+            if len(self._store) > self._max:
+                self._evict()
+
+    def __getitem__(self, key: str) -> RunState:
+        with self._lock:
+            return self._store[key]
+
+    def get(self, key: str, default=None):
+        with self._lock:
+            return self._store.get(key, default)
+
+    def _evict(self):
+        # Prefer evicting done entries
+        done_keys = [k for k, v in self._store.items() if v.done]
+        for k in done_keys:
+            if len(self._store) <= self._max:
+                break
+            del self._store[k]
+        # If still over limit, evict oldest regardless
+        while len(self._store) > self._max:
+            self._store.popitem(last=False)
+
+
+runs:     _RunStore = _RunStore()
+red_runs: _RunStore = _RunStore()
 
 
 # ─────────────────────────────────────────────────────────────────────
-# Stdout tee  (writes to RunState directly)
+# Result persistence
 # ─────────────────────────────────────────────────────────────────────
-class _Tee:
-    def __init__(self, state: RunState, orig):
-        self.state = state
-        self.orig  = orig
-
-    def write(self, text: str):
-        if text:
-            self.state.add_text(text)
-        try:
-            self.orig.write(text)
-            self.orig.flush()
-        except Exception:
-            pass
-
-    def flush(self):
-        try: self.orig.flush()
-        except Exception: pass
-
-    def fileno(self): return self.orig.fileno()
-    def isatty(self): return False
-
-
-# ─────────────────────────────────────────────────────────────────────
-# Pipeline runner
-# ─────────────────────────────────────────────────────────────────────
-def _run_pipeline(cfg: dict) -> dict:
-    from backends.llm_backends    import get_llm, get_fast_llm
-    from agents import (ExplorerAgent, SkepticAgent, StatisticianAgent, EthicistAgent,
-                        PragmatistAgent, DevilAdvocateAgent, ArchitectAgent, OptimizerAgent)
-    from agents.agent_config        import AGENT_CONFIGS
-    from agents.base                import BaseAgent
-    from memory.agent_memory        import MemorySystem
-    from orchestration.orchestrator import Orchestrator
-    from orchestration.registry     import AgentRegistry
-    from phases.discovery           import DatasetDiscovery
-    from prompts.planner_prompts    import FEATURE_ENGINEER_PROMPT
-
-    exp_dir = cfg.get("experiment_dir", "experiments")
-    os.makedirs(exp_dir, exist_ok=True)
-
-    if cfg["provider"] == "claude" and cfg.get("api_key"):
-        os.environ["ANTHROPIC_API_KEY"] = cfg["api_key"]
-    if cfg["provider"] == "openai" and cfg.get("api_key"):
-        os.environ["OPENAI_API_KEY"] = cfg["api_key"]
-
-    print(f"\n📂 Scanning dataset: {cfg['dataset_path']}")
-    disc    = DatasetDiscovery()
-    profile = disc.scan(cfg["dataset_path"])
-    print(f"   Files : {len(profile.files)}  |  Types : {', '.join(profile.types_present)}")
-    ds_sum  = disc.format_profile(profile)
-
-    llm_kw = {}
-    if cfg.get("server_url"): llm_kw["base_url"] = cfg["server_url"]
-    explicit_model = cfg.get("model")
-    llm      = get_llm(cfg["provider"], model=explicit_model, **llm_kw)
-    # Fast tier: cheaper/faster model for critique agents — skip if user picked a specific model
-    fast_llm = get_fast_llm(cfg["provider"], **llm_kw) if not explicit_model else llm
-    f = fast_llm
-
-    agents = {
-        "explorer":         ExplorerAgent(llm,      config=AGENT_CONFIGS["explorer"]),
-        "skeptic":          SkepticAgent(f,          config=AGENT_CONFIGS["skeptic"]),
-        "statistician":     StatisticianAgent(llm,   config=AGENT_CONFIGS["statistician"]),
-        "feature_engineer": BaseAgent("Feature Engineer", FEATURE_ENGINEER_PROMPT, llm, config=AGENT_CONFIGS["feature_engineer"]),
-        "ethicist":         EthicistAgent(f,         config=AGENT_CONFIGS["ethicist"]),
-        "pragmatist":       PragmatistAgent(f,       config=AGENT_CONFIGS["pragmatist"]),
-        "devil_advocate":   DevilAdvocateAgent(f,    config=AGENT_CONFIGS["devil_advocate"]),
-        "optimizer":        OptimizerAgent(llm,      config=AGENT_CONFIGS["optimizer"]),
-        "architect":        ArchitectAgent(llm,      config=AGENT_CONFIGS["architect"]),
-    }
-
-    mem = (MemorySystem(agent_names=list(agents.keys()),
-                        persist_dir=os.path.join(exp_dir, "chroma_db"),
-                        graph_db=os.path.join(exp_dir, "graph.db"))
-           if cfg.get("enable_memory", True) else None)
-
-    mode     = cfg.get("mode", "phases")
-    registry = AgentRegistry(max_concurrent=cfg.get("max_agents", 5),
-                              persist_path=os.path.join(exp_dir, "registry.json"))
-
-    orch = Orchestrator(agents=agents, llm=llm, memory_system=mem,
-                        registry=registry,
-                        task_description=cfg.get("task_description", ""))
-
-    absp = os.path.abspath(cfg["dataset_path"])
-    tgt  = cfg.get("target_col") or None
-    ret  = int(cfg.get("max_retries", 4))
-
-    if   mode == "manual": orch.run_manual(ds_sum)
-    elif mode == "auto":   orch.run_auto(ds_sum)
-    elif mode == "phases": orch.run_phases(dataset_summary=ds_sum, dataset_path=absp, target_col=tgt, experiment_dir=exp_dir, dataset_profile=profile)
-
-    lp = os.path.join(exp_dir, f"context_{orch.run_id}.json")
-    orch.context.save(lp)
-
-    entries = [
-        {"role": e.role, "agent": e.agent, "content": e.content,
-         "metadata": e.metadata if isinstance(e.metadata, dict) else {}}
-        for e in orch.context.entries
-    ]
-    return {
-        "run_id": orch.run_id,
-        "log_path": lp,
-        "exp_dir": exp_dir,
-        "entries": entries,
-        "agent_results": orch.agent_results,
-    }
-
-
 RESULTS_DIR = Path("experiments") / "results"
 
 def _persist_result(run_id: str, result: dict):
@@ -419,18 +407,124 @@ def _load_result(run_id: str) -> Optional[dict]:
     return None
 
 
+# ─────────────────────────────────────────────────────────────────────
+# Pipeline runner
+# FIX #2: API keys are passed directly to get_llm() — never written to
+# os.environ — eliminating the race condition where concurrent runs with
+# different keys would overwrite each other's environment variable.
+# FIX #6: llm/fast_llm are returned so Red Mode can reuse them instead
+# of constructing a second set of LLM instances.
+# ─────────────────────────────────────────────────────────────────────
+def _run_pipeline(cfg: dict) -> dict:
+    from backends.llm_backends    import get_llm, get_fast_llm
+    from agents import (ExplorerAgent, SkepticAgent, StatisticianAgent, EthicistAgent,
+                        PragmatistAgent, DevilAdvocateAgent, ArchitectAgent, OptimizerAgent)
+    from agents.agent_config        import AGENT_CONFIGS
+    from agents.base                import BaseAgent
+    from memory.agent_memory        import MemorySystem
+    from orchestration.orchestrator import Orchestrator
+    from orchestration.registry     import AgentRegistry
+    from phases.discovery           import DatasetDiscovery
+    from prompts.planner_prompts    import FEATURE_ENGINEER_PROMPT
+
+    exp_dir = cfg.get("experiment_dir", "experiments")
+    os.makedirs(exp_dir, exist_ok=True)
+
+    # FIX #2: pass api_key directly — do NOT write to os.environ
+    api_key        = cfg.get("api_key") or None
+    explicit_model = cfg.get("model") or None
+    llm_kw         = {}
+    if cfg.get("server_url"):
+        llm_kw["base_url"] = cfg["server_url"]
+
+    print(f"\n📂 Scanning dataset: {cfg['dataset_path']}")
+    disc    = DatasetDiscovery()
+    profile = disc.scan(cfg["dataset_path"])
+    print(f"   Files : {len(profile.files)}  |  Types : {', '.join(profile.types_present)}")
+    ds_sum  = disc.format_profile(profile)
+
+    llm      = get_llm(cfg["provider"], model=explicit_model, api_key=api_key, **llm_kw)
+    fast_llm = get_fast_llm(cfg["provider"], api_key=api_key, **llm_kw) if not explicit_model else llm
+    f = fast_llm
+
+    agents = {
+        "explorer":         ExplorerAgent(llm,  config=AGENT_CONFIGS["explorer"]),
+        "skeptic":          SkepticAgent(f,      config=AGENT_CONFIGS["skeptic"]),
+        "statistician":     StatisticianAgent(llm, config=AGENT_CONFIGS["statistician"]),
+        "feature_engineer": BaseAgent("Feature Engineer", FEATURE_ENGINEER_PROMPT, llm, config=AGENT_CONFIGS["feature_engineer"]),
+        "ethicist":         EthicistAgent(f,     config=AGENT_CONFIGS["ethicist"]),
+        "pragmatist":       PragmatistAgent(f,   config=AGENT_CONFIGS["pragmatist"]),
+        "devil_advocate":   DevilAdvocateAgent(f, config=AGENT_CONFIGS["devil_advocate"]),
+        "optimizer":        OptimizerAgent(llm,  config=AGENT_CONFIGS["optimizer"]),
+        "architect":        ArchitectAgent(llm,  config=AGENT_CONFIGS["architect"]),
+    }
+
+    mem = (MemorySystem(agent_names=list(agents.keys()),
+                        persist_dir=os.path.join(exp_dir, "chroma_db"),
+                        graph_db=os.path.join(exp_dir, "graph.db"))
+           if cfg.get("enable_memory", True) else None)
+
+    mode     = cfg.get("mode", "phases")
+    registry = AgentRegistry(max_concurrent=cfg.get("max_agents", 5),
+                              persist_path=os.path.join(exp_dir, "registry.json"))
+
+    # FIX #7: wire the cancel_event into the orchestrator
+    orch = Orchestrator(agents=agents, llm=llm, memory_system=mem,
+                        registry=registry,
+                        task_description=cfg.get("task_description", ""),
+                        cancel_event=cfg.get("_cancel_event"))
+
+    absp = os.path.abspath(cfg["dataset_path"])
+    tgt  = cfg.get("target_col") or None
+
+    if   mode == "manual": orch.run_manual(ds_sum)
+    elif mode == "auto":   orch.run_auto(ds_sum)
+    elif mode == "phases": orch.run_phases(dataset_summary=ds_sum, dataset_path=absp,
+                                           target_col=tgt, experiment_dir=exp_dir,
+                                           dataset_profile=profile)
+
+    lp = os.path.join(exp_dir, f"context_{orch.run_id}.json")
+    orch.context.save(lp)
+
+    entries = [
+        {"role": e.role, "agent": e.agent, "content": e.content,
+         "metadata": e.metadata if isinstance(e.metadata, dict) else {}}
+        for e in orch.context.entries
+    ]
+    return {
+        "run_id":       orch.run_id,
+        "log_path":     lp,
+        "exp_dir":      exp_dir,
+        "entries":      entries,
+        "agent_results": orch.agent_results,
+        # FIX #6: return LLM instances so Red Mode can reuse them
+        "_llm":         llm,
+        "_fast_llm":    fast_llm,
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────
+# FIX #1: Thread runners use thread-local binding instead of redirecting
+# sys.stdout — no more global state mutation, no nested tees.
+# ─────────────────────────────────────────────────────────────────────
 def _thread_runner(run_id: str, cfg: dict):
     state = runs[run_id]
-    old   = sys.stdout
-    sys.stdout = _Tee(state, old)
+    cfg["_cancel_event"] = state.cancel_event   # FIX #7
+    _thread_local.run_state = state             # FIX #1: bind this thread
     try:
         state.result = _run_pipeline(cfg)
+        # Strip internal LLM objects before persisting
+        state.result.pop("_llm", None)
+        state.result.pop("_fast_llm", None)
         _persist_result(run_id, state.result)
-    except Exception:
-        state.error = traceback.format_exc()
-        state.add_text(f"\n❌ ERROR:\n{state.error}")
+    except Exception as exc:
+        if state.cancelled:
+            state.error = "Cancelled by user"
+        else:
+            state.error = traceback.format_exc()
+            state.add_text(f"\n❌ ERROR:\n{state.error}")
     finally:
-        sys.stdout = old
+        _thread_local.run_state = None          # FIX #1: unbind
         state.done = True
 
 
@@ -467,12 +561,8 @@ def save_creds(body: CredsPayload):
 def resolve_path(name: str, dir: bool = False):
     """
     Browser file pickers don't expose the absolute path.
-    This endpoint searches for the file/folder by name in common locations
-    and returns the first match so the pipeline can use it directly.
-    Search order: cwd, home, Desktop, Downloads.
+    Searches common locations and returns the first match.
     """
-    import fnmatch
-    # For folder picks, name is like "myfolder/file.csv" — we want the root folder
     root_name = Path(name).parts[0] if Path(name).parts else name
 
     search_roots = [
@@ -489,7 +579,6 @@ def resolve_path(name: str, dir: bool = False):
         if candidate.exists():
             return {"path": str(candidate), "name": candidate.name}
 
-    # Broader search one level deep under home
     for child in Path.home().iterdir():
         if child.is_dir():
             candidate = child / target
@@ -506,7 +595,6 @@ async def browse(dir: bool = False):
     loop   = asyncio.get_event_loop()
     result = await loop.run_in_executor(None, lambda: _pick_path_sync(dir))
     return {"path": result, "canBrowse": True}
-
 
 
 class RunPayload(BaseModel):
@@ -539,10 +627,7 @@ def start_run(body: RunPayload):
 
 @app.get("/api/poll/{run_id}")
 def poll(run_id: str, cursor: int = 0):
-    """
-    Returns new log lines since `cursor`, current phase/agent, and done status.
-    Frontend calls this every 1–2 seconds.
-    """
+    """Returns new log lines since cursor, current agent, and done status."""
     state = runs.get(run_id)
     if not state:
         return {"error": "Unknown run ID", "done": True}
@@ -558,36 +643,39 @@ def get_result(run_id: str):
         if state.error:
             return {"error": state.error}
         return state.result
-    # Not in memory — try disk (server may have restarted)
     saved = _load_result(run_id)
     if saved:
         return saved
     return {"error": "Unknown run ID"}
 
 
+# FIX #7: Cancel endpoint for normal runs
+@app.delete("/api/run/{run_id}")
+def cancel_run(run_id: str):
+    state = runs.get(run_id)
+    if not state:
+        return {"error": "Unknown run ID"}
+    if state.done:
+        return {"error": "Run already finished"}
+    state.cancelled = True
+    state.cancel_event.set()
+    return {"ok": True, "runId": run_id}
+
+
 # ─────────────────────────────────────────────────────────────────────
-# Red Mode — Persona Debate Engine (Phase 2)
+# Red Mode — Persona Debate Engine
 # ─────────────────────────────────────────────────────────────────────
 
 def _run_red_mode(cfg: dict) -> dict:
     """
-    Red Mode pipeline — two stages:
-      Stage 1: Run all Phase 1 agents (Explorer, Skeptic, Statistician, etc.)
-               to gather a full analysis of the dataset.
-      Stage 2: Feed that analysis as a brief to 20 expert personas who debate
-               it across 3 rounds and synthesise a verdict.
+    Red Mode pipeline:
+      Stage 1: All Phase 1+2 agents analyse the dataset.
+      Stage 2: Expert personas debate the analysis and synthesise a verdict.
     """
-    from backends.llm_backends  import get_llm, get_fast_llm
     from red_mode.orchestrator  import RedModeOrchestrator
     from red_mode.brief_builder import build_brief_from_result
 
-    # ── API keys ──────────────────────────────────────────────────────
-    if cfg["provider"] == "claude" and cfg.get("api_key"):
-        os.environ["ANTHROPIC_API_KEY"] = cfg["api_key"]
-    if cfg["provider"] == "openai" and cfg.get("api_key"):
-        os.environ["OPENAI_API_KEY"] = cfg["api_key"]
-
-    # ── Stage 1: Phase 1 agents analyse the dataset ───────────────────
+    # ── Stage 1: agents analyse the dataset ──────────────────────────
     print("\n[RED_PHASE1_START]")
     print("🔬 Phase 1 — Agents gathering analysis...\n")
     sys.stdout.flush()
@@ -603,6 +691,10 @@ def _run_red_mode(cfg: dict) -> dict:
     }
     phase1_result = _run_pipeline(pipeline_cfg)
 
+    # FIX #6: reuse LLM instances built during Phase 1 — no second init
+    llm      = phase1_result.pop("_llm")
+    fast_llm = phase1_result.pop("_fast_llm")
+
     print(f"\n[RED_PHASE1_DONE]")
     print("✓ Phase 1 complete — handing off to persona debate\n")
     sys.stdout.flush()
@@ -612,14 +704,7 @@ def _run_red_mode(cfg: dict) -> dict:
     print(f"   Brief: {len(brief)} chars  |  Personas: {len(cfg['persona_names'])}\n")
     sys.stdout.flush()
 
-    llm_kw = {}
-    if cfg.get("server_url"):
-        llm_kw["base_url"] = cfg["server_url"]
-    explicit_model = cfg.get("model") or None
-    llm      = get_llm(cfg["provider"], model=explicit_model, **llm_kw)
-    fast_llm = get_fast_llm(cfg["provider"], **llm_kw) if not explicit_model else llm
-
-    orch = RedModeOrchestrator(llm=llm, fast_llm=fast_llm)
+    orch   = RedModeOrchestrator(llm=llm, fast_llm=fast_llm)
     debate = orch.run(persona_names=cfg["persona_names"], brief=brief)
 
     return {
@@ -633,18 +718,22 @@ def _run_red_mode(cfg: dict) -> dict:
 
 
 def _thread_runner_red(run_id: str, cfg: dict):
-    state  = red_runs[run_id]
-    orig   = sys.stdout
-    sys.stdout = _Tee(state, orig)
+    state = red_runs[run_id]
+    cfg["_cancel_event"]    = state.cancel_event    # FIX #7
+    _thread_local.run_state = state                 # FIX #1
     try:
         state.result = _run_red_mode(cfg)
         state.done   = True
+        _persist_result(run_id, state.result)
     except Exception:
-        state.error = traceback.format_exc()
-        state.done  = True
+        if state.cancelled:
+            state.error = "Cancelled by user"
+        else:
+            state.error = traceback.format_exc()
+        state.done = True
         print(f"\n[RED_MODE_ERROR] {state.error}")
     finally:
-        sys.stdout = orig
+        _thread_local.run_state = None              # FIX #1
 
 
 # ── Red Mode payload ──────────────────────────────────────────────────
@@ -657,6 +746,7 @@ class RedModePayload(BaseModel):
     persona_names:    list[str]
     dataset_path:     str       = ""
     task_description: str       = ""
+    target_col:       str       = ""    # FIX #4: was missing, Phase 1 was always blind
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────
@@ -664,8 +754,6 @@ class RedModePayload(BaseModel):
 @app.get("/api/personas")
 def get_personas():
     """Return the full personas index for the frontend selector."""
-    import json
-    from pathlib import Path
     idx_path = Path(__file__).parent / "personas" / "personas_index.json"
     with open(idx_path) as f:
         return json.load(f)
@@ -677,8 +765,9 @@ def start_red_mode(body: RedModePayload):
     red_runs[run_id] = RedRunState()
 
     cfg = body.model_dump()
-    cfg["provider"] = "local" if cfg["provider"] == "local (vLLM)" else cfg["provider"]
-    cfg["model"]    = cfg["model"] or None
+    cfg["provider"]   = "local" if cfg["provider"] == "local (vLLM)" else cfg["provider"]
+    cfg["model"]      = cfg["model"]      or None
+    cfg["target_col"] = cfg["target_col"] or None   # FIX #4
 
     t = threading.Thread(target=_thread_runner_red, args=(run_id, cfg), daemon=True)
     t.start()
@@ -696,13 +785,29 @@ def poll_red_mode(run_id: str, cursor: int = 0):
 @app.get("/api/red-mode/result/{run_id}")
 def get_red_mode_result(run_id: str):
     state = red_runs.get(run_id)
+    if state:
+        if not state.done:
+            return {"error": "Still running"}
+        if state.error:
+            return {"error": state.error}
+        return state.result
+    saved = _load_result(run_id)
+    if saved:
+        return saved
+    return {"error": "Unknown run ID"}
+
+
+# FIX #7: Cancel endpoint for Red Mode runs
+@app.delete("/api/red-mode/{run_id}")
+def cancel_red_mode(run_id: str):
+    state = red_runs.get(run_id)
     if not state:
         return {"error": "Unknown run ID"}
-    if not state.done:
-        return {"error": "Still running"}
-    if state.error:
-        return {"error": state.error}
-    return state.result
+    if state.done:
+        return {"error": "Run already finished"}
+    state.cancelled = True
+    state.cancel_event.set()
+    return {"ok": True, "runId": run_id}
 
 
 # ─────────────────────────────────────────────────────────────────────

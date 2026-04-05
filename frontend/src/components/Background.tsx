@@ -20,8 +20,8 @@ const MONO = {
 }
 
 const CRIMSON = {
-  bg:       ['rgba(12,2,4,1)', 'rgba(8,1,2,1)', 'rgba(5,0,0,1)'] as const,
-  stream:   [225, 29, 72] as const, 
+  bg:       ['rgba(22,4,8,1)', 'rgba(12,2,4,1)', 'rgba(7,0,2,1)'] as const,
+  stream:   [232, 55, 88] as const,
 }
 
 export default function Background() {
@@ -151,11 +151,16 @@ export default function Background() {
           if (alpha <= 0) continue
 
           if (i === 0) {
+            if (isRed) {
+              ctx.shadowBlur  = 6
+              ctx.shadowColor = `rgba(232,55,88,0.85)`
+            }
             ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.6, alpha)})`
+            if (isRed) { ctx.shadowBlur = 0; ctx.shadowColor = 'transparent' }
             // Expensive shadow blurs dropped entirely for maximum performance guarantee
             // Bright white contrast is enough for a clean crisp head visual
           } else {
-            ctx.fillStyle = `rgba(${rgbColor}, ${alpha * 0.85})`
+            ctx.fillStyle = `rgba(${rgbColor}, ${isRed ? alpha * 0.92 : alpha * 0.85})`
           }
 
           ctx.fillText(charText, s.x, charY)

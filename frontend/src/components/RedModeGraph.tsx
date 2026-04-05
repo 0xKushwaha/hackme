@@ -92,10 +92,10 @@ interface SimLink extends d3.SimulationLinkDatum<SimNode> { source: string | Sim
 
 interface Props {
   personas:         string[]
-  activePersona?:   string
+  activePersonas?:  string[]
   donePersonas:     string[]
   champions:        string[]
-  stage:            'groups' | 'champions' | 'synthesis' | 'phase1' | 'debate'
+  stage:            'groups' | 'election' | 'champions' | 'synthesis' | 'phase1' | 'debate'
   synthesisDone:    boolean
   onSelectPersona?: (name: string) => void
   onSelectSynthesis?: () => void
@@ -106,16 +106,21 @@ interface Props {
 }
 
 export default function RedModeGraph({
-  personas, activePersona, donePersonas, champions, stage, synthesisDone,
+  personas, activePersonas = [], donePersonas, champions, stage, synthesisDone,
   onSelectPersona, onSelectSynthesis, selectedPersona, phase1Agents, activeAgent, activeGroup
 }: Props) {
-  const svgRef      = useRef<SVGSVGElement>(null)
-  const nodeEls     = useRef<Map<string, SVGGElement>>(new Map())
-  const p1ArcEls    = useRef<SVGPathElement[]>([])
-  const r1Els       = useRef<SVGPathElement[]>([])
-  const r2Els       = useRef<SVGPathElement[]>([])
-  const r3Els       = useRef<SVGPathElement[]>([])
-  
+  const svgRef             = useRef<SVGSVGElement>(null)
+  const nodeEls            = useRef<Map<string, SVGGElement>>(new Map())
+  const p1ArcEls           = useRef<SVGPathElement[]>([])
+  const r1Els              = useRef<SVGPathElement[]>([])
+  const r2Els              = useRef<SVGPathElement[]>([])
+  const r3Els              = useRef<SVGPathElement[]>([])
+  const groupElsRef        = useRef<{ el: SVGPathElement; src: string; tgt: string }[]>([])
+  const champLinkGroupRef  = useRef<SVGGElement | null>(null)
+  const champEdgesRef      = useRef<{ el: SVGPathElement; src: string; tgt: string }[]>([])
+  // store simNodes so tick updates can access them from outside build
+  const simNodesRef        = useRef<SimNode[]>([])
+
   const selected = selectedPersona ?? null
   const [selectedP1, setSelectedP1] = useState<string | null>(null)
   
@@ -137,10 +142,13 @@ export default function RedModeGraph({
 
       svg.selectAll('*').remove()
       nodeEls.current.clear()
-      p1ArcEls.current = []
-      r1Els.current    = []
-      r2Els.current    = []
-      r3Els.current    = []
+      p1ArcEls.current        = []
+      r1Els.current           = []
+      r2Els.current           = []
+      r3Els.current           = []
+      groupElsRef.current     = []
+      champEdgesRef.current   = []
+      champLinkGroupRef.current = null
 
       // ── Defs ──────────────────────────────────────────────────
       const defs = svg.append('defs')
@@ -187,10 +195,19 @@ export default function RedModeGraph({
         } as SimNode)),
       ]
 
+      // Intra-group pairs (for cluster cohesion)
+      const intraPairs: { src: string; tgt: string }[] = []
+      Object.values(GROUP_TO_PERSONA).forEach(members => {
+        for (let i = 0; i < members.length; i++)
+          for (let j = i + 1; j < members.length; j++)
+            intraPairs.push({ src: members[i], tgt: members[j] })
+      })
+
       const simLinks: SimLink[] = [
         ...P1_ORDER.map(k => ({ source: `__p1_${k}__`, target: '__brief__' })),
         ...personas.map(p  => ({ source: '__brief__',   target: p           })),
         ...personas.map(p  => ({ source: p,              target: '__synthesis__' })),
+        ...intraPairs.map(({ src, tgt }) => ({ source: src, target: tgt })),
       ]
 
       // ── Simulation ────────────────────────────────────────────
@@ -198,7 +215,18 @@ export default function RedModeGraph({
         .alphaDecay(0.008)
         .velocityDecay(0.35)
         // Increased distance and repulsion to de-condense the graph
-        .force('link',    d3.forceLink<SimNode, SimLink>(simLinks).id(d => d.id).distance(300).strength(0.06))
+        .force('link',    d3.forceLink<SimNode, SimLink>(simLinks).id(d => d.id).distance((l: SimLink) => {
+          const sid = typeof l.source === 'string' ? l.source : (l.source as SimNode).id
+          const tid = typeof l.target === 'string' ? l.target : (l.target as SimNode).id
+          // intra-group: short distance to cluster; brief/synth: longer
+          const sameGroup = PERSONA_TO_GROUP[sid] && PERSONA_TO_GROUP[sid] === PERSONA_TO_GROUP[tid]
+          return sameGroup ? 120 : 300
+        }).strength((l: SimLink) => {
+          const sid = typeof l.source === 'string' ? l.source : (l.source as SimNode).id
+          const tid = typeof l.target === 'string' ? l.target : (l.target as SimNode).id
+          const sameGroup = PERSONA_TO_GROUP[sid] && PERSONA_TO_GROUP[sid] === PERSONA_TO_GROUP[tid]
+          return sameGroup ? 0.12 : 0.06
+        }))
         .force('charge',  d3.forceManyBody().strength(-1200))
         .force('collide', d3.forceCollide((d: SimNode) =>
           d.id === '__brief__' || d.id === '__synthesis__' ? RB + 35 :
@@ -243,6 +271,18 @@ export default function RedModeGraph({
         .data(personas.map(p => ({ source: p, target: '__synthesis__' }))).join('path')
         .attr('class','r3').attr('fill','none').attr('stroke-width', 1.2).attr('marker-end', 'url(#rm-arr-r3)')
         .each(function() { r3Els.current.push(this) })
+
+      // Intra-group edges (hidden by default, lit during Stage A)
+      intraPairs.forEach(({ src, tgt }) => {
+        const el = linkGroup.append('path').attr('class','grp-link')
+          .attr('fill','none').attr('stroke','transparent').attr('stroke-width', 1)
+          .node()!
+        groupElsRef.current.push({ el, src, tgt })
+      })
+
+      // Champion cross-debate edges (dynamic — rebuilt in visual update)
+      const champLinkG = linkGroup.append('g').attr('class','champ-links')
+      champLinkGroupRef.current = champLinkG.node()
 
       // Nodes
       const nodeG = nodeGroup.selectAll<SVGGElement, SimNode>('g')
@@ -313,6 +353,8 @@ export default function RedModeGraph({
         return `M${sx},${sy} A${dr},${dr} 0 0,1 ${tx},${ty}`
       }
 
+      simNodesRef.current = simNodes
+
       sim.on('tick', () => {
         const currW = svgRef.current?.clientWidth || W
         const currH = svgRef.current?.clientHeight || H
@@ -336,6 +378,18 @@ export default function RedModeGraph({
           const tgt = synthNode
           if (src && tgt) d3.select(el).attr('d', arc(src.x!, src.y!, tgt.x!, tgt.y!))
         })
+        // Intra-group edges
+        groupElsRef.current.forEach(({ el, src, tgt }) => {
+          const s = simNodes.find(n => n.id === src)
+          const t = simNodes.find(n => n.id === tgt)
+          if (s && t) d3.select(el).attr('d', arc(s.x!, s.y!, t.x!, t.y!))
+        })
+        // Champion cross-debate edges
+        champEdgesRef.current.forEach(({ el, src, tgt }) => {
+          const s = simNodes.find(n => n.id === src)
+          const t = simNodes.find(n => n.id === tgt)
+          if (s && t) d3.select(el).attr('d', arc(s.x!, s.y!, t.x!, t.y!))
+        })
         nodeG.attr('transform', d => `translate(${d.x},${d.y})`)
       })
     }
@@ -349,10 +403,9 @@ export default function RedModeGraph({
     nodeEls.current.forEach((el, id) => {
       const sel = d3.select(el)
       const color = PERSONA_COLORS[id] ?? '#e11d48'
-      const isActive = id === activePersona
       const isChamp  = champions.includes(id)
       const isDone   = donePersonas.includes(id)
-      
+
       if (id.startsWith('__p1_')) {
         const k = id.slice(5, -2), isP1Done = phase1Agents.includes(k), isP1Act = activeAgent === k
         const c = P1_META[k]?.color ?? '#fff'
@@ -360,38 +413,106 @@ export default function RedModeGraph({
         sel.select('.icon-text').attr('fill', isP1Act || isP1Done ? c : 'rgba(255,255,255,0.22)').text(isP1Done ? '✓' : P1_META[k]?.icon)
       } else if (!id.startsWith('__')) {
         const gk = PERSONA_TO_GROUP[id]
-        const isGroupAct = activeGroup === gk && stage === 'groups'
+        const isGroupAct = activeGroup === gk && (stage === 'groups' || stage === 'election')
         const inDebate   = stage !== 'phase1'
+        const isElecting = stage === 'election' && isChamp
+        const isActive   = activePersonas.includes(id)
 
         sel.select('.main-poly')
-          .attr('fill', isActive ? `${color}45` : isChamp ? `${color}30` : isDone ? `${color}15` : 'transparent')
-          .attr('stroke', (isActive || isChamp || (isGroupAct && inDebate)) ? color : 'rgba(255,255,255,0.1)')
-          .attr('stroke-width', isActive ? 3 : isChamp ? 2 : 1.5)
-          .attr('filter', isActive || (isChamp && stage === 'champions') ? 'url(#rm-glow)' : isChamp || isDone ? 'url(#rm-glow-done)' : null)
-        
+          .attr('fill', isActive ? `${color}55` : isElecting ? `${color}40` : isChamp ? `${color}35` : isDone ? `${color}28` : 'transparent')
+          .attr('stroke', (isActive || isElecting || isChamp || isDone || (isGroupAct && inDebate)) ? color : 'rgba(255,255,255,0.1)')
+          .attr('stroke-width', isActive ? 3 : isElecting ? 2.5 : isChamp ? 2 : isDone ? 1.5 : 1)
+          .attr('filter', isActive || isElecting || (isChamp && stage === 'champions') ? 'url(#rm-glow)' : isChamp || isDone ? 'url(#rm-glow-done)' : null)
+
         sel.select('.pulse-poly')
           .attr('stroke', isActive ? color : 'none').attr('stroke-width', isActive ? 3 : 0).attr('opacity', isActive ? 0.5 : 0)
 
-        sel.select('.icon-text').attr('fill', (isActive || isChamp || isDone) ? color : 'rgba(255,255,255,0.25)')
-        sel.select('.label-text').attr('fill', (isActive || isChamp || isDone) ? color : 'rgba(255,255,255,0.18)').attr('font-weight', isActive || isChamp ? '700' : '600')
+        sel.select('.icon-text').attr('fill', (isActive || isElecting || isChamp || isDone) ? color : 'rgba(255,255,255,0.25)')
+          .text(isElecting ? '★' : isDone && !isActive ? '✓' : (PERSONA_META[id]?.icon ?? id.slice(0, 2).toUpperCase()))
+        sel.select('.label-text').attr('fill', (isActive || isElecting || isChamp || isDone) ? color : 'rgba(255,255,255,0.18)').attr('font-weight', isActive || isChamp ? '700' : '600')
       }
     })
 
-    // Link updates (increased visibility)
+    // ── P1 arc strokes (visible as "done" once Phase 2 starts) ──
+    const p1AllDone = stage !== 'phase1'
+    p1ArcEls.current.forEach((el, i) => {
+      const k = P1_ORDER[i]
+      const isDoneP1 = phase1Agents.includes(k)
+      const isActP1  = activeAgent === k
+      const c = P1_META[k]?.color ?? '#aaa'
+      d3.select(el)
+        .attr('stroke', isActP1 ? c : isDoneP1 || p1AllDone ? `${c}55` : 'transparent')
+        .attr('stroke-width', isActP1 ? 2 : 1)
+    })
+
+    // ── Brief → persona links ────────────────────────────────────
     r1Els.current.forEach((el, i) => {
       const name = personas[i], color = PERSONA_COLORS[name] ?? '#fff'
-      const active = activePersona === name && stage === 'groups'
+      const active = activePersonas.includes(name) && (stage === 'groups' || stage === 'election')
       const done   = donePersonas.includes(name)
       d3.select(el).attr('stroke', active ? color : done ? `${color}45` : 'rgba(220,38,38,0.08)').attr('stroke-width', active ? 2.5 : 1)
     })
 
+    // ── Persona → synthesis links ────────────────────────────────
     r3Els.current.forEach((el, i) => {
       const name = personas[i], color = PERSONA_COLORS[name] ?? '#fff'
-      const active = (activePersona === name || champions.includes(name)) && stage === 'synthesis'
+      const active = (activePersonas.includes(name) || champions.includes(name)) && stage === 'synthesis'
       d3.select(el).attr('stroke', active || synthesisDone ? color : 'transparent').attr('stroke-opacity', synthesisDone ? 0.75 : 0.35)
     })
 
-  }, [activePersona, champions, donePersonas, stage, synthesisDone, phase1Agents, activeAgent, activeGroup, personas])
+    // ── Intra-group edges (Stage A / election) ───────────────────
+    groupElsRef.current.forEach(({ el, src, tgt }) => {
+      const gk        = PERSONA_TO_GROUP[src]
+      const groupAct  = activeGroup === gk
+      const inStageA  = stage === 'groups' || stage === 'election'
+      const bothDone  = donePersonas.includes(src) && donePersonas.includes(tgt)
+      const eitherAct = activePersonas.includes(src) || activePersonas.includes(tgt)
+      const color     = PERSONA_COLORS[src] ?? '#e11d48'
+      d3.select(el)
+        .attr('stroke',
+          eitherAct && inStageA ? `${color}80`
+          : bothDone && inStageA ? `${color}30`
+          : groupAct && inStageA ? `${color}25`
+          : 'transparent'
+        )
+        .attr('stroke-width', eitherAct ? 1.5 : 1)
+        .attr('stroke-dasharray', eitherAct ? 'none' : '4,4')
+    })
+
+    // ── Champion cross-debate edges (Stage B) ────────────────────
+    if (champLinkGroupRef.current) {
+      const champG = d3.select(champLinkGroupRef.current)
+      champG.selectAll('*').remove()
+      champEdgesRef.current = []
+
+      if (stage === 'champions' && champions.length >= 2) {
+        for (let i = 0; i < champions.length; i++) {
+          for (let j = i + 1; j < champions.length; j++) {
+            const src = champions[i], tgt = champions[j]
+            const bothAct = activePersonas.includes(src) && activePersonas.includes(tgt)
+            const el = champG.append('path')
+              .attr('fill', 'none')
+              .attr('stroke', bothAct ? '#f59e0b' : 'rgba(245,158,11,0.35)')
+              .attr('stroke-width', bothAct ? 2 : 1.2)
+              .attr('stroke-dasharray', bothAct ? 'none' : '6,4')
+              .attr('marker-end', 'url(#rm-arr-r3)')
+              .node()!
+            champEdgesRef.current.push({ el, src, tgt })
+          }
+        }
+        // Immediately draw paths with current node positions
+        champEdgesRef.current.forEach(({ el, src, tgt }) => {
+          const s = simNodesRef.current.find(n => n.id === src)
+          const t = simNodesRef.current.find(n => n.id === tgt)
+          if (s?.x && t?.x) {
+            const dr = Math.hypot(t.x - s.x, t.y! - s.y!) * 1.5
+            d3.select(el).attr('d', `M${s.x},${s.y} A${dr},${dr} 0 0,1 ${t.x},${t.y}`)
+          }
+        })
+      }
+    }
+
+  }, [activePersonas, champions, donePersonas, stage, synthesisDone, phase1Agents, activeAgent, activeGroup, personas])
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>

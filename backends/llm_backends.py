@@ -18,28 +18,39 @@ _OPENAI_MODELS = {
 FAST_TIER_AGENTS = {"skeptic", "ethicist", "devil_advocate", "pragmatist"}
 
 
-def get_llm(provider: str, model: str = None, base_url: str = None, tier: str = "full", **kwargs):
+def get_llm(
+    provider:  str,
+    model:     str = None,
+    base_url:  str = None,
+    tier:      str = "full",
+    api_key:   str = None,   # explicit key — takes priority over env var
+    **kwargs,
+):
     """
     Returns a LangChain-compatible LLM.
 
     Providers:
-        claude : Anthropic Claude  (requires ANTHROPIC_API_KEY)
-        openai : OpenAI            (requires OPENAI_API_KEY)
+        claude : Anthropic Claude  (requires ANTHROPIC_API_KEY or api_key=)
+        openai : OpenAI            (requires OPENAI_API_KEY or api_key=)
         local  : Local vLLM server — OpenAI-compatible (requires VLLM_URL or base_url)
 
+    api_key: when provided, used directly instead of reading from os.environ.
+             This avoids the race condition where concurrent runs with different
+             keys would overwrite each other's environment variable.
+
     tier: "full" (default) or "fast"
-        "fast" uses a smaller/cheaper model for critique and simple planning agents.
+        "fast" uses a smaller/cheaper model for critique and planning agents.
         Ignored when `model` is explicitly provided or provider is "local".
     """
     if provider == "claude":
-        api_key    = os.getenv("ANTHROPIC_API_KEY")
-        chosen     = model or _CLAUDE_MODELS.get(tier, _CLAUDE_MODELS["full"])
-        return ChatAnthropic(model=chosen, api_key=api_key, **kwargs)
+        key    = api_key or os.getenv("ANTHROPIC_API_KEY")
+        chosen = model or _CLAUDE_MODELS.get(tier, _CLAUDE_MODELS["full"])
+        return ChatAnthropic(model=chosen, api_key=key, **kwargs)
 
     if provider == "openai":
-        api_key = os.getenv("OPENAI_API_KEY")
-        chosen  = model or _OPENAI_MODELS.get(tier, _OPENAI_MODELS["full"])
-        return ChatOpenAI(model=chosen, api_key=api_key, **kwargs)
+        key    = api_key or os.getenv("OPENAI_API_KEY")
+        chosen = model or _OPENAI_MODELS.get(tier, _OPENAI_MODELS["full"])
+        return ChatOpenAI(model=chosen, api_key=key, **kwargs)
 
     if provider == "local":
         vllm_url   = base_url or os.getenv("VLLM_URL") or "http://localhost:8001/v1"
@@ -52,6 +63,8 @@ def get_llm(provider: str, model: str = None, base_url: str = None, tier: str = 
     raise ValueError(f"Unknown provider '{provider}'. Choose from: claude, openai, local")
 
 
-def get_fast_llm(provider: str, model: str = None, base_url: str = None, **kwargs):
+def get_fast_llm(provider: str, model: str = None, base_url: str = None,
+                 api_key: str = None, **kwargs):
     """Convenience wrapper — returns the fast-tier LLM for the given provider."""
-    return get_llm(provider, model=model, base_url=base_url, tier="fast", **kwargs)
+    return get_llm(provider, model=model, base_url=base_url, tier="fast",
+                   api_key=api_key, **kwargs)

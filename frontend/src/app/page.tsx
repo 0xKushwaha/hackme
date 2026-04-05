@@ -62,7 +62,7 @@ const ALL_PERSONA_HANDLES = [
 
 export default function Home() {
   const router = useRouter()
-  const [provider,    setProvider]    = useState('local')
+  const [provider,    setProvider]    = useState('claude')
   const [apiKey,      setApiKey]      = useState('')
   const [serverUrl,   setServerUrl]   = useState('')
   const [modelName,   setModelName]   = useState('')
@@ -77,6 +77,8 @@ export default function Home() {
   const [ovKey,       setOvKey]       = useState('')
   // ── Red Mode state ────────────────────────────────────────────────
   const [isRedMode, setIsRedMode] = useState(false)
+  const [leaving,   setLeaving]   = useState(false)
+  const [leaveDest, setLeaveDest] = useState('')
   const runIdRef     = useRef('')
   const canNavRef    = useRef(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -96,9 +98,11 @@ export default function Home() {
 
   const tryNavigate = useCallback(() => {
     if (runIdRef.current && canNavRef.current) {
-      router.push(isRedMode ? `/red/${runIdRef.current}` : `/run/${runIdRef.current}`)
+      const dest = isRedMode ? `/red/${runIdRef.current}` : `/run/${runIdRef.current}`
+      setLeaveDest(dest)
+      setLeaving(true)
     }
-  }, [router, isRedMode])
+  }, [isRedMode])
 
   useEffect(() => {
     fetch(`${API}/api/creds`).then(r => r.json()).then(d => {
@@ -147,7 +151,8 @@ export default function Home() {
   const launch = async () => {
     if (testMode) {
       const mockId = `test-${Math.random().toString(36).slice(2, 8)}`
-      router.push(isRedMode ? `/red/${mockId}` : `/run/${mockId}`)
+      setLeaveDest(isRedMode ? `/red/${mockId}` : `/run/${mockId}`)
+      setLeaving(true)
       return
     }
 
@@ -167,11 +172,12 @@ export default function Home() {
 
       const endpoint = isRedMode ? `${API}/api/red-mode` : `${API}/api/run`
       const allPersonaHandles = ALL_PERSONA_HANDLES
+      const localFields = provider === 'local' ? { server_url: serverUrl, model: modelName } : {}
       const body = isRedMode
-        ? { provider, api_key: apiKey, server_url: serverUrl, model: modelName,
+        ? { provider, api_key: apiKey, ...localFields,
             dataset_path: datasetPath, task_description: task,
             persona_names: allPersonaHandles }
-        : { provider, api_key: apiKey, server_url: serverUrl, model: modelName,
+        : { provider, api_key: apiKey, ...localFields,
             dataset_path: datasetPath, task_description: task }
 
       const r = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -237,14 +243,6 @@ export default function Home() {
               : 'A team of 10 specialised AI agents explores your data, identifies patterns, builds models, and generates complete analysis — autonomously, with zero human intervention.'}
           </p>
 
-          {/* Scroll indicator */}
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
-            style={{ color: 'rgba(255,255,255,0.12)', fontSize: 22, cursor: 'default' }}
-          >
-            ↓
-          </motion.div>
         </motion.div>
 
         {/* RIGHT COLUMN — Console-style upload + config */}
@@ -313,7 +311,10 @@ export default function Home() {
             <div className="label" style={{ marginBottom: 10 }}>Provider</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
               {PROVIDERS.map(p => (
-                <button key={p.id} onClick={() => setProvider(p.id)} style={{
+                <button key={p.id} onClick={() => {
+                  setProvider(p.id)
+                  if (p.id !== 'local') { setModelName(''); setServerUrl('') }
+                }} style={{
                   padding: '10px 6px', borderRadius: 10, cursor: 'pointer', textAlign: 'center',
                   background: provider === p.id ? `rgba(${accentRgb},0.12)` : 'rgba(255,255,255,0.02)',
                   border: `1px solid ${provider === p.id ? `rgba(${accentRgb},0.4)` : 'rgba(255,255,255,0.06)'}`,
@@ -443,6 +444,23 @@ export default function Home() {
         </div>
       </div>
     </div>
+
+    {/* ── Page-enter overlay (fades out on mount) ────────────────── */}
+    <motion.div
+      initial={{ opacity: 1 }}
+      animate={{ opacity: 0 }}
+      transition={{ duration: 0.35, ease: 'easeInOut' }}
+      style={{ position: 'fixed', inset: 0, zIndex: 998, background: '#000', pointerEvents: 'none' }}
+    />
+
+    {/* ── Page-leave overlay ──────────────────────────────────────── */}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: leaving ? 1 : 0 }}
+      transition={{ duration: 0.35, ease: 'easeInOut' }}
+      onAnimationComplete={() => { if (leaving && leaveDest) router.push(leaveDest) }}
+      style={{ position: 'fixed', inset: 0, zIndex: 999, background: '#000', pointerEvents: leaving ? 'all' : 'none' }}
+    />
     </>
   )
 }

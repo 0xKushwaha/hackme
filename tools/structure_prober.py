@@ -310,14 +310,15 @@ def _probe_sqlite(path: str) -> Optional[ProbeResult]:
             return ProbeResult(format="sqlite", category="binary",
                                parser_used="sqlite3",
                                metadata={"tables": [], "note": "Empty database"})
-        # Use first table
+        # Use first table — escape identifier to prevent SQL injection
         tbl = tables[0]
-        cur.execute(f"SELECT COUNT(*) FROM [{tbl}]")
+        tbl_safe = tbl.replace('"', '""')
+        cur.execute(f'SELECT COUNT(*) FROM "{tbl_safe}"')
         row_count = cur.fetchone()[0]
-        cur.execute(f"PRAGMA table_info([{tbl}])")
+        cur.execute(f'PRAGMA table_info("{tbl_safe}")')
         cols_info = cur.fetchall()   # (cid, name, type, notnull, dflt, pk)
         columns = [r[1] for r in cols_info]
-        cur.execute(f"SELECT * FROM [{tbl}] LIMIT {SAMPLE_ROWS}")
+        cur.execute(f'SELECT * FROM "{tbl_safe}" LIMIT ?', (SAMPLE_ROWS,))
         rows = [dict(zip(columns, r)) for r in cur.fetchall()]
         conn.close()
         return ProbeResult(
@@ -444,24 +445,9 @@ def _probe_numpy(path: str) -> Optional[ProbeResult]:
 
 
 def _probe_pickle(path: str) -> Optional[ProbeResult]:
-    try:
-        import pickle
-        with open(path, "rb") as f:
-            obj = pickle.load(f)
-        type_name = type(obj).__name__
-        notes = []
-        meta: dict[str, Any] = {"python_type": type_name}
-        if hasattr(obj, "shape"):
-            meta["shape"] = list(obj.shape)
-        if hasattr(obj, "__len__"):
-            meta["length"] = len(obj)
-        return ProbeResult(
-            format="pickle", category="binary", parser_used="pickle",
-            metadata=meta,
-            parse_warnings=["Pickle files can execute arbitrary code — treat as untrusted"],
-        )
-    except Exception:
-        return None
+    # Pickle deserialization is disabled — loading untrusted pickle files
+    # allows arbitrary code execution. Return None to skip this format.
+    return None
 
 
 def _probe_arrow(path: str) -> Optional[ProbeResult]:

@@ -522,8 +522,10 @@ def _thread_runner(run_id: str, cfg: dict):
         if state.cancelled:
             state.error = "Cancelled by user"
         else:
-            state.error = traceback.format_exc()
-            state.add_text(f"\n❌ ERROR:\n{state.error}")
+            _internal = traceback.format_exc()
+            print(f"[PIPELINE_ERROR] run={run_id}\n{_internal}", flush=True)
+            state.error = f"Pipeline failed: {type(exc).__name__}"
+            state.add_text(f"\n❌ Pipeline error — check server logs.")
     finally:
         _thread_local.run_state = None          # FIX #1: unbind
         state.done = True
@@ -614,12 +616,25 @@ class RunPayload(BaseModel):
     enable_memory:    bool = True
     experiment_dir:   str  = "experiments"
 
+    def validate_fields(self):
+        if len(self.task_description) > 5000:
+            raise ValueError("task_description too long (max 5000 chars)")
+        if len(self.api_key) > 500:
+            raise ValueError("api_key too long")
+        if len(self.model) > 200:
+            raise ValueError("model name too long")
+
 @app.post("/api/run")
 def start_run(body: RunPayload):
+    from fastapi import HTTPException
+    # Validate input fields
+    try:
+        body.validate_fields()
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     # Validate dataset_path to prevent path traversal
     dp = body.dataset_path
     if dp and (".." in dp or dp.startswith("~")):
-        from fastapi import HTTPException
         raise HTTPException(status_code=400, detail="Invalid dataset path")
 
     run_id = str(uuid.uuid4())[:8]
@@ -739,9 +754,10 @@ def _thread_runner_red(run_id: str, cfg: dict):
         if state.cancelled:
             state.error = "Cancelled by user"
         else:
-            state.error = traceback.format_exc()
+            _internal = traceback.format_exc()
+            print(f"[RED_MODE_ERROR] run={run_id}\n{_internal}", flush=True)
+            state.error = "Red Mode pipeline failed — check server logs."
         state.done = True
-        print(f"\n[RED_MODE_ERROR] {state.error}")
     finally:
         _thread_local.run_state = None              # FIX #1
 
@@ -758,6 +774,17 @@ class RedModePayload(BaseModel):
     task_description: str       = ""
     target_col:       str       = ""    # FIX #4: was missing, Phase 1 was always blind
 
+    def validate_fields(self):
+        if len(self.task_description) > 5000:
+            raise ValueError("task_description too long (max 5000 chars)")
+        if len(self.persona_names) > 50:
+            raise ValueError("too many personas (max 50)")
+        for name in self.persona_names:
+            if not name.replace("_", "").replace("-", "").replace(" ", "").isalnum():
+                raise ValueError(f"Invalid persona name: {name}")
+        if len(self.api_key) > 500:
+            raise ValueError("api_key too long")
+
 
 # ── Endpoints ─────────────────────────────────────────────────────────
 
@@ -771,6 +798,12 @@ def get_personas():
 
 @app.post("/api/red-mode")
 def start_red_mode(body: RedModePayload):
+    from fastapi import HTTPException
+    try:
+        body.validate_fields()
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
     run_id = "rm_" + str(uuid.uuid4())[:8]
     red_runs[run_id] = RedRunState()
 

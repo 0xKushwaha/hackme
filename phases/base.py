@@ -87,3 +87,75 @@ class BasePhase:
             if e.agent == agent:
                 return e.content
         return ""
+
+    @staticmethod
+    def load_dataframe(path: str, max_rows: int = None):
+        """
+        Robust tabular file loader shared by all phases.
+
+        Uses Path.suffix for reliable extension detection and explicit
+        engine/format arguments to prevent pyarrow from treating CSV
+        files as parquet (triggered by chromadb's pyarrow initialization).
+
+        Args:
+            path:     Absolute path to the dataset file.
+            max_rows: If set, only this many rows are loaded (faster, less RAM).
+
+        Returns:
+            pd.DataFrame, or raises on unrecognised format.
+        """
+        import pandas as pd
+        from pathlib import Path
+
+        ext = Path(path).suffix.lower()
+
+        if ext == ".csv":
+            return pd.read_csv(path, engine="c", nrows=max_rows)
+
+        if ext == ".tsv":
+            return pd.read_csv(path, sep="\t", engine="c", nrows=max_rows)
+
+        if ext in (".parquet",):
+            # Explicit pyarrow engine — never let pandas auto-detect
+            try:
+                import pyarrow.parquet as pq
+                pf = pq.ParquetFile(path)
+                if max_rows:
+                    batch = next(pf.iter_batches(batch_size=max_rows))
+                    return batch.to_pandas()
+                return pf.read().to_pandas()
+            except Exception:
+                # Fallback: pandas with explicit engine
+                df = pd.read_parquet(path, engine="pyarrow")
+                return df.head(max_rows) if max_rows else df
+
+        if ext == ".feather":
+            df = pd.read_feather(path)
+            return df.head(max_rows) if max_rows else df
+
+        if ext in (".xlsx", ".xls"):
+            return pd.read_excel(path, nrows=max_rows)
+
+        if ext in (".json",):
+            try:
+                df = pd.read_json(path, lines=True, nrows=max_rows)
+            except Exception:
+                df = pd.read_json(path)
+                if max_rows:
+                    df = df.head(max_rows)
+            return df
+
+        if ext == ".jsonl":
+            rows = []
+            with open(path) as f:
+                for line in f:
+                    rows.append(__import__("json").loads(line.strip()))
+                    if max_rows and len(rows) >= max_rows:
+                        break
+            return pd.DataFrame(rows)
+
+        if ext in (".h5", ".hdf5"):
+            df = pd.read_hdf(path)
+            return df.head(max_rows) if max_rows else df
+
+        raise ValueError(f"Unsupported file extension: '{ext}' for path: {path}")

@@ -25,7 +25,9 @@ frontend/tsconfig.tsbuildinfo
 *.db
 *.sqlite
 *.sqlite3
-experiments/chroma_db/
+
+# ── Experiments (all run artifacts) ─────────────────────────────
+experiments/
 
 # ── Logs ────────────────────────────────────────────────────────
 *.log

@@ -259,11 +259,10 @@ class DataUnderstandingPhase(BasePhase):
 
         print("\n🔍 [DataUnderstanding] Validation round starting...")
 
-        # Load dataset if not already loaded
+        # Load dataset if not already loaded (capped to avoid OOM on large files)
         if self._dataset is None:
             try:
-                import pandas as pd
-                self._dataset = pd.read_csv(dataset_path) if dataset_path.endswith(".csv") else pd.read_parquet(dataset_path)
+                self._dataset = self.load_dataframe(dataset_path, max_rows=50_000)
                 print(f"[DataUnderstanding] Loaded dataset: {self._dataset.shape}")
             except Exception as e:
                 print(f"[DataUnderstanding] Failed to load dataset for validation: {e}")
@@ -324,11 +323,10 @@ class DataUnderstandingPhase(BasePhase):
         print("\n⚡ [AGENT:constraint_discovery]")
         print("\n🔍 [DataUnderstanding] Constraint discovery starting...")
 
-        # Load dataset if not already loaded
+        # Load dataset if not already loaded (capped to avoid OOM on large files)
         if self._dataset is None:
             try:
-                import pandas as pd
-                self._dataset = pd.read_csv(dataset_path) if dataset_path.endswith(".csv") else pd.read_parquet(dataset_path)
+                self._dataset = self.load_dataframe(dataset_path, max_rows=50_000)
                 print(f"[DataUnderstanding] Loaded dataset: {self._dataset.shape}")
             except Exception as e:
                 print(f"[DataUnderstanding] Failed to load dataset for constraint discovery: {e}")

@@ -205,12 +205,10 @@ class ModelDesignPhase(BasePhase):
         """
         if self._dataset is None:
             try:
-                import pandas as pd
-                self._dataset = (
-                    pd.read_csv(dataset_path)
-                    if dataset_path.endswith(".csv")
-                    else pd.read_parquet(dataset_path)
-                )
+                # Load a capped sample — enough for statistics, avoids OOM on large files.
+                # Uses BasePhase.load_dataframe which explicitly sets engine='c' for CSV
+                # so pyarrow (initialised by chromadb) never intercepts the call.
+                self._dataset = self.load_dataframe(dataset_path, max_rows=50_000)
                 print(f"[ModelDesign] Dataset loaded: {self._dataset.shape}")
             except Exception as e:
                 print(f"[ModelDesign] ⚠️  Could not load dataset: {e}")

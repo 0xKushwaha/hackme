@@ -765,7 +765,8 @@ def _run_red_mode(cfg: dict) -> dict:
     print(f"   Brief: {len(brief)} chars  |  Personas: {len(cfg['persona_names'])}\n")
     sys.stdout.flush()
 
-    orch   = RedModeOrchestrator(llm=llm, fast_llm=fast_llm)
+    orch   = RedModeOrchestrator(llm=llm, fast_llm=fast_llm,
+                                 cancel_event=cfg.get("_cancel_event"))
     debate = orch.run(persona_names=cfg["persona_names"], brief=brief)
 
     return {
@@ -784,7 +785,6 @@ def _thread_runner_red(run_id: str, cfg: dict):
     _thread_local.run_state = state                 # FIX #1
     try:
         state.result = _run_red_mode(cfg)
-        state.done   = True
         _persist_result(run_id, state.result)
     except Exception:
         if state.cancelled:
@@ -793,8 +793,8 @@ def _thread_runner_red(run_id: str, cfg: dict):
             _internal = traceback.format_exc()
             print(f"[RED_MODE_ERROR] run={run_id}\n{_internal}", flush=True)
             state.error = "Red Mode pipeline failed — check server logs."
-        state.done = True
     finally:
+        state.done = True
         _thread_local.run_state = None              # FIX #1
 
 

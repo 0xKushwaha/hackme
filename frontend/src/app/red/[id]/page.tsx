@@ -78,7 +78,12 @@ export default function RedModePage() {
   const [activeTab, setActiveTab] = useState<'round1' | 'champion' | 'synthesis'>('round1')
 
   const [leaving, setLeaving] = useState(false)
-  const goHome = useCallback(() => setLeaving(true), [])
+  const goHome = useCallback(async () => {
+    if (!done) {
+      try { await fetch(`${API}/api/red-mode/${id}`, { method: 'DELETE' }) } catch {}
+    }
+    setLeaving(true)
+  }, [id, done])
 
   // Tick every second so live elapsed times update
   useEffect(() => {

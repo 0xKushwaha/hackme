@@ -315,6 +315,9 @@ class ModelDesignPhase(BasePhase):
 
             except Exception as exc:
                 last_error = str(exc)
+                # Don't retry cancellations — propagate immediately
+                if "cancelled by user" in last_error.lower():
+                    raise
                 print(
                     f"[ModelDesign] ⚠️  {label} attempt {attempt}/{max_retries} "
                     f"failed: {exc}"

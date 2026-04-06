@@ -201,8 +201,9 @@ class DataUnderstandingPhase(BasePhase):
                 print(f"\n✅ [AGENT_DONE:ethicist]")
 
         # ── Stage 3: Constraint Discovery (find mathematical relationships) ──
+        cancel = getattr(self.orch, '_cancel_event', None)
         constraint_results = {}
-        if dataset_path:
+        if dataset_path and not (cancel and cancel.is_set()):
             try:
                 print("\n⚡ [DataUnderstanding] Constraint discovery starting...")
                 constraint_results = self._run_constraint_discovery(dataset_path)
@@ -210,7 +211,7 @@ class DataUnderstandingPhase(BasePhase):
                 print(f"[DataUnderstanding] ⚠️  Constraint discovery failed: {exc}")
 
         # ── Stage 4: Validation round (validator checks agent claims vs. ground truth) ──
-        if self.validator and dataset_path:
+        if self.validator and dataset_path and not (cancel and cancel.is_set()):
             try:
                 self._run_validation_round(dataset_path=dataset_path, target_col=target_col)
             except Exception as exc:
@@ -394,6 +395,9 @@ class DataUnderstandingPhase(BasePhase):
 
             except Exception as exc:
                 last_error = str(exc)
+                # Don't retry cancellations — propagate immediately
+                if "cancelled by user" in last_error.lower():
+                    raise
                 print(
                     f"[DataUnderstanding] ⚠️  {label} attempt {attempt}/{max_retries} "
                     f"failed: {exc}"

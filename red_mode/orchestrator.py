@@ -41,9 +41,14 @@ class RedModeOrchestrator:
     (FastAPI's main loop is in the main thread, not here).
     """
 
-    def __init__(self, llm, fast_llm=None):
-        self.llm      = llm
-        self.fast_llm = fast_llm or llm
+    def __init__(self, llm, fast_llm=None, cancel_event=None):
+        self.llm           = llm
+        self.fast_llm      = fast_llm or llm
+        self._cancel_event = cancel_event
+
+    def _check_cancel(self):
+        if self._cancel_event and self._cancel_event.is_set():
+            raise RuntimeError("Run cancelled by user")
 
     # ── Public entry point ────────────────────────────────────────────
 
@@ -133,6 +138,7 @@ class RedModeOrchestrator:
             sys.stdout.flush()
 
         # ── Run tournament ────────────────────────────────────────────
+        self._check_cancel()
         results = asyncio.run(
             run_tournament_async(
                 groups               = groups,

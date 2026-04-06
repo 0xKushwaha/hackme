@@ -49,7 +49,12 @@ export default function RunPage() {
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
   const [leaving,      setLeaving]      = useState(false)
 
-  const goHome = useCallback(() => setLeaving(true), [])
+  const goHome = useCallback(async () => {
+    if (!doneRef.current) {
+      try { await fetch(`${API}/api/run/${id}`, { method: 'DELETE' }) } catch {}
+    }
+    setLeaving(true)
+  }, [id])
 
   const doneRef          = useRef(false)
   const cursorRef        = useRef(0)

@@ -86,6 +86,7 @@ def main():
     parser.add_argument("--fallback-model", default=None,       help="Fallback model name")
     parser.add_argument("--mode",         default="manual",     help="Pipeline mode: manual | auto | phases")
     parser.add_argument("--target",       default=None,         help="Target column hint for data profiling")
+    parser.add_argument("--task",         default="",           help="Task description / competition goal (optional)")
     parser.add_argument("--no-memory",    action="store_true",  help="Disable ChromaDB long-term memory")
     parser.add_argument("--max-agents",   type=int, default=5,  help="Max concurrent agents (default 5)")
     parser.add_argument("--save-log",     action="store_true",  help="Save context log to JSON")
@@ -97,14 +98,6 @@ def main():
 
     os.makedirs(EXPERIMENT_DIR, exist_ok=True)
 
-    # ── Dataset Discovery ──────────────────────────────────────────────
-    print(f"\n📂 Scanning dataset: {args.dataset}")
-    discovery = DatasetDiscovery()
-    profile   = discovery.scan(args.dataset)
-    print(f"   Files   : {len(profile.files)}")
-    print(f"   Types   : {', '.join(profile.types_present) or 'none'}")
-    dataset_summary = discovery.format_profile(profile)
-
     print(f"\n🔧 Provider : {args.provider}")
     print(f"🔧 Model    : {args.model or 'default'}")
     print(f"🔧 Fallback : {args.fallback or 'none'}")
@@ -115,7 +108,8 @@ def main():
     if args.base_url:
         llm_kwargs["base_url"] = args.base_url
 
-    # Build LLM — with optional multi-provider fallback
+    # Build LLM first — forwarded to DatasetDiscovery so UnknownFormatAgent
+    # can use it as a last-resort fallback for unidentifiable file formats.
     if args.fallback:
         llm = build_fallback_llm([
             {"provider": args.provider, "model": args.model},
@@ -129,6 +123,14 @@ def main():
         fast_llm = get_fast_llm(args.provider, **llm_kwargs) if not args.model else llm
         if not args.model:
             print(f"🔧 Fast tier  : enabled (Skeptic, Ethicist, Devil's Advocate, Pragmatist)")
+
+    # ── Dataset Discovery ──────────────────────────────────────────────
+    print(f"\n📂 Scanning dataset: {args.dataset}")
+    discovery = DatasetDiscovery(llm=llm)
+    profile   = discovery.scan(args.dataset)
+    print(f"   Files   : {len(profile.files)}")
+    print(f"   Types   : {', '.join(profile.types_present) or 'none'}")
+    dataset_summary = discovery.format_profile(profile)
 
     agents = build_agents(llm, fast_llm=fast_llm)
 
@@ -151,6 +153,7 @@ def main():
         llm=llm,
         memory_system=memory_system,
         registry=registry,
+        task_description=args.task,
     )
 
     if args.mode == "manual":

@@ -4,10 +4,11 @@ UnknownFormatAgent — adaptive agent for files with unidentified or unusual for
 Triggered by DatasetDiscovery when a file's extension is missing, misleading,
 or maps to a format that couldn't be parsed by standard readers.
 
-Strategy (3 phases):
+Strategy (4 phases):
   1. SNIFF   — magic bytes + text heuristics (format_sniffer)
   2. PROBE   — try 30+ parsers in confidence order (structure_prober)
   3. EXTRACT — deep column/schema analysis (schema_extractor)
+  4. LLM     — fallback: LLM inspects raw content sample when all parsers fail
 
 Output: FormatDiscovery — a structured description the rest of the pipeline
 can use exactly like a normal DatasetProfile entry.
@@ -44,6 +45,9 @@ class FormatDiscovery:
     # If the format was decoded successfully
     schema:          Optional[SchemaReport] = None
 
+    # If the agent converted the file to CSV for downstream use
+    converted_csv_path: Optional[str] = None
+
     # Routing for the rest of the pipeline
     routing_hints:   dict  = field(default_factory=dict)
     target_candidates: list[str] = field(default_factory=list)
@@ -69,12 +73,13 @@ class UnknownFormatAgent:
     Adaptive agent that identifies and parses any unknown file format.
 
     Usage:
-        agent = UnknownFormatAgent()
+        agent = UnknownFormatAgent(llm=llm)
         discovery = agent.investigate("/path/to/mystery.dat")
         print(discovery.summary_text)
     """
 
-    def __init__(self, verbose: bool = True):
+    def __init__(self, llm=None, verbose: bool = True):
+        self.llm     = llm
         self.verbose = verbose
 
     # ---------------------------------------------------------------- #
@@ -115,7 +120,16 @@ class UnknownFormatAgent:
             self._log(f"       {len(schema.columns)} columns analysed" if schema.columns
                       else "       Non-tabular schema extracted")
         else:
-            self._log("       Format unrecognised — file marked as binary_unknown")
+            self._log("       Format unrecognised by static probers")
+            # ── Phase 4: LLM fallback ────────────────────────────────
+            if self.llm is not None:
+                self._log("  [4/4] LLM fallback — asking LLM to identify format…")
+                probe = self._llm_identify(path, hints, cs, probe)
+                self._log(f"       LLM result: {probe.format} (conf={probe.confidence:.2f})")
+                if probe.format != "binary_unknown":
+                    schema = extract_schema(path, probe)
+            else:
+                self._log("       No LLM available — marking as binary_unknown")
 
         # ── Assemble result ──────────────────────────────────────────
         discovery = self._build_discovery(path, probe, schema, hints, cs)
@@ -190,6 +204,88 @@ class UnknownFormatAgent:
         lines.append("=" * 60)
         discovery.summary_text = "\n".join(lines)
         return discovery
+
+    # ---------------------------------------------------------------- #
+    # LLM fallback                                                      #
+    # ---------------------------------------------------------------- #
+
+    def _llm_identify(
+        self,
+        path: str,
+        hints: list[FormatHint],
+        cs: ContentSample,
+        original_probe: ProbeResult,
+    ) -> ProbeResult:
+        """
+        Ask the LLM to identify the file format when all static probers fail.
+        Returns a ProbeResult with the LLM's best guess, or the original
+        binary_unknown result if the LLM cannot determine the format.
+        """
+        fname = os.path.basename(path)
+        size  = os.path.getsize(path)
+
+        hint_summary = ", ".join(
+            f"{h.format}({h.confidence:.0%})" for h in hints[:5]
+        ) or "none"
+
+        # Build a compact content snapshot for the LLM
+        content_snippet = ""
+        if cs.text_head:
+            content_snippet = cs.text_head[:600]
+        elif cs.hex_dump:
+            content_snippet = f"[hex] {cs.hex_dump[:300]}"
+
+        prompt = f"""You are a file format identification expert.
+
+A file could not be identified by any automated parser. Analyse the evidence below and identify the format.
+
+FILE: {fname}
+SIZE: {size:,} bytes
+MAGIC-BYTE HINTS: {hint_summary}
+
+CONTENT SAMPLE:
+{content_snippet}
+
+Reply in this exact format (no other text):
+FORMAT: <format name, e.g. csv / sqlite / arrow / protobuf / hdf5 / binary_unknown>
+CATEGORY: <tabular | text | image | audio | binary | archive>
+CONFIDENCE: <0.0–1.0>
+REASON: <one sentence>
+"""
+        try:
+            from langchain_core.messages import HumanMessage
+            response = self.llm.invoke([HumanMessage(content=prompt)])
+            text = response.content if hasattr(response, "content") else str(response)
+
+            fmt      = "binary_unknown"
+            category = "binary"
+            conf     = 0.3
+
+            for line in text.splitlines():
+                line = line.strip()
+                if line.startswith("FORMAT:"):
+                    fmt = line.split(":", 1)[1].strip().lower()
+                elif line.startswith("CATEGORY:"):
+                    category = line.split(":", 1)[1].strip().lower()
+                elif line.startswith("CONFIDENCE:"):
+                    try:
+                        conf = float(line.split(":", 1)[1].strip())
+                    except ValueError:
+                        pass
+
+            # Rebuild a minimal ProbeResult with LLM findings
+            return ProbeResult(
+                format=fmt,
+                category=category,
+                parser_used="llm_fallback",
+                confidence=conf,
+                parse_warnings=original_probe.parse_warnings + ["Identified by LLM fallback"],
+                raw_schema=original_probe.raw_schema,
+            )
+
+        except Exception as exc:
+            self._log(f"       LLM fallback failed: {exc}")
+            return original_probe
 
     # ---------------------------------------------------------------- #
     # Helpers                                                           #

@@ -208,6 +208,13 @@ class DataUnderstandingPhase(BasePhase):
             except Exception as exc:
                 print(f"[DataUnderstanding] ⚠️  Constraint discovery failed: {exc}")
 
+        # ── Stage 4: Validation round (validator checks agent claims vs. ground truth) ──
+        if self.validator and dataset_path:
+            try:
+                self._run_validation_round(dataset_path=dataset_path, target_col=target_col)
+            except Exception as exc:
+                print(f"[DataUnderstanding] ⚠️  Validation round failed: {exc}")
+
         # ── Summary ───────────────────────────────────────────────────────
         explorer_out = self._last_output("explorer")
         n_agents = 3 + (1 if ethics_notes else 0) + (1 if constraint_results else 0)

@@ -411,7 +411,33 @@ class Orchestrator:
 
         # --- Synthesize Final Report ---
         print("\n📋 [Final Report] Synthesising pipeline output...")
-        self.agent_results["final_report"] = self._synthesize_final_report()
+        if "storyteller" in self.agents:
+            # Build a structured brief of all agent outputs for the Storyteller
+            brief = self._synthesize_final_report()
+            storyteller_task = (
+                "You have received the full analysis from the entire data science team.\n"
+                "Write a compelling, well-structured final report that:\n"
+                "1. Opens with an executive summary (3-5 sentences)\n"
+                "2. Highlights the most important findings from each agent\n"
+                "3. Synthesises the recommended action plan in plain language\n"
+                "4. Closes with the top 3 risks and the single most important next step\n\n"
+                "Audience: a technical but non-specialist stakeholder. Be clear, specific, and actionable.\n\n"
+                f"FULL PIPELINE OUTPUT:\n{brief}"
+            )
+            try:
+                print(f"\n⚡ [AGENT:storyteller]")
+                self.agent_results["final_report"] = self.agents["storyteller"].run(
+                    context=self.context.get_context_string(),
+                    task=storyteller_task,
+                    run_id=self.run_id,
+                    role=ROLE_NARRATIVE,
+                )
+                print(f"\n✅ [AGENT_DONE:storyteller]")
+            except Exception as exc:
+                print(f"\n⚠️  Storyteller failed ({exc}), falling back to template report.")
+                self.agent_results["final_report"] = brief
+        else:
+            self.agent_results["final_report"] = self._synthesize_final_report()
         print("\n✅ [AGENT_DONE:final_report]")
 
         # --- Wait for any pending async compaction ---

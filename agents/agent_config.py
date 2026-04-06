@@ -162,10 +162,4 @@ AGENT_CONFIGS: dict[str, AgentConfig] = {
         sentiment_bias=0.7,       # narrative should be positive/compelling
         use_insight_forge=False,
     ),
-    "code_writer": AgentConfig(
-        activity_level=1.0,
-        stance="neutral",
-        sentiment_bias=0.0,
-        use_insight_forge=True,   # must recall what code patterns failed before
-    ),
 }

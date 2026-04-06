@@ -438,7 +438,8 @@ def _load_result(run_id: str) -> Optional[dict]:
 def _run_pipeline(cfg: dict) -> dict:
     from backends.llm_backends    import get_llm, get_fast_llm
     from agents import (ExplorerAgent, SkepticAgent, StatisticianAgent, EthicistAgent,
-                        PragmatistAgent, DevilAdvocateAgent, ArchitectAgent, OptimizerAgent)
+                        PragmatistAgent, DevilAdvocateAgent, ArchitectAgent, OptimizerAgent,
+                        StorytellerAgent)
     from agents.agent_config        import AGENT_CONFIGS
     from agents.base                import BaseAgent
     from memory.agent_memory        import MemorySystem
@@ -457,26 +458,29 @@ def _run_pipeline(cfg: dict) -> dict:
     if cfg.get("server_url"):
         llm_kw["base_url"] = cfg["server_url"]
 
+    # Build LLM first — DatasetDiscovery forwards it to UnknownFormatAgent
+    # as a last-resort fallback for files no static parser can identify.
+    llm      = get_llm(cfg["provider"], model=explicit_model, api_key=api_key, **llm_kw)
+    fast_llm = get_fast_llm(cfg["provider"], api_key=api_key, **llm_kw) if not explicit_model else llm
+
     print(f"\n📂 Scanning dataset: {cfg['dataset_path']}")
-    disc    = DatasetDiscovery()
+    disc    = DatasetDiscovery(llm=llm)
     profile = disc.scan(cfg["dataset_path"])
     print(f"   Files : {len(profile.files)}  |  Types : {', '.join(profile.types_present)}")
     ds_sum  = disc.format_profile(profile)
-
-    llm      = get_llm(cfg["provider"], model=explicit_model, api_key=api_key, **llm_kw)
-    fast_llm = get_fast_llm(cfg["provider"], api_key=api_key, **llm_kw) if not explicit_model else llm
     f = fast_llm
 
     agents = {
-        "explorer":         ExplorerAgent(llm,  config=AGENT_CONFIGS["explorer"]),
-        "skeptic":          SkepticAgent(f,      config=AGENT_CONFIGS["skeptic"]),
-        "statistician":     StatisticianAgent(llm, config=AGENT_CONFIGS["statistician"]),
+        "explorer":         ExplorerAgent(llm,       config=AGENT_CONFIGS["explorer"]),
+        "skeptic":          SkepticAgent(f,           config=AGENT_CONFIGS["skeptic"]),
+        "statistician":     StatisticianAgent(llm,    config=AGENT_CONFIGS["statistician"]),
         "feature_engineer": BaseAgent("Feature Engineer", FEATURE_ENGINEER_PROMPT, llm, config=AGENT_CONFIGS["feature_engineer"]),
-        "ethicist":         EthicistAgent(f,     config=AGENT_CONFIGS["ethicist"]),
-        "pragmatist":       PragmatistAgent(f,   config=AGENT_CONFIGS["pragmatist"]),
-        "devil_advocate":   DevilAdvocateAgent(f, config=AGENT_CONFIGS["devil_advocate"]),
-        "optimizer":        OptimizerAgent(llm,  config=AGENT_CONFIGS["optimizer"]),
-        "architect":        ArchitectAgent(llm,  config=AGENT_CONFIGS["architect"]),
+        "ethicist":         EthicistAgent(f,          config=AGENT_CONFIGS["ethicist"]),
+        "pragmatist":       PragmatistAgent(f,        config=AGENT_CONFIGS["pragmatist"]),
+        "devil_advocate":   DevilAdvocateAgent(f,     config=AGENT_CONFIGS["devil_advocate"]),
+        "optimizer":        OptimizerAgent(llm,       config=AGENT_CONFIGS["optimizer"]),
+        "architect":        ArchitectAgent(llm,       config=AGENT_CONFIGS["architect"]),
+        "storyteller":      StorytellerAgent(llm,     config=AGENT_CONFIGS["storyteller"]),
     }
 
     mem = (MemorySystem(agent_names=list(agents.keys()),

@@ -133,6 +133,11 @@ class DatasetDiscovery:
     # temp dirs created during archive extraction — caller may clean up
     _extracted_dirs: list[str] = []
 
+    def __init__(self, llm=None):
+        # LLM is forwarded to UnknownFormatAgent as a last-resort fallback
+        # for files that can't be identified by any static parser.
+        self.llm = llm
+
     def scan(self, path: str) -> DatasetProfile:
         path = os.path.abspath(path)
         if not os.path.exists(path):
@@ -144,7 +149,7 @@ class DatasetDiscovery:
                 path = self._extract_archive(path)
                 # fall through to directory walk below
             else:
-                fi = self._inspect(path)
+                fi = self._inspect(path, llm=self.llm)
                 return DatasetProfile(root=path, is_file=True, files=[fi])
 
         # ── Pass 1: full metadata walk (no reading) ──────────────────────
@@ -175,7 +180,7 @@ class DatasetDiscovery:
                       f"({skipped} skipped — represented in counts only)")
             for fpath in sample:
                 try:
-                    collected.append(self._inspect(fpath))
+                    collected.append(self._inspect(fpath, llm=self.llm))
                 except Exception as exc:
                     print(f"[Discovery] Skipping {os.path.basename(fpath)}: {exc}")
 

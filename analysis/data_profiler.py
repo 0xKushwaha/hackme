@@ -76,6 +76,21 @@ class DataProfiler:
 
         try:
             p = Path(path)
+
+            # If a directory is given, find the largest tabular file inside it
+            if p.is_dir():
+                tabular_exts = {
+                    ".csv", ".tsv", ".parquet", ".feather",
+                    ".json", ".jsonl", ".xlsx", ".xls", ".h5", ".hdf5",
+                }
+                candidates = [
+                    f for f in p.rglob("*")
+                    if f.is_file() and f.suffix.lower() in tabular_exts
+                ]
+                if not candidates:
+                    return None
+                p = max(candidates, key=lambda f: f.stat().st_size)
+
             ext = p.suffix.lower()
 
             if ext == ".csv":

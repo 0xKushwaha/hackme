@@ -13,7 +13,7 @@ export const PIPELINE_NODES: Omit<NodeData, 'content'>[] = [
   { key: 'skeptic',               label: 'Skeptic',            icon: '⚠', color: '#71717a', role: 'Quality Guard',        description: 'Challenges assumptions, flags anomalies and leakage.' },
   { key: 'statistician',          label: 'Statistician',       icon: '∑', color: '#d4d4d8', role: 'Numbers Expert',       description: 'Distributions, correlations, hypothesis testing.' },
   { key: 'ethicist',              label: 'Ethicist',           icon: '⚖', color: '#a1a1aa', role: 'Bias Detector',        description: 'Evaluates fairness and ethical implications.' },
-  { key: 'constraint_discovery',  label: 'Constraints',        icon: '⧖', color: '#818cf8', role: 'Structure Detector',   description: 'Finds compositional rules: A = B + C, algebraic dependencies.' },
+  { key: 'constraint_discovery',  label: 'Constraints',        icon: '⧖', color: '#a1a1aa', role: 'Structure Detector',   description: 'Finds compositional rules: A = B + C, algebraic dependencies.' },
   { key: 'feature_engineer',      label: 'Feature Eng.',       icon: '⟁', color: '#e4e4e7', role: 'Signal Extractor',     description: 'New features, encodings, and transformations.' },
   { key: 'pragmatist',            label: 'Pragmatist',         icon: '◈', color: '#d4d4d8', role: 'Reality Check',        description: 'Model plan — which models, eval metric, split.' },
   { key: 'devil_advocate',        label: 'Devil Adv.',         icon: '⛧', color: '#71717a', role: 'Critical Thinker',     description: 'Stress-tests the plan, proposes alternatives.' },

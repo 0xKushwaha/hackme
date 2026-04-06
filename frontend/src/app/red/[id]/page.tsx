@@ -21,19 +21,19 @@ const API = 'http://localhost:8000'
 const POLL_MS = 800
 
 interface GroupResult {
-  label:           string
-  members:         string[]
-  round1:          Record<string, string>
+  label: string
+  members: string[]
+  round1: Record<string, string>
   election_output: string
-  champion:        string
+  champion: string
 }
 
 interface RedResult {
-  personas:        string[]
-  groups:          Record<string, GroupResult>
-  champions:       string[]
+  personas: string[]
+  groups: Record<string, GroupResult>
+  champions: string[]
   champion_debate: Record<string, string>
-  synthesis:       string
+  synthesis: string
 }
 
 // ── Markdown renderer ───────────────────────────────────────────────
@@ -48,34 +48,34 @@ function Markdown({ text }: { text: string }) {
 
 export default function RedModePage() {
   const { id } = useParams<{ id: string }>()
-  const router  = useRouter()
+  const router = useRouter()
 
   // Phase 1 state
-  const [phase,        setPhase]        = useState<'phase1' | 'groups' | 'election' | 'champions' | 'synthesis'>('phase1')
+  const [phase, setPhase] = useState<'phase1' | 'groups' | 'election' | 'champions' | 'synthesis'>('phase1')
   const [phase1Agents, setPhase1Agents] = useState<string[]>([])
-  const [activeAgent,  setActiveAgent]  = useState('')
+  const [activeAgent, setActiveAgent] = useState('')
 
   // Tournament state
-  const [lastLine,             setLastLine]             = useState('')
-  const [activeGroup,          setActiveGroup]          = useState('')
-  const [doneGroups,           setDoneGroups]           = useState<string[]>([])
-  const [groupChampions,       setGroupChampions]       = useState<Record<string, string>>({})
-  const [activePersonas,       setActivePersonas]       = useState<string[]>([])
-  const [donePersonas,         setDonePersonas]         = useState<string[]>([])
-  const [synthesisDone,        setSynthesisDone]        = useState(false)
-  const [championDebateTimes,  setChampionDebateTimes]  = useState<Record<string, { start: number; end: number | null; duration: number | null }>>({})
-  const [nowTs,                setNowTs]                = useState(() => Date.now() / 1000)
-  const [done,           setDone]           = useState(false)
-  const [error,          setError]          = useState('')
-  const [result,         setResult]         = useState<RedResult | null>(null)
+  const [lastLine, setLastLine] = useState('')
+  const [activeGroup, setActiveGroup] = useState('')
+  const [doneGroups, setDoneGroups] = useState<string[]>([])
+  const [groupChampions, setGroupChampions] = useState<Record<string, string>>({})
+  const [activePersonas, setActivePersonas] = useState<string[]>([])
+  const [donePersonas, setDonePersonas] = useState<string[]>([])
+  const [synthesisDone, setSynthesisDone] = useState(false)
+  const [championDebateTimes, setChampionDebateTimes] = useState<Record<string, { start: number; end: number | null; duration: number | null }>>({})
+  const [nowTs, setNowTs] = useState(() => Date.now() / 1000)
+  const [done, setDone] = useState(false)
+  const [error, setError] = useState('')
+  const [result, setResult] = useState<RedResult | null>(null)
 
   // View state
   const [view, setView] = useState<'graph' | 'synthesis'>('graph')
 
   // Panel state
   const [selectedPersona, setSelectedPersona] = useState<string>('')
-  const [selectedGroup,   setSelectedGroup]   = useState<string>('')
-  const [activeTab,       setActiveTab]       = useState<'round1' | 'champion' | 'synthesis'>('round1')
+  const [selectedGroup, setSelectedGroup] = useState<string>('')
+  const [activeTab, setActiveTab] = useState<'round1' | 'champion' | 'synthesis'>('round1')
 
   const [leaving, setLeaving] = useState(false)
   const goHome = useCallback(() => setLeaving(true), [])
@@ -119,15 +119,15 @@ export default function RedModePage() {
     lines.push(`${result.synthesis}\n`)
 
     const blob = new Blob([lines.join('\n')], { type: 'text/markdown' })
-    const url  = URL.createObjectURL(blob)
-    const a    = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
     a.href = url; a.download = `red_mode_debate_${id}.md`; a.click()
     URL.revokeObjectURL(url)
   }, [result, id])
 
   const cursorRef = useRef(0)
-  const pollRef   = useRef<ReturnType<typeof setTimeout>>()
-  const isTest    = id.startsWith('test-')
+  const pollRef = useRef<ReturnType<typeof setTimeout>>()
+  const isTest = id.startsWith('test-')
 
   // ── Mock simulator (test mode) ────────────────────────────────────
   useEffect(() => {
@@ -229,11 +229,11 @@ export default function RedModePage() {
         personas: MOCK_PERSONAS,
         groups: Object.fromEntries(
           MOCK_GROUP_ORDER.map(gk => [gk, {
-            label:           MOCK_GROUPS[gk].label,
-            members:         MOCK_GROUPS[gk].members,
-            round1:          MOCK_ROUND1_OUTPUTS[gk] ?? {},
+            label: MOCK_GROUPS[gk].label,
+            members: MOCK_GROUPS[gk].members,
+            round1: MOCK_ROUND1_OUTPUTS[gk] ?? {},
             election_output: MOCK_ELECTION_OUTPUTS[gk] ?? '',
-            champion:        MOCK_GROUPS[gk].champion,
+            champion: MOCK_GROUPS[gk].champion,
           }])
         ),
         champions: Object.values(MOCK_GROUPS).map(g => g.champion),
@@ -251,29 +251,45 @@ export default function RedModePage() {
   // ── Poll for live updates (real mode only) ────────────────────────
   const poll = useCallback(async () => {
     try {
-      const res  = await fetch(`${API}/api/red-mode/poll/${id}?cursor=${cursorRef.current}`)
+      const res = await fetch(`${API}/api/red-mode/poll/${id}?cursor=${cursorRef.current}`)
       const data = await res.json()
 
       if (data.error && data.done) { setError(data.error); return }
 
       cursorRef.current = data.cursor ?? cursorRef.current
-      if (data.lines?.length)       setLastLine(data.lines[data.lines.length - 1])
-      if (data.phase)               setPhase(data.phase as typeof phase)
-      if (data.phase1Agents)        setPhase1Agents(data.phase1Agents)
-      if (data.phase === 'phase1' && data.agent) setActiveAgent(data.agent)
-      if (data.activePersonas)      setActivePersonas(data.activePersonas)
-      else if (data.phase !== 'phase1' && data.agent) setActivePersonas([data.agent])
-      if (data.activeGroup)         setActiveGroup(data.activeGroup)
-      if (data.doneGroups)          setDoneGroups(data.doneGroups)
-      if (data.groupChampions)      setGroupChampions(data.groupChampions)
-      if (data.donePersonas)        setDonePersonas(data.donePersonas)
-      else if (data.everActive)     setDonePersonas(data.everActive)
-      if (data.synthesisDone)          setSynthesisDone(data.synthesisDone)
-      if (data.championDebateTimes)    setChampionDebateTimes(data.championDebateTimes)
+      if (data.lines?.length) setLastLine(data.lines[data.lines.length - 1])
+      if (data.phase) setPhase(data.phase as typeof phase)
+      if (data.phase1Agents) setPhase1Agents(data.phase1Agents)
+      if (data.agent) {
+        let k = data.agent.toLowerCase().trim()
+        if (k === 'feateng') k = 'feature_engineer'
+        if (k === 'devils_adv') k = 'devil_advocate'
+        if (k === 'cons_disc') k = 'constraint_discovery'
+
+        // If it's a known Phase 1 agent, set it as the active agent.
+        // We do this regardless of data.phase to be resilient to 
+        // slight backend/frontend desyncs during transitions.
+        if (P1_ORDER.includes(k)) {
+          setActiveAgent(k)
+        } else {
+          // It's a persona or other stage agent
+          setActivePersonas([k])
+        }
+      }
+      if (data.activePersonas && data.activePersonas.length > 0) {
+        setActivePersonas(data.activePersonas)
+      }
+      if (data.activeGroup) setActiveGroup(data.activeGroup)
+      if (data.doneGroups) setDoneGroups(data.doneGroups)
+      if (data.groupChampions) setGroupChampions(data.groupChampions)
+      if (data.donePersonas) setDonePersonas(data.donePersonas)
+      else if (data.everActive) setDonePersonas(data.everActive)
+      if (data.synthesisDone) setSynthesisDone(data.synthesisDone)
+      if (data.championDebateTimes) setChampionDebateTimes(data.championDebateTimes)
 
       if (data.done) {
         setDone(true)
-        const res2   = await fetch(`${API}/api/red-mode/result/${id}`)
+        const res2 = await fetch(`${API}/api/red-mode/result/${id}`)
         const result = await res2.json()
         if (!result.error) {
           setResult(result)
@@ -298,22 +314,22 @@ export default function RedModePage() {
   }, [poll, isTest])
 
   // ── Derived ───────────────────────────────────────────────────────
-  const personas       = result?.personas ?? MOCK_PERSONAS
-  const championsSet   = new Set(result?.champions ?? Object.values(groupChampions))
+  const personas = result?.personas ?? MOCK_PERSONAS
+  const championsSet = new Set(result?.champions ?? Object.values(groupChampions))
 
   const displayName = (h: string) =>
     h.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 
   const stageLabel: Record<string, string> = {
-    groups:    'Stage A — Individual Round',
-    election:  'Stage A-elect — Champion Election',
+    groups: 'Stage A — Individual Round',
+    election: 'Stage A-elect — Champion Election',
     champions: 'Stage B — Champions',
     synthesis: 'Stage C — Synthesis',
   }
 
   // Panel open logic
-  const panelOpen    = !!selectedPersona || !!selectedGroup || (activeTab === 'synthesis' && !!result?.synthesis)
-  const panelColor   = selectedPersona ? (PERSONA_COLORS[selectedPersona] ?? '#e11d48') : '#e11d48'
+  const panelOpen = !!selectedPersona || !!selectedGroup || (activeTab === 'synthesis' && !!result?.synthesis)
+  const panelColor = selectedPersona ? (PERSONA_COLORS[selectedPersona] ?? '#e11d48') : '#e11d48'
 
   const closePanel = () => { setSelectedPersona(''); setSelectedGroup(''); setActiveTab('round1') }
 
@@ -380,7 +396,7 @@ export default function RedModePage() {
           {/* Stage label — only while running */}
           {!done && phase === 'phase1' && (
             <span style={{ fontSize: 10, fontFamily: 'JetBrains Mono', padding: '3px 10px', borderRadius: 6, color: '#ffffff', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.2)' }}>
-              Phase 1 — {phase1Agents.length}/9 agents
+              Phase 1 — {phase1Agents.length}/10 agents
             </span>
           )}
           {!done && phase !== 'phase1' && (
@@ -447,9 +463,9 @@ export default function RedModePage() {
               }
             }}
             onSelectSynthesis={() => {
-               setSelectedPersona('')
-               setSelectedGroup('')
-               setActiveTab('synthesis')
+              setSelectedPersona('')
+              setSelectedGroup('')
+              setActiveTab('synthesis')
             }}
             selectedPersona={selectedPersona}
             phase1Agents={phase1Agents}
@@ -641,6 +657,14 @@ export default function RedModePage() {
         @keyframes pulse-dot {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.4; transform: scale(0.75); }
+        }
+        @keyframes pulse-glow {
+          0%, 100% { opacity: 0.6; transform: scale(1); }
+          50% { opacity: 0.2; transform: scale(1.1); }
+        }
+        .pulse-poly {
+          animation: pulse-glow 2.5s ease-in-out infinite;
+          transform-origin: center;
         }
         .report h1 { font-size: 17px; font-weight: 700; color: #fff; margin: 20px 0 10px; }
         .report h2 { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.88); margin: 16px 0 8px; border-bottom: 1px solid rgba(220,38,38,0.18); padding-bottom: 6px; }

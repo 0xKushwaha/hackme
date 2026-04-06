@@ -198,6 +198,7 @@ class DataUnderstandingPhase(BasePhase):
                 )
             else:
                 print(f"\n⚡ [DataUnderstanding] Ethicist skipped (data quality={data_metrics.data_quality_score:.2f}, no sensitive signals detected)")
+                print(f"\n✅ [AGENT_DONE:ethicist]")
 
         # ── Stage 3: Constraint Discovery (find mathematical relationships) ──
         constraint_results = {}

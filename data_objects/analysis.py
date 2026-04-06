@@ -47,6 +47,18 @@ class FeatureAnalysis(DataObject):
     potential_leakage: bool = False
     leakage_reason: str = ""
 
+    # DataObject fields — declared here so dataclass __init__ accepts them as kwargs
+    verified: bool = False
+    confidence: float = 0.5
+    verification_method: str = ""
+
+    def __post_init__(self):
+        DataObject.__init__(self,
+            verified=self.verified,
+            confidence=self.confidence,
+            verification_method=self.verification_method,
+        )
+
     def to_text_summary(self) -> str:
         lines = [f"## Feature: {self.feature_name}"]
         lines.append(f"- Type: {self.data_type}")
@@ -143,6 +155,18 @@ class RelationshipAnalysis(DataObject):
     conditional_patterns: Dict[str, Any] = field(default_factory=dict)
     non_linear_info: Dict[str, Any] = field(default_factory=dict)  # e.g., LOWESS vs linear fit
 
+    # DataObject fields — declared here so dataclass __init__ accepts them as kwargs
+    verified: bool = False
+    confidence: float = 0.5
+    verification_method: str = ""
+
+    def __post_init__(self):
+        DataObject.__init__(self,
+            verified=self.verified,
+            confidence=self.confidence,
+            verification_method=self.verification_method,
+        )
+
     def to_text_summary(self) -> str:
         lines = [f"## Relationship: {self.feature_a} ↔ {self.feature_b}"]
         lines.append(f"- Type: {self.relationship_type}")
@@ -220,6 +244,18 @@ class ValidationResult(DataObject):
     overall_accuracy: float = 0.0  # % of claims that matched actual data
     recommendation: str = ""  # e.g., "refine feature list", "reconsider correlations"
     refinement_needed: bool = False
+
+    # DataObject fields — declared here so dataclass __init__ accepts them as kwargs
+    verified: bool = False
+    confidence: float = 0.5
+    verification_method: str = ""
+
+    def __post_init__(self):
+        DataObject.__init__(self,
+            verified=self.verified,
+            confidence=self.confidence,
+            verification_method=self.verification_method,
+        )
 
     def to_text_summary(self) -> str:
         lines = [f"## Validation Report: {self.agent_name}"]
@@ -307,6 +343,18 @@ class ConstraintAnalysis(DataObject):
 
     # Set by engine if long-format was detected and pivoted
     pivot_info: Optional[Dict[str, Any]] = None
+
+    # DataObject fields — declared here so dataclass __init__ accepts them as kwargs
+    verified: bool = False
+    confidence: float = 0.5
+    verification_method: str = ""
+
+    def __post_init__(self):
+        DataObject.__init__(self,
+            verified=self.verified,
+            confidence=self.confidence,
+            verification_method=self.verification_method,
+        )
 
     def to_text_summary(self) -> str:
         lines = ["## Constraint Analysis"]

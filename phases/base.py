@@ -89,16 +89,47 @@ class BasePhase:
         return ""
 
     @staticmethod
+    def resolve_primary_file(path: str) -> str:
+        """
+        If path is a directory, returns the path to the largest tabular file
+        found recursively within it. If path is already a file, returns it unchanged.
+
+        Raises ValueError if no tabular files are found.
+        """
+        from pathlib import Path
+
+        p = Path(path)
+        if p.is_file():
+            return path
+
+        tabular_exts = {
+            ".csv", ".tsv", ".parquet", ".feather",
+            ".json", ".jsonl", ".xlsx", ".xls", ".h5", ".hdf5",
+        }
+        candidates = [
+            f for f in p.rglob("*")
+            if f.is_file() and f.suffix.lower() in tabular_exts
+        ]
+        if not candidates:
+            raise ValueError(f"No tabular files found in directory: {path}")
+        # Pick the largest — usually the primary training set
+        primary = max(candidates, key=lambda f: f.stat().st_size)
+        return str(primary)
+
+    @staticmethod
     def load_dataframe(path: str, max_rows: int = None):
         """
         Robust tabular file loader shared by all phases.
+
+        Accepts a file path OR a directory — if a directory is given, the
+        largest tabular file found recursively inside it is loaded.
 
         Uses Path.suffix for reliable extension detection and explicit
         engine/format arguments to prevent pyarrow from treating CSV
         files as parquet (triggered by chromadb's pyarrow initialization).
 
         Args:
-            path:     Absolute path to the dataset file.
+            path:     Absolute path to a tabular file or dataset directory.
             max_rows: If set, only this many rows are loaded (faster, less RAM).
 
         Returns:
@@ -107,6 +138,8 @@ class BasePhase:
         import pandas as pd
         from pathlib import Path
 
+        # Resolve directory → primary file
+        path = BasePhase.resolve_primary_file(path)
         ext = Path(path).suffix.lower()
 
         if ext == ".csv":

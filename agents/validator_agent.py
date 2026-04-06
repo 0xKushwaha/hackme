@@ -71,20 +71,34 @@ class ValidatorAgent(BaseAgent):
         Returns:
             ValidationResult object
         """
-        # Build validation task
+        # Build validation task — cap inputs to stay within context limits
+        MAX_RELATIONSHIPS = 40
+        MAX_AGENT_OUTPUT_CHARS = 3000
+
+        # Sort relationships by strength descending and take top N
+        sorted_rels = sorted(
+            ground_truth_relationships.items(),
+            key=lambda kv: getattr(kv[1], "strength", 0.0),
+            reverse=True,
+        )[:MAX_RELATIONSHIPS]
+
         task_lines = [
             f"Validate agent claims for phase: {phase}",
+            f"(showing top {len(sorted_rels)} relationships by strength)",
             "",
             "GROUND TRUTH RELATIONSHIPS (from actual data):",
         ]
 
-        for key, rel in ground_truth_relationships.items():
+        for key, rel in sorted_rels:
             summary = rel.to_text_summary()
             task_lines.append(f"\n{summary}")
 
         task_lines.append("\n\nAGENT CLAIMS TO VERIFY:")
         for agent_name, output in agent_outputs.items():
-            task_lines.append(f"\n[{agent_name}]\n{output}")
+            truncated = output[:MAX_AGENT_OUTPUT_CHARS]
+            if len(output) > MAX_AGENT_OUTPUT_CHARS:
+                truncated += "\n[... truncated for context length ...]"
+            task_lines.append(f"\n[{agent_name}]\n{truncated}")
 
         task_text = "\n".join(task_lines)
 

@@ -1,469 +1,317 @@
 # Multi-Agent Data Science Team
 
-An autonomous data science pipeline where a team of specialized AI agents collaborates to analyse **any dataset** — CSV, Parquet, images, audio, JSON, multi-file directories. Browse the dataset, understand patterns, design models, and generate architectural recommendations. All backed by a persistent memory system to learn from prior runs.
+An autonomous AI-powered data science assistant. Drop in any dataset — CSV, Parquet, images, audio, JSON — and a team of specialized AI agents will analyze it, design a model architecture, and produce a full report.
 
-Plus a **Red Mode** tournament where 20 real-world AI researcher personas debate the dataset in a structured multi-stage competition.
+Also includes **Red Mode**: a live debate tournament where 20 real AI researcher personas (Andrej Karpathy, Geoffrey Hinton, Yann LeCun, etc.) argue over your dataset and synthesize a verdict.
 
-**Current Status:** Phase 1 (Data Understanding), Phase 2 (Model Design), and Red Mode fully implemented. Phases 3–5 in development. FastAPI + Next.js frontend with live D3 agent graph visualization.
+**Stack:** FastAPI + Next.js · Claude / OpenAI / local vLLM · ChromaDB memory · D3.js visualization
 
 ---
 
-## Quick Start
+## What It Does
 
-### 1. Install dependencies
+| Mode | What happens |
+|---|---|
+| **Standard Analysis** | 9 specialized agents analyze your dataset across two phases: EDA (Explorer, Skeptic, Statistician, Ethicist) then Model Design (Feature Engineer, Pragmatist, Devil's Advocate, Optimizer, Architect). Final synthesis report included. |
+| **Red Mode** | Runs standard analysis first, then 20 AI researcher personas debate the dataset in a structured 3-stage tournament (group debates → champion round → synthesis). |
+
+---
+
+## Installation & Setup
+
+### Prerequisites
+
+- **Python 3.8+** — [python.org](https://python.org)
+- **Node.js 18+** — [nodejs.org](https://nodejs.org)
+- An API key from [Anthropic](https://console.anthropic.com) or [OpenAI](https://platform.openai.com) *(or a local model — see below)*
+
+---
+
+### Step 1 — Clone the repo
 
 ```bash
-git clone <repo>
-cd hackathon
+git clone <repo-url>
+cd hackme
+```
+
+---
+
+### Step 2 — Set up Python environment
+
+It's recommended to use a virtual environment:
+
+```bash
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 2. Set up API key
+> **Note:** `requirements.txt` includes LangChain, ChromaDB, FastAPI, pandas, scikit-learn, XGBoost, PyArrow, and more. Install may take a minute.
 
-Copy `.env` and fill in your key:
+---
+
+### Step 3 — Configure your API key
+
+Copy the example env file and fill in your key:
 
 ```bash
+cp .env.example .env
+```
+
+Open `.env` and set the key for whichever provider you'll use:
+
+```env
+# For Claude (Anthropic) — recommended
 ANTHROPIC_API_KEY=sk-ant-...
-# or
+
+# For OpenAI
 OPENAI_API_KEY=sk-...
 
-# For local vLLM (optional)
-VLLM_URL=http://localhost:8080/v1
+# For a local model (vLLM / Ollama / LM Studio)
+VLLM_URL=http://localhost:8000/v1
 VLLM_MODEL=mistral-7b-instruct
 ```
 
-### 3. Start the backend
+You only need to fill in the provider you plan to use.
 
-```bash
-python server.py
-# Runs at http://localhost:8000
-```
+---
 
-### 4. Start the frontend
+### Step 4 — Install frontend dependencies
 
 ```bash
 cd frontend
 npm install
-npm run dev
-# Opens at http://localhost:3000
+cd ..
 ```
 
 ---
 
-## Web UI
-
-Modern Next.js frontend with animated matrix-rain background.
-
-**Home** — Select your LLM provider (Claude, OpenAI, or local vLLM), enter your API key, pick a dataset file or folder, optionally describe your goal. Choose between **Standard Analysis** or **Red Mode** debate. Click **Launch**.
-
-**Live Run** — Watch agents work in real time on a D3 force-directed graph. Each agent node is color-coded and lights up as it becomes active. Click any node to see:
-- Running description card while agent is active
-- Full markdown output in a side drawer once complete
-
-**Summary View** — After pipeline finishes, switch to the `SYNTHESIS` tab to browse every agent's output as expandable cards. Click to expand inline. Export the full analysis as `.md`.
-
-Results persist to disk and cache in `sessionStorage` — switch tabs to restore state.
-
----
-
-## Red Mode
-
-A structured multi-stage AI researcher debate tournament. 20 personas (Andrej Karpathy, Geoffrey Hinton, Yann LeCun, etc.) compete to produce the best analysis of your dataset.
-
-```
-Phase 1  — Standard pipeline (all 9 agents analyse the dataset)
-             │
-             ▼
-Stage A  — Group debates (5 groups × 4 personas each)
-           Each persona argues their take on the dataset
-           Group champion selected per round
-             │
-             ▼
-Stage B  — Champions debate (5 winners cross-examine each other)
-             │
-             ▼
-Stage C  — Synthesis (final report combining all perspectives)
-```
-
-**Red Mode UI:**
-- Animated crimson matrix background during the debate
-- Force-directed graph showing all 20 personas, group clusters, and champion connections
-- Real-time glow on active personas; checkmark on completed ones
-- Side panel per persona: Round 1 output, champion debate, group election summary
-- `GRAPH` / `SYNTHESIS` tabs on completion
-- Download full report as `.md` (all stages + champion outputs + synthesis)
-
----
-
-## CLI
+### Step 5 — Start the backend
 
 ```bash
-# Single file analysis with phases mode
-python main.py --dataset data.csv --provider claude --mode phases --target SalePrice
-
-# Directory analysis
-python main.py --dataset ./my_dataset/ --provider claude --mode phases
-
-# Local vLLM
-python main.py --dataset ./data/ --provider local --base-url http://localhost:8080/v1 --mode phases
-
-# Manual mode (fixed agent sequence, no LLM-driven routing)
-python main.py --dataset data.csv --provider claude --mode manual
-
-# Disable long-term memory (faster for testing)
-python main.py --dataset data.csv --provider claude --mode phases --no-memory
-
-# Fallback to OpenAI on Claude rate limit
-python main.py --dataset data.csv --provider claude --fallback openai --mode phases
+python server.py
 ```
 
-### CLI flags
+The API runs at **http://localhost:8000**
+
+---
+
+### Step 6 — Start the frontend
+
+In a separate terminal:
+
+```bash
+cd frontend
+npm run dev
+```
+
+Open **http://localhost:3000** in your browser.
+
+---
+
+## Using the Web UI
+
+**Home page:**
+1. Select your LLM provider (Claude, OpenAI, or local vLLM)
+2. Enter your API key *(saved locally, never transmitted elsewhere)*
+3. Pick a dataset file or folder
+4. Optionally describe your goal (e.g. "predict churn", "find anomalies")
+5. Choose **Standard Analysis** or **Red Mode**
+6. Click **Launch**
+
+**Live Run page:**
+- Watch agents work in real time on a D3 force-directed graph
+- Each agent node lights up when active — click it to see its output
+- Full markdown output appears in a side drawer when each agent finishes
+
+**Summary View:**
+- After the run, browse every agent's output as expandable cards
+- Export the full analysis as a `.md` file
+
+---
+
+## CLI Usage
+
+You can also run analysis from the command line without the frontend:
+
+```bash
+# Basic analysis
+python main.py --dataset data.csv --provider claude --mode phases
+
+# Specify a target column (for supervised learning)
+python main.py --dataset data.csv --provider claude --mode phases --target SalePrice
+
+# Analyze a folder of files
+python main.py --dataset ./my_dataset/ --provider claude --mode phases
+
+# Use OpenAI
+python main.py --dataset data.csv --provider openai --mode phases
+
+# Use a local model
+python main.py --dataset data.csv --provider local --base-url http://localhost:8000/v1 --mode phases
+
+# Faster testing (disable persistent memory)
+python main.py --dataset data.csv --provider claude --mode phases --no-memory
+```
+
+### CLI Flags
 
 | Flag | Default | Description |
 |---|---|---|
-| `--dataset` | required | File or directory path (any format) |
+| `--dataset` | required | File or folder path (any supported format) |
 | `--provider` | `claude` | `claude` / `openai` / `local` |
-| `--model` | provider default | Model name override (e.g., `gpt-4-turbo`) |
-| `--base-url` | — | vLLM / Ollama / LM Studio server URL |
-| `--fallback` | — | Fallback provider on rate limit |
-| `--fallback-model` | — | Fallback model name |
-| `--mode` | `manual` | `phases` (Recommended) / `manual` / `auto` |
-| `--target` | — | Target column for supervised learning (auto-detected if blank) |
-| `--no-memory` | off | Disable ChromaDB long-term memory |
-| `--max-agents` | `5` | Max concurrent agents |
+| `--mode` | `manual` | `phases` (recommended) / `manual` / `auto` |
+| `--target` | — | Target column name for supervised tasks |
+| `--model` | provider default | Override model name (e.g. `gpt-4-turbo`) |
+| `--base-url` | — | URL for local vLLM / Ollama / LM Studio |
+| `--fallback` | — | Fallback provider if rate-limited |
+| `--no-memory` | off | Skip ChromaDB long-term memory (faster) |
+| `--max-agents` | `5` | Max agents running concurrently |
 | `--save-log` | off | Save full context log to JSON |
 
 ---
 
-## How It Works
+## Supported Dataset Formats
 
-```
-Dataset + Task Description (from UI or CLI)
-        │
-        ▼
-  DatasetDiscovery          — scans any file/directory, detects format
-        │
-        ▼
-  DataProfiler              — pre-LLM stats: shape, missing %, outliers,
-                              class imbalance, quality score 0–1
-        │
-        ▼
-┌── Phase 1: Data Understanding ──────────────────────────────────┐
-│  ✅ IMPLEMENTED                                                   │
-│                                                                  │
-│  Explorer        → patterns, correlations, key features          │
-│  Skeptic         → outliers, leakage, data quality issues        │
-│  Statistician    → distributions, hypothesis tests               │
-│  Ethicist        → bias and fairness review (conditional)        │
-│  LibraryInstaller→ auto pip-installs missing packages if needed  │
-└─────────────────────────────────────────────────────────────────┘
-        │
-        ▼
-┌── Phase 2: Model Design ────────────────────────────────────────┐
-│  ✅ IMPLEMENTED                                                   │
-│                                                                  │
-│  Feature Engineer → new features, transformations, encodings     │
-│  Pragmatist       → model selection and eval metric plan         │
-│  Devil's Advocate → challenges the plan, proposes alternatives   │
-│  Optimizer        → hyperparameter strategy, CV, ensembles       │
-└─────────────────────────────────────────────────────────────────┘
-        │
-        ▼
-┌── Phase 3: Code Generation ─────────────────────────────────────┐
-│  🚧 IN DEVELOPMENT                                               │
-│                                                                  │
-│  CodeWriter → generate training script                           │
-│  Executor   → run as subprocess                                  │
-│  Retry on error → auto pip-install + DiagnosticAgent analysis   │
-└─────────────────────────────────────────────────────────────────┘
-        │
-        ▼
-┌── Phase 4: Validation ──────────────────────────────────────────┐
-│  🚧 IN DEVELOPMENT                                               │
-│                                                                  │
-│  Skeptic + Devil's Advocate → stress-test results                │
-└─────────────────────────────────────────────────────────────────┘
-        │
-        ▼
-┌── Phase 5: Architecture + Final Report ─────────────────────────┐
-│  ✅ IMPLEMENTED (Architecture + Synthesis)                      │
-│                                                                  │
-│  Architect      → design arch (research-backed, arxiv refs)      │
-│  Final Report   → synthesised markdown with all agent outputs    │
-└─────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Agent Team
-
-| Agent | Phase(s) | Role | Personality |
-|---|---|---|---|
-| **Explorer** | 1 (EDA) | Patterns, correlations, key features | Curious, optimistic, insight-focused |
-| **Skeptic** | 1, 4 | Data quality — outliers, leakage, bias | Aggressively critical |
-| **Statistician** | 1 | Distributions, hypothesis tests, multicollinearity | Rigorous, neutral |
-| **Feature Engineer** | 2 | New features, transformations, encodings | Inventive, practical |
-| **Ethicist** | 1 | Bias, fairness, responsible AI ethics | Cautious observer |
-| **Pragmatist** | 2 | Model selection, eval metric strategy | Results-driven, fast-tier |
-| **Devil's Advocate** | 2, 4 | Challenges plan, proposes alternatives | Maximally contrarian, fast-tier |
-| **Optimizer** | 2 | Hyperparameter tuning, CV strategy, ensembles | Performance-obsessed |
-| **Architect** | 5 | Research-backed architecture design with arxiv + Wikipedia citations | Systems-thinker |
-| **Storyteller** | 5 | Narrative synthesis, report composition | Communicative |
-| **LibraryInstallerAgent** | 1, 3 | Auto-detects and pip-installs missing packages | Autonomous ops |
-| **DataProfiler** | Pre-phase | Dataset scanning, format detection, quality scoring | Observational |
-
-Agent personalities adapt at runtime — if data quality is low or errors occur, agents shift to more aggressive/redesign-focused modes. Fast-tier agents (marked above) use optimized models for speed on critique/planning tasks.
-
----
-
-## Red Mode Personas
-
-20 researcher personas drawn from real AI practitioners:
-
-Andrej Karpathy · Andrew Ng · Chip Huyen · Chris Olah · Edward Yang · Ethan Mollick · François Chollet · Geoffrey Hinton · Jay Alammar · Jeremy Howard · Jonas Mueller · Lilian Weng · Matei Zaharia · Sam Altman · Santiago Valdarrama · Sebastian Raschka · Shreya Rajpal · Tim Dettmers · Vicki Boykis · Yann LeCun
-
-Each persona has a distinct analytical style, communication voice, and area of expertise that influences how they debate the dataset.
-
----
-
-## Supported Formats
-
-Point `--dataset` at any file or directory. DatasetDiscovery auto-detects:
-
-| Type | Formats Detected |
+| Type | Formats |
 |---|---|
 | Tabular | `.csv` `.tsv` `.parquet` `.feather` `.json` `.jsonl` `.xlsx` `.h5` |
 | Images | `.jpg` `.png` `.tiff` `.webp` `.gif` `.bmp` |
 | Text / NLP | `.txt` `.md` `.xml` `.yaml` `.log` |
 | Audio | `.wav` `.mp3` `.flac` `.ogg` |
-| Multi-table | Directory with multiple CSVs or parquet files |
+| Multi-table | Folder with multiple CSVs or Parquet files |
 | Mixed | Images + CSV labels, audio + metadata, etc. |
 
-For non-tabular or unrecognised formats, **UnknownFormatAgent** runs a 3-phase investigation (magic-byte sniff → 30+ parser probe → deep schema extraction) and reports what it finds. Large Parquet files are streamed via PyArrow — never fully loaded into memory for initial profiling.
+For unrecognized formats, `UnknownFormatAgent` runs a 3-phase deep investigation (magic-byte sniff → 30+ parser probes → schema extraction).
+
+---
+
+## Red Mode
+
+A structured AI researcher debate tournament. 20 personas compete to produce the best analysis of your dataset.
+
+```
+Standard Analysis (all 9 agents)
+          │
+          ▼
+Stage A — Group Debates
+          5 groups × 4 personas each
+          Each persona argues their take
+          Group champion selected
+          │
+          ▼
+Stage B — Champion Debate
+          5 winners cross-examine each other
+          │
+          ▼
+Stage C — Synthesis
+          Final report combining all perspectives
+```
+
+**Personas:** Andrej Karpathy · Andrew Ng · Chip Huyen · Chris Olah · Edward Yang · Ethan Mollick · François Chollet · Geoffrey Hinton · Jay Alammar · Jeremy Howard · Jonas Mueller · Lilian Weng · Matei Zaharia · Sam Altman · Santiago Valdarrama · Sebastian Raschka · Shreya Rajpal · Tim Dettmers · Vicki Boykis · Yann LeCun
+
+---
+
+## Agent Team
+
+| Agent | Phase | Role |
+|---|---|---|
+| **Explorer** | 1 | Patterns, correlations, key features |
+| **Skeptic** | 1, 4 | Data quality — outliers, leakage, bias |
+| **Statistician** | 1 | Distributions, hypothesis tests |
+| **Ethicist** | 1 | Bias, fairness, responsible AI |
+| **Feature Engineer** | 2 | New features, transformations, encodings |
+| **Pragmatist** | 2 | Model selection, eval strategy |
+| **Devil's Advocate** | 2, 4 | Challenges the plan, proposes alternatives |
+| **Optimizer** | 2 | Hyperparameter tuning, CV, ensembles |
+| **Architect** | 5 | Research-backed architecture design |
+| **Storyteller** | 5 | Final report synthesis |
 
 ---
 
 ## Memory System
 
-Each agent has individual long-term memory across runs — they learn what worked and avoid repeating failures.
+Agents have persistent long-term memory across runs — they learn what worked and avoid repeating failures.
 
-```
-Working Memory (ContextManager)
-  ├─ Current run timeline (pinned: dataset summary + task)
-  ├─ Token-aware trimming (oldest-first, non-pinned only)
-  └─ At 85% capacity: LLM summarizes oldest 60% + quality audit
-        ↓
-Long-term Memory (ChromaDB, per agent)
-  ├─ Hybrid search: 55% BM25 keyword + 45% vector similarity
-  ├─ Temporal decay: errors fade in 3 days, code in 90 days
-  ├─ Failed run memories auto-expired — never repeated
-  ├─ Insight Forge: multi-query decomposition for broad context
-  └─ MMR re-ranking for result diversity
-        ↓
-Knowledge Graph (SQLite)
-  ├─ Nodes = agent execution steps
-  ├─ Edges = INFORMED_BY / RETRY_OF / FAILURE_LED_TO / CROSS_RUN
-  ├─ Audit trail = full agent activity log per run
-  └─ Query interface for analyzing causality
-```
-
-**Why This Matters:** Agents don't start from scratch each time. If Feature Engineer found a good encoding last run, Pragmatist will reference it. If a retry strategy failed, that memory is marked as poisoned and won't be suggested again.
-
----
-
-## Security
-
-The backend is hardened for local development use:
-
-- **CORS** restricted to `localhost:3000` with explicit method/header allowlist
-- **Server binding** on `127.0.0.1` only — not exposed on LAN
-- **Input validation** on all endpoints: path traversal rejected, field length limits enforced, persona names allowlisted
-- **Credentials file** written with `chmod 600` — owner-read only
-- **Error responses** return generic messages; full stack traces logged server-side only
-- **Pickle deserialization disabled** — `UnknownFormatAgent` will not load `.pkl` files
-- **No LLM-generated code execution** — the adaptive parser feature that wrote and ran LLM-generated scripts has been removed entirely
-- **XSS** — all markdown rendered via `react-markdown`, no `dangerouslySetInnerHTML`
-- **Session data** stored in `sessionStorage` (cleared on tab close), not `localStorage`
-
-> The `.env` file is gitignored. Never commit real API keys.
+- **Working Memory** — token-aware context trimming; auto-compacts at 85% capacity
+- **Long-term Memory** — ChromaDB vector store with hybrid BM25 + semantic search, per agent
+- **Knowledge Graph** — SQLite graph tracking agent decisions, retries, and cross-run causality
+- **Temporal Decay** — errors fade after 3 days; old code forgotten after 90 days
 
 ---
 
 ## Project Structure
 
 ```
-hackathon/
-├── server.py                  ← FastAPI backend (start here)
-├── main.py                    ← CLI entry point
+hackme/
+├── server.py              ← FastAPI backend (start here)
+├── main.py                ← CLI entry point
 ├── requirements.txt
+├── .env.example           ← Copy to .env and fill in keys
 │
-├── frontend/                  ← Next.js web UI (TypeScript + Tailwind)
+├── frontend/              ← Next.js web UI
 │   └── src/
-│       ├── app/
-│       │   ├── page.tsx           # Home — provider + dataset + launch
-│       │   ├── run/[id]/page.tsx  # Live run + summary view
-│       │   └── red/[id]/page.tsx  # Red Mode debate view
-│       ├── components/
-│       │   ├── PipelineGraph.tsx  # D3 force-directed agent graph
-│       │   ├── RedModeGraph.tsx   # Red Mode persona tournament graph
-│       │   ├── Background.tsx     # Animated matrix-rain background
-│       │   ├── GlobalBackground.tsx
-│       │   └── PageTransition.tsx # Smooth page transitions
-│       └── lib/
-│           ├── mockPipeline.ts    # Test mode mock data
-│           └── mockRedMode.ts     # Red mode mock data
+│       ├── app/           # Pages: home, live run, red mode
+│       └── components/    # D3 graph, matrix background, etc.
 │
-├── agents/                    # ✅ Phases 1-2 agents implemented
-│   ├── base.py                # BaseAgent — core + memory interface
-│   ├── agent_config.py        # Behavioral configs (adapt on failure)
-│   ├── analyst_agents.py      # Explorer, Skeptic, Statistician, Ethicist
-│   ├── planner_agents.py      # Pragmatist, Devil's Advocate, Architect
-│   ├── storyteller_agent.py   # Final report synthesis
-│   ├── installer_agent.py     # Auto pip-install missing packages
-│   └── unknown_format_agent.py # Non-tabular format detection (3-phase)
+├── agents/                # All agent implementations
+├── orchestration/         # Pipeline coordination + routing
+├── phases/                # Phase 1 (EDA) + Phase 2 (Model Design)
+├── red_mode/              # Persona debate tournament
+├── personas/              # 20 researcher persona definitions
+├── memory/                # ChromaDB + SQLite knowledge graph
+├── analysis/              # Pre-LLM data profiling
+├── backends/              # Claude / OpenAI / vLLM routing
+├── tools/                 # Format sniffing, schema extraction
+├── prompts/               # Agent prompt templates
 │
-├── orchestration/
-│   ├── orchestrator.py        # Core: manual/auto/phases modes
-│   ├── registry.py            # Agent execution registry + state tracking
-│   └── conversation_manager.py # Multi-agent discussions
-│
-├── phases/                    # ✅ Phases 1-2, 🚧 Phases 3-5 in dev
-│   ├── base.py                # BasePhase class
-│   ├── discovery.py           # DatasetDiscovery — format detection
-│   ├── data_understanding.py  # Phase 1 ✅
-│   └── model_design.py        # Phase 2 ✅
-│
-├── red_mode/                  # ✅ Red Mode tournament
-│   ├── orchestrator.py        # Tournament coordinator
-│   ├── rounds.py              # Group + champion debate logic
-│   ├── grouping.py            # Persona grouping + champion election
-│   ├── brief_builder.py       # Phase 1 → Red Mode brief handoff
-│   └── persona_loader.py      # Load persona markdown files
-│
-├── personas/                  # 20 researcher persona markdown files
-│
-├── memory/
-│   ├── context_manager.py     # Working memory + token management
-│   ├── agent_memory.py        # Per-agent interface
-│   ├── vector_store.py        # ChromaDB with temporal decay
-│   ├── hybrid_search.py       # BM25 + vector + MMR ranking
-│   ├── graph_store.py         # SQLite knowledge graph
-│   └── compaction.py          # LLM-based summarization + audit
-│
-├── analysis/
-│   └── data_profiler.py       # Pre-LLM dataset statistics
-│
-├── backends/
-│   ├── llm_backends.py        # Claude / OpenAI / vLLM routing
-│   └── fallback.py            # Multi-provider fallback on rate limit
-│
-├── tools/
-│   ├── format_sniffer.py      # Magic-byte file format detection
-│   ├── content_sampler.py     # Raw content sampling
-│   ├── structure_prober.py    # 30+ format probers
-│   └── schema_extractor.py    # Column/schema analysis
-│
-├── prompts/
-│   ├── analyst_prompts.py     # Explorer, Skeptic, Statistician prompts
-│   ├── planner_prompts.py     # Pragmatist, Devil's Advocate, etc.
-│   └── orchestrator_prompt.py # Routing + coordination logic
-│
-└── experiments/               # Auto-created on first run
-    ├── context_*.json         # Full context logs per run
-    ├── registry.json          # Agent execution history
-    ├── chroma_db/             # ✅ Per-agent vector store
-    ├── graph.db               # ✅ Knowledge graph
-    └── results/               # Persisted run results
+└── experiments/           # Auto-created on first run
+    ├── results/           # Persisted run results (JSON)
+    ├── chroma_db/         # Per-agent vector memory
+    └── graph.db           # Knowledge graph
 ```
 
-**Legend:** ✅ = Implemented, 🚧 = In Development
+---
+
+## Troubleshooting
+
+**`ModuleNotFoundError` on startup**
+Run `pip install -r requirements.txt` inside your virtual environment.
+
+**Frontend can't connect to backend**
+Make sure `python server.py` is running and shows `Uvicorn running on http://127.0.0.1:8000`.
+
+**API key not working**
+Check that `.env` exists (not just `.env.example`) and the key has no extra spaces or quotes.
+
+**Run hangs or times out**
+Try adding `--no-memory` flag (CLI) or disabling memory in the UI — this skips ChromaDB initialization which can be slow on first run.
+
+**File picker doesn't open (Linux)**
+The native file picker requires a display (`$DISPLAY` or `$WAYLAND_DISPLAY`). If running headless, type the dataset path manually in the UI.
+
+---
+
+## Security Notes
+
+- The backend binds to `127.0.0.1` only — not exposed on your network
+- CORS is restricted to `localhost:3000`
+- API keys are saved locally at `~/.ds_agent_team.json` with `chmod 600`
+- No LLM-generated code is executed — safe for local use
+- Pickle deserialization is disabled
+
+> Never commit your `.env` file — it's gitignored.
 
 ---
 
 ## Development Status
 
-### ✅ Completed
+**Done:** Phase 1 (EDA), Phase 2 (Model Design), Red Mode tournament, memory system, multi-provider support, web UI with live D3 graph
 
-- **Frontend:** Home, Live Run, Summary, and Red Mode pages with D3 graph visualization
-- **Backend:** FastAPI with credentials, file browse, run polling, result retrieval, input validation
-- **Phase 1 (Data Understanding):** All EDA agents (Explorer, Skeptic, Statistician, Ethicist)
-- **Phase 2 (Model Design):** Feature Engineer, Pragmatist, Devil's Advocate, Optimizer
-- **Red Mode:** 20-persona tournament (group debates → champion round → synthesis), full report download
-- **Memory System:** ChromaDB (per-agent), SQLite graph, hybrid search, temporal decay, compaction
-- **Agent Framework:** Base agent class, behavioral configs, registry, context manager
-- **Dataset Discovery:** Format detection, profiling, multi-file handling
-- **Multi-Provider Support:** Claude, OpenAI, local vLLM with fallback routing
-- **Security Hardening:** CORS, path traversal, input validation, no pickle, no LLM code exec, XSS protection
-
-### 🚧 In Development
-
-- **Phase 3 (Code Generation):** CodeWriter, executor, retry loop, error classification
-- **Phase 4 (Validation):** Stress-testing and validation agents
-- **Execution Layer:** Subprocess runner, tool validator, 3-stage compilation checking
-- **BuilderAgent:** Custom tool generation for non-tabular data
-- **Result Persistence:** JSON export, run history, model artifact storage
-
-### 📝 Future
-
-- Streaming UI updates for real-time agent metrics
-- Model training script export + inference serving suggestions
-- Cross-run experiment comparison dashboard
-- Agent skill discovery (auto-detection of agent strengths by dataset type)
-
----
-
-## Architecture Highlights
-
-### Token-Aware Context Management
-
-Working memory automatically compacts at 85% token capacity. Pinned entries (dataset summary + task) are never trimmed. At compaction time, LLM summarizes the oldest 60% of messages and stores the summary as a new entry, preserving information density.
-
-### Behavioral Adaptation
-
-Agents have configurable **activity level**, **stance** (supportive/opposing), and **sentiment_bias**. These values shift at runtime based on data quality metrics:
-- If data quality is poor (missing %, outliers, imbalance), Skeptic + Ethicist become more active
-- If errors happen during training, Devil's Advocate becomes more confrontational
-- These adaptations are logged and inform future runs
-
-### Hybrid Memory Search
-
-Long-term memory combines three scoring approaches:
-1. **BM25 keyword matching** (55% weight) — for recall of similar past tasks
-2. **Vector similarity** (45% weight) — for semantic relevance
-3. **Temporal decay** — errors older than 3 days are deprioritized; code older than 90 days is forgotten
-4. **MMR re-ranking** — removes redundant similar results
-
-### Fast-Tier Model Routing
-
-For critique/planning agents (Skeptic, Ethicist, Devil's Advocate, Pragmatist), a smaller/faster model can be substituted when no explicit `--model` override is provided. Full model is used for code generation and feature engineering.
-
----
-
-## Environment & Dependencies
-
-**Python:** 3.8+
-**Main Stack:** LangChain, ChromaDB, FastAPI, Next.js, D3.js
-**ML Libraries:** scikit-learn, XGBoost, pandas, PyArrow
-
-See `requirements.txt` for pinned versions.
-
----
-
-## Contributing
-
-To add a new agent phase:
-1. Create a new file in `phases/` inheriting from `BasePhase`
-2. Define `name`, `REQUIRED_AGENTS`, `_run()` method
-3. Register in `orchestrator.run_phases()`
-4. Add prompts to `prompts/` directory
-
-To enhance memory:
-- Extend `AgentMemory` for new recall patterns
-- Modify `HybridSearch` for custom scoring
-- Add new relationship types to knowledge graph in `graph_store.py`
+**In progress:** Phase 3 (Code Generation), Phase 4 (Validation), execution layer
 
 ---
 
 ## License
 
-Hackathon project. See LICENSE (if present).
+Hackathon project. See LICENSE if present.

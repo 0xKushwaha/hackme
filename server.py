@@ -604,11 +604,24 @@ def resolve_path(name: str, dir: bool = False):
         if candidate.exists():
             return {"path": str(candidate), "name": candidate.name}
 
+    # Search 1 level deep under home's children
     for child in Path.home().iterdir():
         if child.is_dir():
             candidate = child / target
             if candidate.exists():
                 return {"path": str(candidate), "name": candidate.name}
+
+    # Search 2 levels deep (e.g. ~/Documents/Kaggle_comp/<dataset>)
+    for child in Path.home().iterdir():
+        if child.is_dir():
+            try:
+                for grandchild in child.iterdir():
+                    if grandchild.is_dir():
+                        candidate = grandchild / target
+                        if candidate.exists():
+                            return {"path": str(candidate), "name": candidate.name}
+            except PermissionError:
+                continue
 
     return {"path": "", "name": ""}
 
@@ -879,7 +892,8 @@ if __name__ == "__main__":
 
     class _FilterPoll(logging.Filter):
         def filter(self, record):
-            return "/api/poll/" not in record.getMessage()
+            msg = record.getMessage()
+            return "/api/poll/" not in msg and "/api/red-mode/poll/" not in msg
 
     logging.getLogger("uvicorn.access").addFilter(_FilterPoll())
     uvicorn.run("server:app", host="127.0.0.1", port=8000, reload=False)

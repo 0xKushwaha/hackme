@@ -30,7 +30,7 @@ Also includes **Red Mode**: a live debate tournament where 20 real AI researcher
 ### Step 1 — Clone the repo
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/0xKushwaha/hackme
 cd hackme
 ```
 

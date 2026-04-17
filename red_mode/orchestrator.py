@@ -29,7 +29,7 @@ import asyncio
 import sys
 from red_mode.persona_loader import load_personas, persona_display_name
 from red_mode.grouping       import group_personas, group_label, TRAIT_GROUPS
-from red_mode.rounds         import run_tournament_async
+from red_mode.graph          import build_tournament_graph
 
 
 class RedModeOrchestrator:
@@ -139,28 +139,35 @@ class RedModeOrchestrator:
 
         # ── Run tournament ────────────────────────────────────────────
         self._check_cancel()
-        results = asyncio.run(
-            run_tournament_async(
-                groups               = groups,
-                personas             = personas,
-                brief                = brief,
-                llm                  = self.llm,
-                fast_llm             = self.fast_llm,
-                on_stage_start       = on_stage_start,
-                on_group_start       = on_group_start,
-                on_persona_start     = on_persona_start,
-                on_persona_done      = on_persona_done,
-                on_champion_elected  = on_champion_elected,
-                on_group_done        = on_group_done,
-                on_champ_start       = on_champ_start,
-                on_champ_done        = on_champ_done,
-                on_synth_start       = on_synth_start,
-            )
+        graph = build_tournament_graph(
+            llm      = self.llm,
+            fast_llm = self.fast_llm,
+            callbacks = {
+                "on_stage_start":      on_stage_start,
+                "on_group_start":      on_group_start,
+                "on_persona_start":    on_persona_start,
+                "on_persona_done":     on_persona_done,
+                "on_champion_elected": on_champion_elected,
+                "on_group_done":       on_group_done,
+                "on_champ_start":      on_champ_start,
+                "on_champ_done":       on_champ_done,
+                "on_synth_start":      on_synth_start,
+            },
         )
+        final_state = asyncio.run(graph.ainvoke({
+            "groups":          groups,
+            "personas":        personas,
+            "brief":           brief,
+            "semaphore":       None,   # set inside stage_a node (must be in event loop)
+            "round1_results":  {},
+            "panel_results":   {},
+            "champion_debate": {},
+            "synthesis":       "",
+        }))
 
-        panel_results   = results["panels"]
-        champion_debate = results["champion_debate"]
-        synthesis       = results["synthesis"]
+        panel_results   = final_state["panel_results"]
+        champion_debate = final_state["champion_debate"]
+        synthesis       = final_state["synthesis"]
 
         # ── Print synthesis output ────────────────────────────────────
         print(synthesis)

@@ -22,9 +22,6 @@ from memory.graph_store      import INFORMED_BY
 from orchestration.registry  import AgentRegistry, OUTCOME_SUCCESS, OUTCOME_FAILURE
 from prompts.orchestrator_prompt import ORCHESTRATOR_PROMPT
 
-# Async compaction support
-import queue
-
 
 MAX_AUTO_STEPS    = 10
 MAX_STEP_RETRIES  = 2
@@ -234,13 +231,6 @@ class Orchestrator:
         self._compaction_thread.start()
         print(f"[Compactor] Background compaction started (non-blocking)")
 
-    def parallel_step(self, steps: list[tuple[str, str, str]], max_workers: int = 8):
-        """Run multiple (agent_name, task, role) steps concurrently."""
-        with ThreadPoolExecutor(max_workers=max_workers) as ex:
-            futures = [ex.submit(self.step, name, task, role) for name, task, role in steps]
-            for f in futures:
-                f.result()
-
     # ------------------------------------------------------------------ #
     # Manual pipeline                                                      #
     # ------------------------------------------------------------------ #
@@ -250,34 +240,11 @@ class Orchestrator:
             self.context.add_task_context(self.task_description)
 
     def run_manual(self, dataset_summary: str):
+        from orchestration.graph import build_manual_graph
         print(f"\n🚀 Starting analysis (manual mode) | run_id: {self.run_id}\n")
         self.context.add_dataset_context(dataset_summary)
         self._pin_task_context()
-
-        print("\n⚡ Round 1: Explorer + Skeptic + Statistician (parallel)...")
-        self.parallel_step([
-            ("explorer",     "Perform thorough EDA. Find patterns, correlations, key features. Suggest the target variable.", ROLE_ANALYSIS),
-            ("skeptic",      "Inspect data quality: missing values, outliers, duplicates, leakage risks.", ROLE_ANALYSIS),
-            ("statistician", "Analyze distributions, multicollinearity, statistical significance of correlations.", ROLE_ANALYSIS),
-        ])
-
-        print("\n⚡ Round 2: Feature Engineer + Ethicist (parallel)...")
-        self.parallel_step([
-            ("feature_engineer", "Suggest new features, encoding strategies, transformations. Flag redundant features.", ROLE_ANALYSIS),
-            ("ethicist",         "Identify sensitive attributes, bias risks, and ethical concerns.", ROLE_ANALYSIS),
-        ])
-
-        print("\n📋 Round 3: Pragmatist building action plan...")
-        self.step("pragmatist", "Create a step-by-step modeling plan. Pick top 2-3 models, specify features, evaluation metric.", ROLE_PLAN)
-
-        print("\n😈 Round 4: Devil's Advocate stress-testing the plan...")
-        self.step("devil_advocate", "Challenge the Pragmatist's plan. Suggest an alternative approach.", ROLE_PLAN)
-
-        print("\n🔧 Round 5: Optimizer tuning strategy...")
-        self.step("optimizer", "Recommend hyperparameter tuning and cross-validation strategy.", ROLE_PLAN)
-
-        print("\n🏗️  Round 6: Architect designing deployment...")
-        self.step("architect", "Design the deployment architecture: serving infra, latency, monitoring.", ROLE_PLAN)
+        build_manual_graph(self).invoke({"dataset_summary": dataset_summary})
 
     # ------------------------------------------------------------------ #
     # Auto pipeline                                                        #
@@ -310,20 +277,17 @@ class Orchestrator:
         return decision
 
     def run_auto(self, dataset_summary: str, max_steps: int = MAX_AUTO_STEPS):
+        from orchestration.graph import build_auto_graph
         print(f"\n🤖 Starting analysis (auto mode) | run_id: {self.run_id}\n")
         self.context.add_dataset_context(dataset_summary)
         self._pin_task_context()
-        for _ in range(max_steps):
-            decision = self._orchestrator_decide()
-            if decision["complete"]:
-                print("\n✅ Orchestrator says analysis is complete.")
-                break
-            if not decision["agent"] or decision["agent"] not in self.agents:
-                print(f"\n⚠️  Unknown agent: {decision['agent']}. Stopping.")
-                break
-            self.step(decision["agent"], decision["task"])
-        else:
-            print(f"\n⚠️  Reached max steps ({max_steps}). Stopping.")
+        build_auto_graph(self, max_steps=max_steps).invoke({
+            "dataset_summary": dataset_summary,
+            "step_count":      0,
+            "complete":        False,
+            "next_agent":      None,
+            "next_task":       None,
+        })
 
     # ------------------------------------------------------------------ #
     # Phase-based pipeline                                                 #
@@ -339,6 +303,7 @@ class Orchestrator:
         dataset_profile                 = None,
     ) -> dict:
         from phases import DataUnderstandingPhase, ModelDesignPhase
+        from orchestration.graph import build_phases_graph
 
         os.makedirs(experiment_dir, exist_ok=True)
         print(f"\n🚀 Starting phase-based pipeline | run_id: {self.run_id}\n")
@@ -351,116 +316,15 @@ class Orchestrator:
                 ModelDesignPhase(self),
             ]
 
-        results: dict = {}
-
-        # --- Phase 1: DataUnderstanding ---
-        p = self._get_phase(phases, "data_understanding")
-        if p:
-            r = p.run(
-                dataset_summary=dataset_summary,
-                dataset_profile=dataset_profile,
-                dataset_path=dataset_path,
-                target_col=target_col,
-            )
-            results["data_understanding"] = r
-            if r.outputs.get("data_metrics"):
-                self._adapt_agent_personalities(self._data_metrics)
-            if not r.success:
-                print(f"\n⚠️  DataUnderstanding failed: {r.error}. Continuing anyway.")
-
-        # --- Phase 2: ModelDesign ---
-        p = self._get_phase(phases, "model_design")
-        if p:
-            r = p.run(
-                dataset_path=dataset_path,
-                target_col=target_col,
-            )
-            results["model_design"] = r
-            if not r.success:
-                print(f"\n⚠️  ModelDesign failed: {r.error}. Continuing anyway.")
-
-        # --- Phase 3: Architecture ---
-        if "architect" in self.agents:
-            print("\n⚡ [Architecture] Architect researching and designing...")
-            research_ctx = self._research_search(dataset_profile, dataset_path)
-            architect_task = (
-                "Based on the full analysis above, design a COMPLETE competition architecture.\n"
-                "You MUST produce TWO tracks:\n\n"
-                "TRACK 1 — BASELINE: The simplest solid approach to get on the board fast.\n"
-                "  A competitor should be able to implement this in < 2 hours and score in top 40%.\n\n"
-                "TRACK 2 — ADVANCED: The full competitive architecture to fight for a medal.\n"
-                "  Include: exact model stack, ensemble/stacking design, OOF strategy, every marginal\n"
-                "  gain technique (pseudo-labeling, TTA, custom loss, post-processing, feature selection),\n"
-                "  hyperparameter search plan, and a day-by-day implementation roadmap.\n\n"
-                "Consider the FULL spectrum: classical ML, gradient boosting (LightGBM/XGBoost/CatBoost),\n"
-                "deep learning (Transformers, CNNs, LSTMs, TabNet, SAINT), and multi-modal approaches.\n"
-                "For this competition, 0.001 on the metric matters. Be brutally specific.\n"
-            )
-            if research_ctx:
-                architect_task += (
-                    f"\n\nRELEVANT RESEARCH & RESOURCES (you MUST cite these in your response):\n"
-                    f"{research_ctx}\n\n"
-                    "IMPORTANT: You MUST include a References section at the end citing specific\n"
-                    "papers and articles using [Author(s), Year] format. Every architectural decision\n"
-                    "must be justified with at least one citation from the above resources."
-                )
-            try:
-                self.step("architect", architect_task, ROLE_PLAN)
-            except Exception as exc:
-                print(f"\n⚠️  Architect failed: {exc}. Continuing anyway.")
-
-        # --- Synthesize Final Report ---
-        print("\n📋 [Final Report] Synthesising pipeline output...")
-        if "storyteller" in self.agents:
-            # Build a structured brief of all agent outputs for the Storyteller
-            brief = self._synthesize_final_report()
-            storyteller_task = (
-                "You have received the full analysis from the entire data science team.\n"
-                "Write a compelling, well-structured final report that:\n"
-                "1. Opens with an executive summary (3-5 sentences)\n"
-                "2. Highlights the most important findings from each agent\n"
-                "3. Synthesises the recommended action plan in plain language\n"
-                "4. Closes with the top 3 risks and the single most important next step\n\n"
-                "Audience: a technical but non-specialist stakeholder. Be clear, specific, and actionable.\n\n"
-                f"FULL PIPELINE OUTPUT:\n{brief}"
-            )
-            try:
-                print(f"\n⚡ [AGENT:storyteller]")
-                self.agent_results["final_report"] = self.agents["storyteller"].run(
-                    context=self.context.get_context_string(),
-                    task=storyteller_task,
-                    run_id=self.run_id,
-                    role=ROLE_NARRATIVE,
-                )
-                print(f"\n✅ [AGENT_DONE:storyteller]")
-            except Exception as exc:
-                print(f"\n⚠️  Storyteller failed ({exc}), falling back to template report.")
-                self.agent_results["final_report"] = brief
-        else:
-            self.agent_results["final_report"] = self._synthesize_final_report()
-        print("\n✅ [AGENT_DONE:final_report]")
-
-        # --- Wait for any pending async compaction ---
-        self._wait_for_compaction()
-
-        # --- Persist context ---
-        log_path = os.path.join(experiment_dir, f"context_{self.run_id}.json")
-        self.context.save(log_path)
-        print(f"\n📄 Context saved to {log_path}")
-
-        if self.memory:
-            self.memory.print_stats()
-            self.memory.graph_store.print_run(self.run_id)
-
-        print(f"\n[Orchestrator] Total background compactions: {self._compaction_count}")
-
-        return results
-
-    def _get_phase(self, phases: list, name: str):
-        for p in phases:
-            if p.name == name:
-                return p
-        return None
+        final_state = build_phases_graph(self, phases_list=phases).invoke({
+            "dataset_summary": dataset_summary,
+            "dataset_path":    dataset_path,
+            "target_col":      target_col,
+            "experiment_dir":  experiment_dir,
+            "dataset_profile": dataset_profile,
+            "phase_results":   {},
+        })
+        return final_state["phase_results"]
 
     # ------------------------------------------------------------------ #
     # Adaptive personalities                                               #

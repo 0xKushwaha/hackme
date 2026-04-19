@@ -4,8 +4,6 @@ An autonomous AI-powered data science assistant. Drop in any dataset — CSV, Pa
 
 Also includes **Red Mode**: a live debate tournament where 20 real AI researcher personas (Andrej Karpathy, Geoffrey Hinton, Yann LeCun, etc.) argue over your dataset and synthesize a verdict.
 
-**Stack:** FastAPI + Next.js · Claude / OpenAI / local vLLM · D3.js visualization
-
 ---
 
 ## What It Does

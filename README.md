@@ -208,18 +208,18 @@ Stage C — Synthesis
 
 ## Agent Team
 
-| Agent | Phase | Role |
-|---|---|---|
-| **Explorer** | 1 | Patterns, correlations, key features |
-| **Skeptic** | 1, 4 | Data quality — outliers, leakage, bias |
-| **Statistician** | 1 | Distributions, hypothesis tests |
-| **Ethicist** | 1 | Bias, fairness, responsible AI |
-| **Feature Engineer** | 2 | New features, transformations, encodings |
-| **Pragmatist** | 2 | Model selection, eval strategy |
-| **Devil's Advocate** | 2, 4 | Challenges the plan, proposes alternatives |
-| **Optimizer** | 2 | Hyperparameter tuning, CV, ensembles |
-| **Architect** | 5 | Research-backed architecture design |
-| **Storyteller** | 5 | Final report synthesis |
+| Agent | Role |
+|---|---|
+| **Explorer** | Patterns, correlations, key features |
+| **Skeptic** | Data quality — outliers, leakage, bias |
+| **Statistician** | Distributions, hypothesis tests |
+| **Ethicist** | Bias, fairness, responsible AI |
+| **Feature Engineer** | New features, transformations, encodings |
+| **Pragmatist** | Model selection, eval strategy |
+| **Devil's Advocate** | Challenges the plan, proposes alternatives |
+| **Optimizer** | Hyperparameter tuning, CV, ensembles |
+| **Architect** | Research-backed architecture design |
+| **Storyteller** | Final report synthesis |
 
 ---
 

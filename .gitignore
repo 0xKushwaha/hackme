@@ -20,6 +20,8 @@ node_modules/
 frontend/node_modules/
 frontend/.next/
 frontend/tsconfig.tsbuildinfo
+frontend/.next
+.next
 
 # ── Databases & vector stores ───────────────────────────────────
 *.db

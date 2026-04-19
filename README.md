@@ -1,10 +1,10 @@
-# Multi-Agent Data Science Team
+# Hackme
 
 An autonomous AI-powered data science assistant. Drop in any dataset — CSV, Parquet, images, audio, JSON — and a team of specialized AI agents will analyze it, design a model architecture, and produce a full report.
 
 Also includes **Red Mode**: a live debate tournament where 20 real AI researcher personas (Andrej Karpathy, Geoffrey Hinton, Yann LeCun, etc.) argue over your dataset and synthesize a verdict.
 
-**Stack:** FastAPI + Next.js · Claude / OpenAI / local vLLM · ChromaDB memory · D3.js visualization
+**Stack:** FastAPI + Next.js · Claude / OpenAI / local vLLM · D3.js visualization
 
 ---
 
@@ -46,7 +46,7 @@ source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-> **Note:** `requirements.txt` includes LangChain, ChromaDB, FastAPI, pandas, scikit-learn, XGBoost, PyArrow, and more. Install may take a minute.
+> **Note:** `requirements.txt` includes LangChain, FastAPI, pandas, scikit-learn, XGBoost, PyArrow, and more. Install may take a minute.
 
 ---
 
@@ -113,11 +113,10 @@ Open **http://localhost:3000** in your browser.
 
 **Home page:**
 1. Select your LLM provider (Claude, OpenAI, or local vLLM)
-2. Enter your API key *(saved locally, never transmitted elsewhere)*
-3. Pick a dataset file or folder
-4. Optionally describe your goal (e.g. "predict churn", "find anomalies")
-5. Choose **Standard Analysis** or **Red Mode**
-6. Click **Launch**
+2. Pick a dataset file or folder
+3. Optionally describe your goal (e.g. "predict churn", "find anomalies")
+4. Choose **Standard Analysis** or **Red Mode**
+5. Click **Launch**
 
 **Live Run page:**
 - Watch agents work in real time on a D3 force-directed graph
@@ -150,8 +149,6 @@ python main.py --dataset data.csv --provider openai --mode phases
 # Use a local model
 python main.py --dataset data.csv --provider local --base-url http://localhost:8000/v1 --mode phases
 
-# Faster testing (disable persistent memory)
-python main.py --dataset data.csv --provider claude --mode phases --no-memory
 ```
 
 ### CLI Flags
@@ -165,7 +162,6 @@ python main.py --dataset data.csv --provider claude --mode phases --no-memory
 | `--model` | provider default | Override model name (e.g. `gpt-4-turbo`) |
 | `--base-url` | — | URL for local vLLM / Ollama / LM Studio |
 | `--fallback` | — | Fallback provider if rate-limited |
-| `--no-memory` | off | Skip ChromaDB long-term memory (faster) |
 | `--max-agents` | `5` | Max agents running concurrently |
 | `--save-log` | off | Save full context log to JSON |
 
@@ -229,14 +225,14 @@ Stage C — Synthesis
 
 ---
 
-## Memory System
+## Context Management
 
-Agents have persistent long-term memory across runs — they learn what worked and avoid repeating failures.
+Agents share a live context window that grows as each agent finishes. Every agent sees all prior agents' outputs in the same run.
 
-- **Working Memory** — token-aware context trimming; auto-compacts at 85% capacity
-- **Long-term Memory** — ChromaDB vector store with hybrid BM25 + semantic search, per agent
-- **Knowledge Graph** — SQLite graph tracking agent decisions, retries, and cross-run causality
-- **Temporal Decay** — errors fade after 3 days; old code forgotten after 90 days
+- **Pinned entries** — dataset summary and task goal are always in every agent's context, never dropped
+- **Token-aware trimming** — when context approaches the limit, oldest entries are dropped first; pinned entries are never dropped
+- **Auto-compaction** — if the context window fills up, an LLM summarizes the oldest entries into a dense bullet-point block, freeing space without losing key decisions. Runs in a background thread so the pipeline doesn't stall.
+- **Slim context** — critique agents (Skeptic, Ethicist, Devil's Advocate, Pragmatist) only receive pinned entries + the last 2 outputs, not the full log — reduces latency and token cost
 
 ---
 
@@ -259,16 +255,14 @@ hackme/
 ├── phases/                # Phase 1 (EDA) + Phase 2 (Model Design)
 ├── red_mode/              # Persona debate tournament
 ├── personas/              # 20 researcher persona definitions
-├── memory/                # ChromaDB + SQLite knowledge graph
+├── memory/                # Context management and compaction
 ├── analysis/              # Pre-LLM data profiling
 ├── backends/              # Claude / OpenAI / vLLM routing
 ├── tools/                 # Format sniffing, schema extraction
 ├── prompts/               # Agent prompt templates
 │
 └── experiments/           # Auto-created on first run
-    ├── results/           # Persisted run results (JSON)
-    ├── chroma_db/         # Per-agent vector memory
-    └── graph.db           # Knowledge graph
+    └── results/           # Persisted run results (JSON)
 ```
 
 ---
@@ -285,7 +279,7 @@ Make sure `python server.py` is running and shows `Uvicorn running on http://127
 Check that `.env` exists (not just `.env.example`) and the key has no extra spaces or quotes.
 
 **Run hangs or times out**
-Try adding `--no-memory` flag (CLI) or disabling memory in the UI — this skips ChromaDB initialization which can be slow on first run.
+Check server logs for which agent is stuck. Each agent has a 2-retry limit — if the LLM API is rate-limiting you, wait a moment and try again.
 
 **File picker doesn't open (Linux)**
 The native file picker requires a display (`$DISPLAY` or `$WAYLAND_DISPLAY`). If running headless, type the dataset path manually in the UI.

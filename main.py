@@ -90,6 +90,7 @@ def main():
     parser.add_argument("--no-memory",    action="store_true",  help="Disable ChromaDB long-term memory")
     parser.add_argument("--max-agents",   type=int, default=5,  help="Max concurrent agents (default 5)")
     parser.add_argument("--save-log",     action="store_true",  help="Save context log to JSON")
+    parser.add_argument("--use-floe",     action="store_true",  help="Route external API calls through Floe x402 credit layer (requires FLOE_PRIVATE_KEY + FLOE_RPC_URL in .env)")
     args = parser.parse_args()
 
     if not os.path.exists(args.dataset):
@@ -103,6 +104,7 @@ def main():
     print(f"🔧 Fallback : {args.fallback or 'none'}")
     print(f"🔧 Mode     : {args.mode}")
     print(f"🔧 Memory   : {'disabled' if args.no_memory else f'ChromaDB ({EXPERIMENT_DIR}/chroma_db)'}")
+    print(f"🔧 Floe     : {'enabled' if args.use_floe else 'disabled'}")
 
     llm_kwargs = {}
     if args.base_url:
@@ -123,6 +125,17 @@ def main():
         fast_llm = get_fast_llm(args.provider, **llm_kwargs) if not args.model else llm
         if not args.model:
             print(f"🔧 Fast tier  : enabled (Skeptic, Ethicist, Devil's Advocate, Pragmatist)")
+
+    # ── Floe credit layer (optional) ──────────────────────────────────
+    floe_client = None
+    if args.use_floe:
+        from backends.floe_client import FloeClient, FloeError
+        try:
+            floe_client = FloeClient()   # reads FLOE_PRIVATE_KEY + FLOE_RPC_URL from .env
+            print(f"   Floe  : ✅ wallet {floe_client.wallet_address}")
+        except FloeError as exc:
+            print(f"   Floe  : ❌ {exc}")
+            floe_client = None
 
     # ── Dataset Discovery ──────────────────────────────────────────────
     print(f"\n📂 Scanning dataset: {args.dataset}")
@@ -154,6 +167,7 @@ def main():
         memory_system=memory_system,
         registry=registry,
         task_description=args.task,
+        floe_client=floe_client,
     )
 
     if args.mode == "manual":

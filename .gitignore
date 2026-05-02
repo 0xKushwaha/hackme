@@ -2,31 +2,54 @@
 .env
 .env.local
 .env.*.local
-~/.ds_agent_team.json
 .ds_agent_team.json
+~/.ds_agent_team.json
+*.pem
+*.key
 
 # ── Python ──────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
 venv/
 .venv/
 env/
 .Python
+pip-wheel-metadata/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# ── Conda ────────────────────────────────────────────────────────
+.conda/
 
 # ── Node / Next.js ──────────────────────────────────────────────
 node_modules/
 frontend/node_modules/
 frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.env
+frontend/.env.local
 frontend/tsconfig.tsbuildinfo
-frontend/.next
-.next
+*.tsbuildinfo
+.next/
+out/
 
 # ── Databases & vector stores ───────────────────────────────────
 *.db
 *.sqlite
 *.sqlite3
+chroma_db/
+experiments/chroma_db/
 
 # ── Experiments (all run artifacts) ─────────────────────────────
 experiments/
@@ -37,4 +60,12 @@ logs/
 
 # ── OS / editor ─────────────────────────────────────────────────
 .DS_Store
-.claude
+**/.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── Claude Code ──────────────────────────────────────────────────
+.claude/

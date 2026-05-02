@@ -1,1 +1,0 @@
-self.__REACT_LOADABLE_MANIFEST="{\"components/GlobalBackground.tsx -> ./Background\":{\"id\":\"components/GlobalBackground.tsx -> ./Background\",\"files\":[\"static/chunks/_app-pages-browser_src_components_Background_tsx.js\"]}}"

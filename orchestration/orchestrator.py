@@ -45,6 +45,7 @@ class Orchestrator:
         registry:         AgentRegistry = None,
         task_description: str           = "",
         cancel_event                    = None,   # threading.Event — set to cancel run
+        floe_client                     = None,   # FloeClient — optional x402 credit layer
     ):
         self.agents           = agents
         self.llm              = llm
@@ -57,6 +58,7 @@ class Orchestrator:
         self._data_metrics    = {}
         self._ctx_lock        = threading.Lock()   # guards context writes during parallel steps
         self._cancel_event    = cancel_event       # FIX #7: cancellation support
+        self.floe_client      = floe_client        # optional: route x402 API calls through Floe
 
         # Async compaction support
         self._compaction_thread: Optional[threading.Thread] = None

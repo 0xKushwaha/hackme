@@ -4,6 +4,8 @@ An autonomous AI-powered data science assistant. Drop in any dataset — CSV, Pa
 
 Also includes **Red Mode**: a live debate tournament where 20 real AI researcher personas (Andrej Karpathy, Geoffrey Hinton, Yann LeCun, etc.) argue over your dataset and synthesize a verdict.
 
+> **New: Floe Integration** — Agents can now borrow USDC on-chain to pay for external APIs automatically, with no wallet management inside your code. See [Floe Mode](#floe-mode--agentic-credit-on-base) below.
+
 ---
 
 ## What It Does
@@ -12,16 +14,21 @@ Also includes **Red Mode**: a live debate tournament where 20 real AI researcher
 |---|---|
 | **Standard Analysis** | 9 specialized agents analyze your dataset across two phases: EDA (Explorer, Skeptic, Statistician, Ethicist) then Model Design (Feature Engineer, Pragmatist, Devil's Advocate, Optimizer, Architect). Final synthesis report included. |
 | **Red Mode** | Runs standard analysis first, then 20 AI researcher personas debate the dataset in a structured 3-stage tournament (group debates → champion round → synthesis). |
+| **Floe Mode** | Adds the [Floe x402 credit layer](https://floe-labs.gitbook.io/docs) on top of any run — agents borrow USDC against your WETH/cbBTC collateral on Base to pay for external APIs. Enable with `--use-floe`. |
 
 ---
 
 ## Installation & Setup
 
+> **New to this?** Don't worry — just follow the steps in order. Each step tells you exactly what to do.
+
 ### Prerequisites
 
-- **Python 3.8+** — [python.org](https://python.org)
-- **Node.js 18+** — [nodejs.org](https://nodejs.org)
-- An API key from [Anthropic](https://console.anthropic.com) or [OpenAI](https://platform.openai.com) *(or a local model — see below)*
+Before you start, make sure you have these installed:
+
+- **Python 3.8+** — [download here](https://python.org) *(check: `python --version`)*
+- **Node.js 18+** — [download here](https://nodejs.org) *(check: `node --version`)*
+- An API key from [Anthropic](https://console.anthropic.com) (for Claude) **or** [OpenAI](https://platform.openai.com) *(you only need one)*
 
 ---
 
@@ -36,41 +43,45 @@ cd hackme
 
 ### Step 2 — Set up Python environment
 
-It's recommended to use a virtual environment:
+Create an isolated environment so packages don't conflict with your system:
 
 ```bash
+# Using conda (recommended)
+conda create -n hackme python=3.12
+conda activate hackme
+pip install -r requirements.txt
+
+# Or using venv
 python -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-> **Note:** `requirements.txt` includes LangChain, FastAPI, pandas, scikit-learn, XGBoost, PyArrow, and more. Install may take a minute.
+> This installs LangChain, FastAPI, pandas, scikit-learn, XGBoost, Floe SDK, and more. May take a couple of minutes.
 
 ---
 
-### Step 3 — Configure your API key
+### Step 3 — Configure your API keys
 
-Copy the example env file and fill in your key:
+Copy the example config file:
 
 ```bash
 cp .env.example .env
 ```
 
-Open `.env` and set the key for whichever provider you'll use:
+Open `.env` and fill in the key for whichever LLM provider you want to use — **you only need one**:
 
 ```env
-# For Claude (Anthropic) — recommended
+# Option A — Claude (recommended, best results)
 ANTHROPIC_API_KEY=sk-ant-...
 
-# For OpenAI
+# Option B — OpenAI
 OPENAI_API_KEY=sk-...
 
-# For a local model (vLLM / Ollama / LM Studio)
+# Option C — Local model (vLLM / Ollama / LM Studio)
 VLLM_URL=http://localhost:8000/v1
 VLLM_MODEL=mistral-7b-instruct
 ```
-
-You only need to fill in the provider you plan to use.
 
 ---
 
@@ -90,20 +101,20 @@ cd ..
 python server.py
 ```
 
-The API runs at **http://localhost:8000**
+You should see: `Uvicorn running on http://127.0.0.1:8000`
 
 ---
 
 ### Step 6 — Start the frontend
 
-In a separate terminal:
+Open a **second terminal** and run:
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-Open **http://localhost:3000** in your browser.
+Then open **http://localhost:3000** in your browser.
 
 ---
 
@@ -147,6 +158,8 @@ python main.py --dataset data.csv --provider openai --mode phases
 # Use a local model
 python main.py --dataset data.csv --provider local --base-url http://localhost:8000/v1 --mode phases
 
+# With Floe credit layer enabled
+python main.py --dataset data.csv --provider claude --mode phases --use-floe
 ```
 
 ### CLI Flags
@@ -162,6 +175,93 @@ python main.py --dataset data.csv --provider local --base-url http://localhost:8
 | `--fallback` | — | Fallback provider if rate-limited |
 | `--max-agents` | `5` | Max agents running concurrently |
 | `--save-log` | off | Save full context log to JSON |
+| `--use-floe` | off | Enable Floe x402 credit layer (requires `FLOE_PRIVATE_KEY` + `FLOE_RPC_URL` in `.env`) |
+
+---
+
+## Floe Mode — Agentic Credit on Base
+
+### What is Floe?
+
+[Floe](https://floe-labs.gitbook.io/docs) is a credit layer for AI agents on [Base](https://base.org) (a fast, cheap Ethereum L2 chain). The idea is simple:
+
+- You deposit ETH (as WETH) or cbBTC **once** as collateral
+- Whenever an agent needs to pay for an external API call, Floe automatically borrows USDC against that collateral and settles the payment
+- **The agent never thinks about money** — no wallet logic, no per-call setup
+
+This is built on the [x402 payment protocol](https://x402.org), which lets APIs charge per-request in USDC.
+
+### Why it's useful
+
+Without Floe, if your agents need to call paid APIs, you'd have to manually manage a wallet, approve tokens, handle gas, and write payment logic inside every agent. With Floe, you just add `--use-floe` and it's handled.
+
+### How to set it up
+
+**What you need:**
+- An EVM wallet (just a private key — you can generate one with MetaMask or any wallet app)
+- Some WETH on Base mainnet as collateral *(this is your own money, locked temporarily)*
+- A Base RPC URL — get one free from [Alchemy](https://alchemy.com) or use the public endpoint
+
+**Add to your `.env`:**
+
+```env
+# Your wallet's private key (the wallet that holds the WETH collateral)
+# ⚠️  Never share this — keep it in .env which is gitignored
+FLOE_PRIVATE_KEY=0x...
+
+# Base mainnet RPC endpoint
+FLOE_RPC_URL=https://mainnet.base.org
+
+# Market ID — find this by running: python -c "from backends.floe_client import FloeClient; print(FloeClient().get_markets())"
+FLOE_MARKET_ID=0x...
+```
+
+**Then run with Floe enabled:**
+
+```bash
+python main.py --dataset data.csv --provider claude --mode phases --use-floe
+```
+
+When Floe initialises successfully, you'll see:
+```
+🔧 Floe     : enabled
+   Floe  : ✅ wallet 0xYourWalletAddress
+```
+
+### Available Floe actions
+
+The `FloeClient` in `backends/floe_client.py` wraps the official [`floe-agentkit-actions`](https://pypi.org/project/floe-agentkit-actions/) SDK and exposes:
+
+| Action | What it does |
+|---|---|
+| `instant_borrow` | Auto-selects the best lender and borrows USDC in one call |
+| `request_credit` | Browse available lend offers before committing |
+| `check_loan_health` | Check LTV, health status, distance to liquidation |
+| `check_credit_status` | View accrued interest and time to expiry |
+| `add_collateral` | Add more collateral to lower LTV |
+| `repay_credit` | Repay an outstanding loan |
+| `repay_and_reborrow` | Roll over a loan into a new one atomically |
+| `get_my_loans` | List all active loans for the agent wallet |
+| `get_markets` | List available lending markets and their terms |
+
+You can also use these directly in your own agents:
+
+```python
+from backends.floe_client import FloeClient
+
+client = FloeClient()
+
+# Borrow $100 USDC against 0.05 ETH at max 8% APR for 14 days
+result = client.instant_borrow(
+    borrow_amount_usdc=100.0,
+    collateral_eth=0.05,
+    max_rate_bps=800,
+    duration_days=14,
+)
+
+# Or get them as LangChain tools and pass to any LangChain agent
+tools = client.as_langchain_tools()
+```
 
 ---
 
@@ -238,7 +338,7 @@ Agents share a live context window that grows as each agent finishes. Every agen
 
 ```
 hackme/
-├── server.py              ← FastAPI backend (start here)
+├── server.py              ← FastAPI backend (start here for web UI)
 ├── main.py                ← CLI entry point
 ├── requirements.txt
 ├── .env.example           ← Copy to .env and fill in keys
@@ -249,13 +349,14 @@ hackme/
 │       └── components/    # D3 graph, matrix background, etc.
 │
 ├── agents/                # All agent implementations
+├── backends/              # Claude / OpenAI / vLLM / Floe routing
+│   └── floe_client.py     # Floe x402 credit layer integration
 ├── orchestration/         # Pipeline coordination + routing
 ├── phases/                # Phase 1 (EDA) + Phase 2 (Model Design)
 ├── red_mode/              # Persona debate tournament
 ├── personas/              # 20 researcher persona definitions
 ├── memory/                # Context management and compaction
 ├── analysis/              # Pre-LLM data profiling
-├── backends/              # Claude / OpenAI / vLLM routing
 ├── tools/                 # Format sniffing, schema extraction
 ├── prompts/               # Agent prompt templates
 │
@@ -282,6 +383,12 @@ Check server logs for which agent is stuck. Each agent has a 2-retry limit — i
 **File picker doesn't open (Linux)**
 The native file picker requires a display (`$DISPLAY` or `$WAYLAND_DISPLAY`). If running headless, type the dataset path manually in the UI.
 
+**Floe: `No FLOE_PRIVATE_KEY found`**
+Make sure `.env` has `FLOE_PRIVATE_KEY=0x...` set. The key is the private key of the wallet that holds your WETH collateral on Base.
+
+**Floe: `No matching liquidity found`**
+Your `max_rate_bps` may be too low or no lenders are available for that market. Try increasing `max_rate_bps` or check the market via `FloeClient().get_markets()`.
+
 ---
 
 ## Security Notes
@@ -291,6 +398,7 @@ The native file picker requires a display (`$DISPLAY` or `$WAYLAND_DISPLAY`). If
 - API keys are saved locally at `~/.ds_agent_team.json` with `chmod 600`
 - No LLM-generated code is executed — safe for local use
 - Pickle deserialization is disabled
+- `FLOE_PRIVATE_KEY` is read only from `.env` which is gitignored — never commit it
 
 > Never commit your `.env` file — it's gitignored.
 
@@ -298,7 +406,7 @@ The native file picker requires a display (`$DISPLAY` or `$WAYLAND_DISPLAY`). If
 
 ## Development Status
 
-**Done:** Phase 1 (EDA), Phase 2 (Model Design), Red Mode tournament, memory system, multi-provider support, web UI with live D3 graph
+**Done:** Phase 1 (EDA), Phase 2 (Model Design), Red Mode tournament, memory system, multi-provider support, web UI with live D3 graph, Floe x402 credit layer
 
 **In progress:** Phase 3 (Code Generation), Phase 4 (Validation), execution layer
 

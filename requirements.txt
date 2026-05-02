@@ -17,6 +17,12 @@ scikit-learn==1.2.2
 xgboost==3.1.2
 joblib==1.4.2
 pyarrow==14.0.2
+statsmodels>=0.14.0
+
+# Floe x402 credit layer (optional — only needed with --use-floe)
+floe-agentkit-actions>=0.2.0
+coinbase-agentkit>=0.7.0
+web3>=7.0.0
 
 # UI
 streamlit==1.32.0

@@ -463,6 +463,18 @@ def _run_pipeline(cfg: dict) -> dict:
     llm      = get_llm(cfg["provider"], model=explicit_model, api_key=api_key, **llm_kw)
     fast_llm = get_fast_llm(cfg["provider"], api_key=api_key, **llm_kw) if not explicit_model else llm
 
+    # Floe credit layer (optional)
+    floe_client = None
+    if cfg.get("use_floe"):
+        from backends.floe_client import FloeClient, FloeError
+        try:
+            floe_pk     = cfg.get("floe_private_key") or os.getenv("FLOE_PRIVATE_KEY", "")
+            floe_client = FloeClient(private_key=floe_pk)
+            print(f"   Floe  : ✅ wallet {floe_client.wallet_address}")
+        except FloeError as exc:
+            print(f"   Floe  : ❌ {exc}")
+            floe_client = None
+
     print(f"\n📂 Scanning dataset: {cfg['dataset_path']}")
     disc    = DatasetDiscovery(llm=llm)
     profile = disc.scan(cfg["dataset_path"])
@@ -496,7 +508,8 @@ def _run_pipeline(cfg: dict) -> dict:
     orch = Orchestrator(agents=agents, llm=llm, memory_system=mem,
                         registry=registry,
                         task_description=cfg.get("task_description", ""),
-                        cancel_event=cfg.get("_cancel_event"))
+                        cancel_event=cfg.get("_cancel_event"),
+                        floe_client=floe_client)
 
     absp = os.path.abspath(cfg["dataset_path"])
     tgt  = cfg.get("target_col") or None
@@ -651,6 +664,8 @@ class RunPayload(BaseModel):
     max_agents:       int  = 5
     enable_memory:    bool = True
     experiment_dir:   str  = "experiments"
+    use_floe:         bool = False
+    floe_private_key: str  = ""
 
     def validate_fields(self):
         if len(self.task_description) > 5000:

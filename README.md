@@ -4,7 +4,17 @@ An autonomous AI-powered data science assistant. Drop in any dataset — CSV, Pa
 
 Also includes **Red Mode**: a live debate tournament where 20 real AI researcher personas (Andrej Karpathy, Geoffrey Hinton, Yann LeCun, etc.) argue over your dataset and synthesize a verdict.
 
-> **New: Floe Integration** — Agents can now borrow USDC on-chain to pay for external APIs automatically, with no wallet management inside your code. See [Floe Mode](#floe-mode--agentic-credit-on-base) below.
+---
+
+## Floe Integration
+
+> **This project integrates [Floe](https://floe-labs.gitbook.io/docs) — the agentic credit layer on Base.**
+>
+> Agents borrow USDC automatically against WETH/cbBTC collateral to pay for x402 APIs. No wallet logic inside the agents. No per-call setup. Just add `--use-floe` and the pipeline handles the rest.
+>
+> Built using the official [`floe-agentkit-actions`](https://pypi.org/project/floe-agentkit-actions/) Python SDK, wrapped as LangChain tools and wired into the full multi-agent orchestrator.
+>
+> See full setup and usage: [Floe Mode section](#floe-mode--agentic-credit-on-base)
 
 ---
 
@@ -14,7 +24,7 @@ Also includes **Red Mode**: a live debate tournament where 20 real AI researcher
 |---|---|
 | **Standard Analysis** | 9 specialized agents analyze your dataset across two phases: EDA (Explorer, Skeptic, Statistician, Ethicist) then Model Design (Feature Engineer, Pragmatist, Devil's Advocate, Optimizer, Architect). Final synthesis report included. |
 | **Red Mode** | Runs standard analysis first, then 20 AI researcher personas debate the dataset in a structured 3-stage tournament (group debates → champion round → synthesis). |
-| **Floe Mode** | Adds the [Floe x402 credit layer](https://floe-labs.gitbook.io/docs) on top of any run — agents borrow USDC against your WETH/cbBTC collateral on Base to pay for external APIs. Enable with `--use-floe`. |
+| **Floe Mode** | Integrates the [Floe](https://floelabs.xyz) x402 credit layer — agents automatically borrow USDC on Base to pay for external APIs, zero wallet management. Enable with `--use-floe`. Built on the official [`floe-agentkit-actions`](https://pypi.org/project/floe-agentkit-actions/) SDK. |
 
 ---
 
@@ -181,42 +191,45 @@ python main.py --dataset data.csv --provider claude --mode phases --use-floe
 
 ## Floe Mode — Agentic Credit on Base
 
+> **References:** [Floe Website](https://floelabs.xyz) · [Floe Docs](https://floe-labs.gitbook.io/docs) · [Agent Quickstart](https://floe-labs.gitbook.io/docs/developers/agent-quickstart) · [x402 Protocol](https://x402.org) · [floe-agentkit-actions on PyPI](https://pypi.org/project/floe-agentkit-actions/)
+
 ### What is Floe?
 
-[Floe](https://floe-labs.gitbook.io/docs) is a credit layer for AI agents on [Base](https://base.org) (a fast, cheap Ethereum L2 chain). The idea is simple:
+[Floe](https://floelabs.xyz) is a credit layer for AI agents on [Base](https://base.org) (a fast, cheap Ethereum L2 chain). The idea is simple:
 
 - You deposit ETH (as WETH) or cbBTC **once** as collateral
 - Whenever an agent needs to pay for an external API call, Floe automatically borrows USDC against that collateral and settles the payment
 - **The agent never thinks about money** — no wallet logic, no per-call setup
 
-This is built on the [x402 payment protocol](https://x402.org), which lets APIs charge per-request in USDC.
+This is built on the [x402 payment protocol](https://x402.org), which lets APIs charge per-request in USDC. Floe works with 13,000+ x402 APIs today including Exa, Firecrawl, Nansen, and more — see [x402list.fun](https://x402list.fun) for the full directory.
 
 ### Why it's useful
 
-Without Floe, if your agents need to call paid APIs, you'd have to manually manage a wallet, approve tokens, handle gas, and write payment logic inside every agent. With Floe, you just add `--use-floe` and it's handled.
+Without Floe, if your agents need to call paid APIs, you'd have to manually manage a wallet, approve tokens, handle gas, and write payment logic inside every agent. With Floe, you just add `--use-floe` and it's all handled automatically.
 
-### How to set it up
+### How to use it — 3 steps
 
-**What you need:**
-- An EVM wallet (just a private key — you can generate one with MetaMask or any wallet app)
-- Some WETH on Base mainnet as collateral *(this is your own money, locked temporarily)*
-- A Base RPC URL — get one free from [Alchemy](https://alchemy.com) or use the public endpoint
+**Step 1 — Install the SDK** (already included in `requirements.txt`):
+```bash
+pip install floe-agentkit-actions
+```
 
-**Add to your `.env`:**
+**Step 2 — Add credentials to `.env`**:
 
 ```env
-# Your wallet's private key (the wallet that holds the WETH collateral)
-# ⚠️  Never share this — keep it in .env which is gitignored
+# EVM wallet private key — holds your WETH collateral on Base
+# Never share this. .env is gitignored.
 FLOE_PRIVATE_KEY=0x...
 
-# Base mainnet RPC endpoint
+# Free Base RPC from https://alchemy.com
 FLOE_RPC_URL=https://mainnet.base.org
 
-# Market ID — find this by running: python -c "from backends.floe_client import FloeClient; print(FloeClient().get_markets())"
+# Market ID — run this to find it:
+# python -c "from backends.floe_client import FloeClient; print(FloeClient().get_markets())"
 FLOE_MARKET_ID=0x...
 ```
 
-**Then run with Floe enabled:**
+**Step 3 — Run with Floe enabled:**
 
 ```bash
 python main.py --dataset data.csv --provider claude --mode phases --use-floe
